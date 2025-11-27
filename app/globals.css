@@ -1,0 +1,190 @@
+@import 'tailwindcss';
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 自定义动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 自定义滚动条 */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.4) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.4);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.6);
+}
+
+/* 输入框滚动条 - 更精致的样式 */
+.input-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+}
+
+.input-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.input-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.input-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgba(139, 92, 246, 0.4), rgba(34, 211, 238, 0.4));
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.input-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgba(139, 92, 246, 0.6), rgba(34, 211, 238, 0.6));
+  width: 6px;
+}
+
+.input-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(to bottom, rgba(139, 92, 246, 0.8), rgba(34, 211, 238, 0.8));
+}
+
+/* 打字机效果 */
+.typing-cursor {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 输入框焦点效果增强 */
+.input-focus-effect {
+  position: relative;
+}
+
+.input-focus-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0.75rem;
+  background: linear-gradient(45deg, rgba(168, 85, 247, 0.1), rgba(34, 211, 238, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.input-focus-effect:focus-within::before {
+  opacity: 1;
+}
+
+/* Markdown 样式增强 */
+.markdown-body {
+  color: inherit;
+}
+
+.markdown-body pre {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.markdown-body code {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.markdown-body pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  color: #e5e7eb;
+}
+
+.markdown-body table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.markdown-body th {
+  background-color: rgba(168, 85, 247, 0.2);
+  font-weight: 600;
+}
+
+.markdown-body tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.markdown-body tr:hover {
+  background-color: rgba(168, 85, 247, 0.1);
+}
+
+.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
