@@ -1,4 +1,3 @@
-import { HumanMessage } from '@langchain/core/messages'
 import { END, MessagesAnnotation, START, StateGraph } from '@langchain/langgraph'
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite'
 import { ChatOpenAI } from '@langchain/openai'
@@ -70,30 +69,4 @@ const getApp = async () => {
   return await initializeApp()
 }
 
-class StreamingHandler {
-  private buffer: string = ''
-  private onToken?: (token: string) => void
-  private onComplete?: (fullResponse: string) => void
-
-  constructor(options: { onToken?: (token: string) => void; onComplete?: (fullResponse: string) => void }) {
-    this.onToken = options.onToken
-    this.onComplete = options.onComplete
-  }
-
-  async handleStream(graph: ReturnType<typeof workflow.compile>, input: { messages: HumanMessage[] }, config: { configurable: { thread_id: string } }) {
-    this.buffer = ''
-    for await (const event of graph.streamEvents(input, { version: 'v2', ...config })) {
-      if (event.event === 'on_chat_model_stream') {
-        const chunk = event.data?.chunk
-        if (chunk?.context) {
-          this.buffer += chunk.content
-          this.onToken?.(chunk.content)
-        }
-      }
-    }
-    this.onComplete?.(this.buffer)
-    return this.buffer
-  }
-}
-
-export { checkpointer, getApp, StreamingHandler }
+export { checkpointer, getApp }
