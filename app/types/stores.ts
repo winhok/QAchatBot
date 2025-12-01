@@ -17,14 +17,14 @@ export interface SendMessageParams {
   sessionId: string
   addUserMessage: (content: string) => void
   addAssistantMessage: () => { id: string }
-  updateMessageContent: (id: string, content: string) => void
-  finishStreaming: (id: string) => void
+  updateMessageContent: (messageId: string, content: string) => void
+  finishStreaming: (messageId: string) => void
   addErrorMessage: () => void
   setIsLoading: (loading: boolean) => void
   updateSessionName: (name: string) => void
 }
 
-export interface ChatStore {
+export interface SendMessageState {
   sendMessage: (input: string, params: SendMessageParams) => Promise<void>
 }
 
