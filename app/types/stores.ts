@@ -27,3 +27,12 @@ export interface SendMessageParams {
 export interface ChatStore {
   sendMessage: (input: string, params: SendMessageParams) => Promise<void>
 }
+
+export interface SessionState {
+  sessionId: string
+  hasUserMessage: boolean
+  setSessionId: (id: string) => void
+  createNewSession: (id: string) => void
+  updateSessionName: (name: string) => Promise<void>
+  resetHasUserMessage: () => void
+}
