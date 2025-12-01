@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { ChatStore, SendMessageParams } from '../types/stores'
 
-export const useChatStore = create<ChatStore>()(() => ({
+export const useSendMessage = create<ChatStore>()(() => ({
   sendMessage: async (input: string, params: SendMessageParams) => {
     const { sessionId, addUserMessage, addAssistantMessage, updateMessageContent, finishStreaming, addErrorMessage, setIsLoading, updateSessionName } = params
 

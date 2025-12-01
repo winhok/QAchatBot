@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       )
     }
     const userMessage = new HumanMessage(message)
-    const threadId = typeof thread_id === 'string' && thread_id ? thread_id : randomUUID
+    const threadId = typeof thread_id === 'string' && thread_id ? thread_id : randomUUID()
     const threadConfig = { configurable: { thread_id: threadId } }
 
     const stream = new ReadableStream({
