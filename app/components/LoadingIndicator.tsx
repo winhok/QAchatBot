@@ -5,8 +5,8 @@ import { Bot } from 'lucide-react'
 export function LoadingIndicator() {
   return (
     <div className='flex gap-4 opacity-0' style={{ animation: 'fadeIn 0.5s ease-out forwards' }}>
-      <div className='flex-shrink-0'>
-        <div className='w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg'>
+      <div className='shrink-0'>
+        <div className='w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg'>
           <Bot className='h-5 w-5 text-white' />
         </div>
       </div>

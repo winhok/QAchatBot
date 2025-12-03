@@ -23,7 +23,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               return (
                 <div className='rounded-md overflow-hidden'>
                   <code
-                    className={`${className} block break-words whitespace-pre-wrap`}
+                    className={`${className} block wrap-break-word whitespace-pre-wrap`}
                     style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
                     {...props}
                   >
