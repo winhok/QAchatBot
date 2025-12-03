@@ -1,18 +1,13 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useChatMessages } from '../stores/useChatMessages'
 import { useSession } from '../stores/useSession'
 
 interface Session {
   id: string
   name: string
   created_at: string
-}
-
-interface SessionSidebarProps {
-  currentSessionId: string
-  onSelect: (id: string) => void
-  onNew: (id: string) => void
 }
 
 function getSessionTitle(session: Session) {
@@ -60,8 +55,9 @@ async function renameSession(id: string, name: string): Promise<void> {
   })
 }
 
-export default function SessionSidebar({ currentSessionId, onSelect, onNew }: SessionSidebarProps) {
-  const { renameId, renameValue, setRenameValue, openRenameModal, closeRenameModal } = useSession()
+export default function SessionSidebar() {
+  const { sessionId, setSessionId, createNewSession, renameId, renameValue, setRenameValue, openRenameModal, closeRenameModal } = useSession()
+  const resetMessages = useChatMessages(s => s.resetMessages)
   const queryClient = useQueryClient()
 
   const { data: sessions = [] } = useQuery({
@@ -73,7 +69,8 @@ export default function SessionSidebar({ currentSessionId, onSelect, onNew }: Se
     mutationFn: (name: string) => createSession(name),
     onSuccess: data => {
       if (data.id) {
-        onNew(data.id)
+        createNewSession(data.id)
+        resetMessages()
         queryClient.invalidateQueries({ queryKey: ['sessions'] })
       }
     },
@@ -95,6 +92,12 @@ export default function SessionSidebar({ currentSessionId, onSelect, onNew }: Se
   })
 
   const handleNew = () => createMutation.mutate('')
+
+  const handleSelect = (id: string) => {
+    if (id !== sessionId) {
+      setSessionId(id)
+    }
+  }
 
   const handleDelete = (id: string) => deleteMutation.mutate(id)
 
@@ -124,10 +127,10 @@ export default function SessionSidebar({ currentSessionId, onSelect, onNew }: Se
               <li key={session.id} className='group flex items-center'>
                 <button
                   className={`flex-1 text-left px-4 py-3 hover:bg-purple-800 transition-colors flex items-center gap-2 ${
-                    session.id === currentSessionId ? 'bg-purple-700 text-white font-bold' : 'text-purple-200'
+                    session.id === sessionId ? 'bg-purple-700 text-white font-bold' : 'text-purple-200'
                   }`}
-                  onClick={() => onSelect(session.id)}
-                  disabled={session.id === currentSessionId}
+                  onClick={() => handleSelect(session.id)}
+                  disabled={session.id === sessionId}
                 >
                   <span className='truncate'>{getSessionTitle(session)}</span>
                 </button>
