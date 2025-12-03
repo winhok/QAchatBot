@@ -5,6 +5,8 @@ import { getOrCreateThreadId, setThreadId } from '../utils/threadId'
 export const useSession = create<SessionState>((set, get) => ({
   sessionId: getOrCreateThreadId(),
   hasUserMessage: false,
+  renameId: null,
+  renameValue: '',
 
   setSessionId: id => {
     setThreadId(id)
@@ -35,4 +37,9 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   resetHasUserMessage: () => set({ hasUserMessage: false }),
+
+  setRenameId: id => set({ renameId: id }),
+  setRenameValue: value => set({ renameValue: value }),
+  openRenameModal: (id, name) => set({ renameId: id, renameValue: name }),
+  closeRenameModal: () => set({ renameId: null, renameValue: '' }),
 }))

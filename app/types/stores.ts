@@ -31,8 +31,14 @@ export interface SendMessageState {
 export interface SessionState {
   sessionId: string
   hasUserMessage: boolean
+  renameId: string | null
+  renameValue: string
   setSessionId: (id: string) => void
   createNewSession: (id: string) => void
   updateSessionName: (name: string) => Promise<void>
   resetHasUserMessage: () => void
+  setRenameId: (id: string | null) => void
+  setRenameValue: (value: string) => void
+  openRenameModal: (id: string, name: string) => void
+  closeRenameModal: () => void
 }

@@ -5,8 +5,8 @@ import { Message } from '../types/messages'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
 interface MessageBubbleProps {
-  message: Message // 要显示的消息
-  index: number // 消息在列表中的索引(用于动画延迟)
+  message: Message
+  index: number
 }
 
 export function MessageBubble({ message, index }: MessageBubbleProps) {
