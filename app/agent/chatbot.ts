@@ -1,10 +1,16 @@
+import { AIMessage } from '@langchain/core/messages'
 import { END, MessagesAnnotation, START, StateGraph } from '@langchain/langgraph'
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite'
+import { ToolNode } from '@langchain/langgraph/prebuilt'
 import { ChatOpenAI } from '@langchain/openai'
 import Database from 'better-sqlite3'
 import path from 'path'
 import '../utils/loadEnv'
+import './config/tools.register'
 import { initSessionTable } from './db'
+import { getAllTools } from './tools'
+
+const tools = getAllTools()
 
 const model = new ChatOpenAI({
   model: process.env.OPENAI_MODEL,
@@ -16,16 +22,32 @@ const model = new ChatOpenAI({
   configuration: {
     baseURL: process.env.OPENAI_BASE_URL,
   },
-})
+}).bindTools(tools)
 
 async function chatbotNode(state: typeof MessagesAnnotation.State) {
   const res = await model.invoke(state.messages)
   return { messages: [res] }
 }
+
+function shouldContinue(state: typeof MessagesAnnotation.State) {
+  const lastMessage = state.messages[state.messages.length - 1] as AIMessage
+  if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
+    return 'tools'
+  }
+  return END
+}
+
 const dbPath = path.resolve(process.cwd(), 'chat_history.db')
 export const db = new Database(dbPath)
 
-const workflow = new StateGraph(MessagesAnnotation).addNode('chatbot', chatbotNode).addEdge(START, 'chatbot').addEdge('chatbot', END)
+const toolNode = new ToolNode(tools)
+
+const workflow = new StateGraph(MessagesAnnotation)
+  .addNode('chatbot', chatbotNode)
+  .addNode('tools', toolNode)
+  .addEdge(START, 'chatbot')
+  .addConditionalEdges('chatbot', shouldContinue, ['tools', END])
+  .addEdge('tools', 'chatbot')
 
 let checkpointer: SqliteSaver
 let app: ReturnType<typeof workflow.compile>
