@@ -1,14 +1,21 @@
 import { create } from 'zustand'
-import type { SendMessageParams, SendMessageState } from '../types/stores'
+import type { SendMessageParams, SendMessageState, SessionType } from '../types/stores'
+
+const API_ENDPOINTS: Record<SessionType, string> = {
+  normal: '/api/chat',
+  testcase: '/api/qa-workflow',
+}
 
 export const useSendMessage = create<SendMessageState>()(() => ({
   sendMessage: async (input: string, params: SendMessageParams) => {
-    const { sessionId, addUserMessage, addAssistantMessage, updateMessageContent, finishStreaming, addErrorMessage, setIsLoading, updateSessionName } = params
+    const { sessionId, sessionType, addUserMessage, addAssistantMessage, updateMessageContent, finishStreaming, addErrorMessage, setIsLoading, updateSessionName } = params
+
+    const apiEndpoint = API_ENDPOINTS[sessionType] || '/api/chat'
 
     addUserMessage(input)
     setIsLoading(true)
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input, thread_id: sessionId }),

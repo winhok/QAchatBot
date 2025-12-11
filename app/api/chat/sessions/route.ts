@@ -1,10 +1,13 @@
-import { createSession, deleteSession, getAllSessions, updateSessionName } from '@/app/agent/db'
+import { createSession, deleteSession, getAllSessions, getSessionsByType, updateSessionName, type SessionType } from '@/app/agent/db'
 import { randomUUID } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const sessions = getAllSessions()
+    const { searchParams } = new URL(request.url)
+    const type = searchParams.get('type') as SessionType | null
+
+    const sessions = type ? getSessionsByType(type) : getAllSessions()
     return NextResponse.json({ sessions })
   } catch (e) {
     return NextResponse.json(
@@ -21,10 +24,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name } = await request.json()
+    const { name, type = 'normal' } = await request.json()
     const id = randomUUID()
-    createSession(id, name || `new session - ${id.slice(0, 8)}`)
-    return NextResponse.json({ id })
+    createSession(id, name || `新会话 - ${id.slice(0, 8)}`, type as SessionType)
+    return NextResponse.json({ id, type })
   } catch (e) {
     return NextResponse.json(
       {

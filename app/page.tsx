@@ -10,6 +10,7 @@ import { useChatMessages } from './stores/useChatMessages'
 import { useSendMessage } from './stores/useSendMessage'
 import { useSession } from './stores/useSession'
 import type { Message } from './types/messages'
+import type { SessionType } from './types/stores'
 
 interface LangGraphMessage {
   id: string[] | unknown
@@ -31,8 +32,14 @@ function transformMessages(history: LangGraphMessage[]): Message[] {
   }))
 }
 
-async function fetchHistory(sessionId: string): Promise<Message[]> {
-  const res = await fetch(`/api/chat?thread_id=${sessionId}`)
+const API_HISTORY_ENDPOINTS: Record<SessionType, string> = {
+  normal: '/api/chat',
+  testcase: '/api/qa-workflow',
+}
+
+async function fetchHistory(sessionId: string, sessionType: SessionType): Promise<Message[]> {
+  const endpoint = API_HISTORY_ENDPOINTS[sessionType] || '/api/chat'
+  const res = await fetch(`${endpoint}?thread_id=${sessionId}`)
   const data = await res.json()
   if (Array.isArray(data.history) && data.history.length > 0) {
     return transformMessages(data.history)
@@ -42,6 +49,7 @@ async function fetchHistory(sessionId: string): Promise<Message[]> {
 
 export default function ChatPage() {
   const sessionId = useSession(s => s.sessionId)
+  const sessionType = useSession(s => s.sessionType)
   const updateSessionName = useSession(s => s.updateSessionName)
   const resetHasUserMessage = useSession(s => s.resetHasUserMessage)
 
@@ -57,8 +65,8 @@ export default function ChatPage() {
   const sendMessageFn = useSendMessage(s => s.sendMessage)
 
   useQuery({
-    queryKey: ['chatHistory', sessionId],
-    queryFn: () => fetchHistory(sessionId),
+    queryKey: ['chatHistory', sessionId, sessionType],
+    queryFn: () => fetchHistory(sessionId, sessionType),
     select: data => {
       loadMessages(data)
       resetHasUserMessage()
@@ -71,6 +79,7 @@ export default function ChatPage() {
   const handleSend = (input: string) => {
     sendMessageFn(input, {
       sessionId,
+      sessionType,
       addUserMessage,
       addAssistantMessage,
       updateMessageContent,
