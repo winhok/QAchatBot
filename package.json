@@ -2,11 +2,6 @@
   "name": "QAchatBot",
   "version": "0.1.0",
   "private": true,
-  "pnpm": {
-    "overrides": {
-      "better-sqlite3": "^12.5.0"
-    }
-  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -22,10 +17,11 @@
     "pm2:status": "pm2 status"
   },
   "dependencies": {
-    "@langchain/core": "^1.1.2",
-    "@langchain/langgraph": "^1.0.3",
+    "@langchain/core": "^1.1.4",
+    "@langchain/google-genai": "^2.0.4",
+    "@langchain/langgraph": "^1.0.4",
     "@langchain/langgraph-checkpoint-sqlite": "^1.0.0",
-    "@langchain/mcp-adapters": "^1.0.2",
+    "@langchain/mcp-adapters": "^1.0.3",
     "@langchain/openai": "^1.1.3",
     "@langchain/tavily": "^1.0.1",
     "@modelcontextprotocol/server-filesystem": "^2025.11.25",
@@ -34,8 +30,8 @@
     "better-sqlite3": "^12.5.0",
     "dotenv": "^17.2.3",
     "highlight.js": "^11.11.1",
-    "lucide-react": "^0.555.0",
-    "next": "16.0.7",
+    "lucide-react": "^0.559.0",
+    "next": "16.0.8",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "react-markdown": "^10.1.0",
@@ -50,16 +46,22 @@
     "@eslint/eslintrc": "^3.3.3",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^24",
+    "@typescript/native-preview": "7.0.0-dev.20251210.1",
+    "@types/bun": "latest",
+    "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.0.7",
+    "eslint-config-next": "16.0.8",
     "esno": "^4.8.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "@types/bun": "latest"
+    "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "better-sqlite3": "^12.5.0"
+    }
   },
   "trustedDependencies": [
     "better-sqlite3",
