@@ -1,5 +1,14 @@
 import type { Message } from './messages'
 
+export type SessionType = 'normal' | 'testcase'
+
+export interface Session {
+  id: string
+  name: string
+  type: SessionType
+  created_at: string
+}
+
 export interface ChatMessagesState {
   messages: Message[]
   isLoading: boolean
@@ -15,6 +24,7 @@ export interface ChatMessagesState {
 
 export interface SendMessageParams {
   sessionId: string
+  sessionType: SessionType
   addUserMessage: (content: string) => void
   addAssistantMessage: () => { id: string }
   updateMessageContent: (messageId: string, content: string) => void
@@ -30,11 +40,13 @@ export interface SendMessageState {
 
 export interface SessionState {
   sessionId: string
+  sessionType: SessionType
   hasUserMessage: boolean
   renameId: string | null
   renameValue: string
   setSessionId: (id: string) => void
-  createNewSession: (id: string) => void
+  setSessionType: (type: SessionType) => void
+  createNewSession: (id: string, type?: SessionType) => void
   updateSessionName: (name: string) => Promise<void>
   resetHasUserMessage: () => void
   setRenameId: (id: string | null) => void

@@ -1,9 +1,10 @@
 import { create } from 'zustand'
-import type { SessionState } from '../types/stores'
+import type { SessionState, SessionType } from '../types/stores'
 import { getOrCreateThreadId, setThreadId } from '../utils/threadId'
 
 export const useSession = create<SessionState>((set, get) => ({
   sessionId: getOrCreateThreadId(),
+  sessionType: 'normal' as SessionType,
   hasUserMessage: false,
   renameId: null,
   renameValue: '',
@@ -13,9 +14,13 @@ export const useSession = create<SessionState>((set, get) => ({
     set({ sessionId: id })
   },
 
-  createNewSession: id => {
+  setSessionType: type => {
+    set({ sessionType: type })
+  },
+
+  createNewSession: (id, type = 'normal') => {
     setThreadId(id)
-    set({ sessionId: id, hasUserMessage: false })
+    set({ sessionId: id, sessionType: type, hasUserMessage: false })
   },
 
   updateSessionName: async name => {
