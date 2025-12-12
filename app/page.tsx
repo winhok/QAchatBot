@@ -91,7 +91,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className='h-screen flex flex-col bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden'>
+    <div className='h-screen flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden'>
       <BackgroundEffects />
       <ChatHeader />
 
