@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Badge } from '@/app/components/ui/badge'
 import { Button } from '@/app/components/ui/button'
 import {
@@ -10,23 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/app/components/ui/dropdown-menu'
-import { Bell, Settings, ChevronDown, Sparkles, Wrench, Database, Globe } from 'lucide-react'
-
-const models = [
-  { id: 'qwen-plus', name: 'Qwen Plus', badge: '推荐', description: '强大的语言模型' },
-  { id: 'gpt-4', name: 'GPT-4', description: '稳定可靠' },
-]
-
-const tools = [
-  { id: 'stategraph', name: 'StateGraph', icon: Globe, enabled: true },
-  { id: 'database', name: 'Database Query', icon: Database, enabled: true },
-  { id: 'playwright', name: 'Playwright', icon: Wrench, enabled: false },
-]
+import { Bell, Settings, ChevronDown, Sparkles, Wrench } from 'lucide-react'
+import { MODELS, TOOLS } from '@/app/lib/constants'
 
 export function ChatHeader() {
-  const selectedModel = 'qwen-plus'
-  const currentModel = models.find(m => m.id === selectedModel) || models[0]
-  const enabledToolsCount = tools.filter(t => t.enabled).length
+  const [selectedModel, setSelectedModel] = useState('qwen-plus')
+  const currentModel = MODELS.find(m => m.id === selectedModel) || MODELS[0]
+  const enabledToolsCount = TOOLS.filter(t => t.enabled).length
 
   return (
     <header className='flex h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 sticky top-0 z-10'>
@@ -45,9 +36,10 @@ export function ChatHeader() {
           <DropdownMenuContent align='start' className='w-56'>
             <DropdownMenuLabel className='text-xs text-muted-foreground'>选择模型</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {models.map(model => (
+            {MODELS.map(model => (
               <DropdownMenuItem
                 key={model.id}
+                onClick={() => setSelectedModel(model.id)}
                 className='flex flex-col items-start gap-0.5 py-2.5'
               >
                 <div className='flex items-center gap-2 w-full'>
@@ -91,7 +83,7 @@ export function ChatHeader() {
           <DropdownMenuContent align='start' className='w-56'>
             <DropdownMenuLabel className='text-xs text-muted-foreground'>已启用工具</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {tools.map(tool => (
+            {TOOLS.map(tool => (
               <DropdownMenuItem key={tool.id} className='flex items-center justify-between py-2.5'>
                 <div className='flex items-center gap-2.5'>
                   <div className={`rounded-lg p-1.5 ${tool.enabled ? 'bg-emerald-500/10' : 'bg-muted'}`}>

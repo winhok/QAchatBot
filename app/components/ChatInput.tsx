@@ -18,6 +18,12 @@ interface ChatInputProps {
   disabled?: boolean
 }
 
+const quickActions = [
+  { icon: FileCode, label: '测试接口', prompt: '帮我测试以下接口：' },
+  { icon: TestTube2, label: '生成测试用例', prompt: '帮我生成以下功能的测试用例：' },
+  { icon: Bug, label: '分析 Bug', prompt: '帮我分析以下错误日志：' },
+]
+
 export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState('')
 
@@ -34,12 +40,6 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
       handleSend()
     }
   }
-
-  const quickActions = [
-    { icon: FileCode, label: '测试接口', prompt: '帮我测试以下接口：' },
-    { icon: TestTube2, label: '生成测试用例', prompt: '帮我生成以下功能的测试用例：' },
-    { icon: Bug, label: '分析 Bug', prompt: '帮我分析以下错误日志：' },
-  ]
 
   return (
     <div className='border-t border-border/50 bg-gradient-to-t from-background to-background/80 p-4 backdrop-blur-xl'>
