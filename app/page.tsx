@@ -5,6 +5,7 @@ import { ChatHeader } from './components/ChatHeader'
 import { ChatInput } from './components/ChatInput'
 import { MessageList } from './components/MessageList'
 import SessionSidebar from './components/SessionSidebar'
+import { FloatingChatBubble } from './components/FloatingChatBubble'
 import { useChatMessages } from './stores/useChatMessages'
 import { useSendMessage } from './stores/useSendMessage'
 import { useSession } from './stores/useSession'
@@ -49,8 +50,10 @@ async function fetchHistory(sessionId: string, sessionType: SessionType): Promis
 export default function ChatPage() {
   const sessionId = useSession(s => s.sessionId)
   const sessionType = useSession(s => s.sessionType)
+  const setSessionType = useSession(s => s.setSessionType)
   const updateSessionName = useSession(s => s.updateSessionName)
   const resetHasUserMessage = useSession(s => s.resetHasUserMessage)
+  const createNewSession = useSession(s => s.createNewSession)
 
   const isLoading = useChatMessages(s => s.isLoading)
   const setIsLoading = useChatMessages(s => s.setIsLoading)
@@ -60,6 +63,7 @@ export default function ChatPage() {
   const finishStreaming = useChatMessages(s => s.finishStreaming)
   const addErrorMessage = useChatMessages(s => s.addErrorMessage)
   const loadMessages = useChatMessages(s => s.loadMessages)
+  const resetMessages = useChatMessages(s => s.resetMessages)
 
   const sendMessageFn = useSendMessage(s => s.sendMessage)
 
@@ -89,6 +93,16 @@ export default function ChatPage() {
     })
   }
 
+  const handleQuickAction = (_action: string, type: SessionType) => {
+    // 切换会话类型
+    setSessionType(type)
+    // 创建新会话
+    const newSessionId = `${Date.now()}`
+    createNewSession(newSessionId, type)
+    // 重置消息
+    resetMessages()
+  }
+
   return (
     <div className='flex h-screen bg-background'>
       <SessionSidebar />
@@ -101,6 +115,8 @@ export default function ChatPage() {
           <ChatInput onSend={handleSend} disabled={isLoading} />
         </div>
       </div>
+
+      <FloatingChatBubble onQuickAction={handleQuickAction} />
     </div>
   )
 }
