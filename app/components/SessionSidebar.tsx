@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus, Trash2, Edit2 } from 'lucide-react'
+import { Edit2, Plus, Search, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useChatMessages } from '../stores/useChatMessages'
 import { useSession } from '../stores/useSession'
@@ -100,16 +100,14 @@ export default function SessionSidebar() {
   }
 
   // Simple frontend filtering
-  const filteredSessions = sessions.filter(session =>
-    getSessionTitle(session).toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredSessions = sessions.filter(session => getSessionTitle(session).toLowerCase().includes(searchQuery.toLowerCase()))
 
   return (
     <aside className='w-64 bg-slate-900/95 backdrop-blur-md border-r border-white/10 h-full flex flex-col shadow-xl'>
       <div className='p-4 border-b border-white/10 flex items-center justify-between'>
         <span className='text-white font-bold text-lg'>历史会话</span>
         <button
-          className='p-2 bg-gradient-to-r from-purple-600 to-cyan-600 text-white rounded-lg hover:from-purple-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 disabled:transform-none'
+          className='p-2 bg-linear-to-r from-purple-600 to-cyan-600 text-white rounded-lg hover:from-purple-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 disabled:transform-none'
           onClick={handleNew}
           disabled={createMutation.isPending}
           aria-label='新建会话'
@@ -197,7 +195,7 @@ export default function SessionSidebar() {
                   取消
                 </button>
                 <button
-                  className='px-4 py-2 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg'
+                  className='px-4 py-2 bg-linear-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg'
                   onClick={() => handleRename(renameId)}
                   disabled={renameMutation.isPending}
                 >

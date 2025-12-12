@@ -1,6 +1,6 @@
 'use client'
 
-import { Database, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Copy, Database } from 'lucide-react'
 import { useState } from 'react'
 
 interface ApiResultBlockProps {
@@ -59,7 +59,7 @@ export function ApiResultBlock({ endpoint, method = 'GET', statusCode = 200, res
   const shouldCollapse = dataLines.length > 10
 
   return (
-    <div className='backdrop-blur-md bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/20 rounded-2xl p-4 my-2 shadow-lg'>
+    <div className='backdrop-blur-md bg-linear-to-br from-indigo-500/20 to-purple-500/20 border border-white/20 rounded-2xl p-4 my-2 shadow-lg'>
       <div className='flex items-center justify-between mb-3'>
         <div className='flex items-center gap-2 flex-wrap'>
           <Database className='h-4 w-4 text-purple-300' />
@@ -95,8 +95,12 @@ export function ApiResultBlock({ endpoint, method = 'GET', statusCode = 200, res
             </button>
           </div>
         </div>
-        <div className={`bg-black/30 rounded-lg p-3 overflow-y-auto custom-scrollbar transition-all duration-300 ${expanded || !shouldCollapse ? 'max-h-96' : 'max-h-32'}`}>
-          <pre className='text-xs font-mono text-cyan-200 whitespace-pre-wrap break-words'>{formattedData}</pre>
+        <div
+          className={`bg-black/30 rounded-lg p-3 overflow-y-auto custom-scrollbar transition-all duration-300 ${
+            expanded || !shouldCollapse ? 'max-h-96' : 'max-h-32'
+          }`}
+        >
+          <pre className='text-xs font-mono text-cyan-200 whitespace-pre-wrap wrap-break-word'>{formattedData}</pre>
         </div>
       </div>
     </div>
