@@ -1,10 +1,9 @@
 'use client'
 
+import { ScrollArea } from '@/app/components/ui/scroll-area'
 import { useChatMessages } from '../stores/useChatMessages'
 import { LoadingIndicator } from './LoadingIndicator'
 import { MessageBubble } from './MessageBubble'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { cn } from '@/lib/utils'
 
 export function MessageList() {
   const messages = useChatMessages(state => state.messages)

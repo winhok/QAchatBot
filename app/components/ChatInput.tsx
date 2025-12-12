@@ -1,10 +1,10 @@
 'use client'
 
+import { Button } from '@/app/components/ui/button'
+import { Textarea } from '@/app/components/ui/textarea'
+import { cn } from '@/app/lib/utils'
 import { MessageCircle, Send } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
 
 interface ChatInputProps {
   onSend: (message: string) => void
@@ -67,10 +67,10 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
         <Button
           onClick={handleSend}
           disabled={!input.trim() || disabled}
-          size="icon"
+          size='icon'
           className={cn(
             'h-[44px] w-[44px] shrink-0',
-            'bg-gradient-to-r from-purple-500 to-pink-500',
+            'bg-linear-to-r from-purple-500 to-pink-500',
             'hover:from-purple-600 hover:to-pink-600',
             'shadow-lg shadow-purple-500/30',
             'disabled:opacity-50 disabled:cursor-not-allowed',

@@ -1,15 +1,14 @@
 'use client'
 
+import { Button } from '@/app/components/ui/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/app/components/ui/dialog'
+import { Input } from '@/app/components/ui/input'
+import { ScrollArea } from '@/app/components/ui/scroll-area'
+import { cn } from '@/app/lib/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Edit2, MessageSquare, Plus, Trash2 } from 'lucide-react'
 import { useChatMessages } from '../stores/useChatMessages'
 import { useSession } from '../stores/useSession'
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
-import { Trash2, Edit2, Plus, MessageSquare } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface Session {
   id: string
@@ -109,16 +108,14 @@ export default function SessionSidebar() {
       <div className='p-4 border-b border-white/10 flex items-center justify-between'>
         <div className='flex items-center gap-2'>
           <MessageSquare className='h-5 w-5 text-purple-400' />
-          <span className='text-white font-bold text-lg bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent'>
-            历史会话
-          </span>
+          <span className='text-white font-bold text-lg bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text'>历史会话</span>
         </div>
         <Button
-          size="sm"
+          size='sm'
           onClick={handleNew}
           disabled={createMutation.isPending}
           className={cn(
-            'bg-gradient-to-r from-purple-500 to-pink-500',
+            'bg-linear-to-r from-purple-500 to-pink-500',
             'hover:from-purple-600 hover:to-pink-600',
             'shadow-lg shadow-purple-500/30',
             'text-white h-8 px-3'
@@ -132,15 +129,13 @@ export default function SessionSidebar() {
       {/* Session List */}
       <ScrollArea className='flex-1'>
         {sessions.length === 0 ? (
-          <div className='text-purple-300/50 p-4 text-center text-sm'>
-            暂无历史会话
-          </div>
+          <div className='text-purple-300/50 p-4 text-center text-sm'>暂无历史会话</div>
         ) : (
           <ul>
             {sessions.map(session => (
               <li key={session.id} className='group relative'>
                 <Button
-                  variant="ghost"
+                  variant='ghost'
                   onClick={() => handleSelect(session.id)}
                   disabled={session.id === sessionId}
                   className={cn(
@@ -148,18 +143,18 @@ export default function SessionSidebar() {
                     'hover:bg-white/5 transition-all duration-200',
                     'rounded-none border-b border-white/5',
                     session.id === sessionId
-                      ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white font-semibold border-l-2 border-l-purple-400'
+                      ? 'bg-linear-to-r from-purple-500/20 to-pink-500/20 text-white font-semibold border-l-2 border-l-purple-400'
                       : 'text-purple-200/80 hover:text-white'
                   )}
                 >
                   <span className='truncate flex-1'>{getSessionTitle(session)}</span>
                 </Button>
-                
+
                 {/* Action buttons - shown on hover */}
                 <div className='absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
                   <Button
-                    variant="ghost"
-                    size="icon-sm"
+                    variant='ghost'
+                    size='icon-sm'
                     onClick={e => {
                       e.stopPropagation()
                       openRenameModal(session.id, session.name)
@@ -169,8 +164,8 @@ export default function SessionSidebar() {
                     <Edit2 className='h-3.5 w-3.5' />
                   </Button>
                   <Button
-                    variant="ghost"
-                    size="icon-sm"
+                    variant='ghost'
+                    size='icon-sm'
                     onClick={e => {
                       e.stopPropagation()
                       handleDelete(session.id)
@@ -191,9 +186,7 @@ export default function SessionSidebar() {
       <Dialog open={!!renameId} onOpenChange={closeRenameModal}>
         <DialogContent className='backdrop-blur-xl bg-slate-950/90 border-white/20 text-white shadow-2xl shadow-purple-500/20'>
           <DialogHeader>
-            <DialogTitle className='bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent'>
-              重命名会话
-            </DialogTitle>
+            <DialogTitle className='bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent'>重命名会话</DialogTitle>
           </DialogHeader>
           <Input
             value={renameValue}
@@ -203,21 +196,13 @@ export default function SessionSidebar() {
             autoFocus
           />
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={closeRenameModal}
-              className='border-white/20 text-white hover:bg-white/10'
-            >
+            <Button variant='outline' onClick={closeRenameModal} className='border-white/20 text-white hover:bg-white/10'>
               取消
             </Button>
             <Button
               onClick={() => renameId && handleRename(renameId)}
               disabled={renameMutation.isPending || !renameValue.trim()}
-              className={cn(
-                'bg-gradient-to-r from-purple-500 to-pink-500',
-                'hover:from-purple-600 hover:to-pink-600',
-                'shadow-lg shadow-purple-500/30'
-              )}
+              className={cn('bg-linear-to-r from-purple-500 to-pink-500', 'hover:from-purple-600 hover:to-pink-600', 'shadow-lg shadow-purple-500/30')}
             >
               保存
             </Button>
