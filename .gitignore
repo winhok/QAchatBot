@@ -9,6 +9,11 @@
 !.yarn/versions
 package-lock.json
 
+# database
+*.db
+*.db-shm
+*.db-wal
+
 # testing
 /coverage
 
