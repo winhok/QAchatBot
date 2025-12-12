@@ -11,7 +11,7 @@ const INITIAL_MESSAGE: Message = {
 }
 
 export const useChatMessages = create<ChatMessagesState>(set => ({
-  messages: [INITIAL_MESSAGE],
+  messages: [],
   isLoading: false,
 
   setIsLoading: loading => set({ isLoading: loading }),
@@ -61,9 +61,9 @@ export const useChatMessages = create<ChatMessagesState>(set => ({
     set(state => ({ messages: [...state.messages, errorMessage] }))
   },
 
-  resetMessages: () => set({ messages: [INITIAL_MESSAGE] }),
+  resetMessages: () => set({ messages: [] }),
 
   loadMessages: historyMessages => {
-    set({ messages: historyMessages.length > 0 ? historyMessages : [INITIAL_MESSAGE] })
+    set({ messages: historyMessages })
   },
 }))
