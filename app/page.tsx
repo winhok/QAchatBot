@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { BackgroundEffects } from './components/BackgroundEffects'
 import { ChatHeader } from './components/ChatHeader'
 import { ChatInput } from './components/ChatInput'
 import { MessageList } from './components/MessageList'
@@ -91,18 +90,15 @@ export default function ChatPage() {
   }
 
   return (
-    <div className='h-screen flex flex-col bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden'>
-      <BackgroundEffects />
-      <ChatHeader />
+    <div className='flex h-screen bg-background'>
+      <SessionSidebar />
 
-      <div className='relative z-10 flex flex-1 h-0'>
-        <SessionSidebar />
+      <div className='flex flex-1 flex-col'>
+        <ChatHeader />
 
-        <div className='flex-1 flex flex-col'>
-          <div className='flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0'>
-            <MessageList />
-            <ChatInput onSend={handleSend} disabled={isLoading} />
-          </div>
+        <div className='flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0'>
+          <MessageList />
+          <ChatInput onSend={handleSend} disabled={isLoading} />
         </div>
       </div>
     </div>
