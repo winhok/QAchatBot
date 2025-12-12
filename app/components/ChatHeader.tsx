@@ -15,9 +15,20 @@ import { Bell, Settings, ChevronDown, Sparkles, Wrench } from 'lucide-react'
 import { MODELS, TOOLS } from '@/app/lib/constants'
 
 export function ChatHeader() {
+  // TODO: Connect selectedModel to chat logic/API calls to affect actual model behavior
   const [selectedModel, setSelectedModel] = useState('qwen-plus')
   const currentModel = MODELS.find(m => m.id === selectedModel) || MODELS[0]
   const enabledToolsCount = TOOLS.filter(t => t.enabled).length
+
+  const handleNotifications = () => {
+    // TODO: Implement notifications feature
+    console.log('Notifications feature coming soon')
+  }
+
+  const handleSettings = () => {
+    // TODO: Implement settings feature
+    console.log('Settings feature coming soon')
+  }
 
   return (
     <header className='flex h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 sticky top-0 z-10'>
@@ -103,12 +114,18 @@ export function ChatHeader() {
         <Button
           variant='ghost'
           size='icon'
+          onClick={handleNotifications}
           className='text-muted-foreground hover:text-foreground relative rounded-xl h-9 w-9'
         >
           <Bell className='h-4 w-4' />
           <span className='absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background' />
         </Button>
-        <Button variant='ghost' size='icon' className='text-muted-foreground hover:text-foreground rounded-xl h-9 w-9'>
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={handleSettings}
+          className='text-muted-foreground hover:text-foreground rounded-xl h-9 w-9'
+        >
           <Settings className='h-4 w-4' />
         </Button>
       </div>

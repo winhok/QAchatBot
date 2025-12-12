@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/app/components/ui/button'
 import { Textarea } from '@/app/components/ui/textarea'
 import {
@@ -26,11 +26,20 @@ const quickActions = [
 
 export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const adjustHeight = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto'
+    textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px'
+  }
 
   const handleSend = () => {
     if (message.trim() && !disabled) {
       onSend(message.trim())
       setMessage('')
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+      }
     }
   }
 
@@ -39,6 +48,16 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
       e.preventDefault()
       handleSend()
     }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value)
+    adjustHeight(e.target)
+  }
+
+  const handleFileUpload = () => {
+    // TODO: Implement file upload functionality
+    console.log('File upload feature coming soon')
   }
 
   return (
@@ -68,7 +87,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleFileUpload}>
                   <Paperclip className='mr-2 h-4 w-4' />
                   上传文件
                 </DropdownMenuItem>
@@ -76,12 +95,14 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
             </DropdownMenu>
 
             <Textarea
+              ref={textareaRef}
               value={message}
-              onChange={e => setMessage(e.target.value)}
+              onChange={handleChange}
               onKeyDown={handleKeyDown}
               placeholder='输入测试需求，让 AI 助手帮你完成...'
               className='min-h-[44px] max-h-32 flex-1 resize-none border-0 bg-transparent p-2 text-foreground placeholder:text-muted-foreground focus-visible:ring-0'
               rows={1}
+              style={{ maxHeight: '128px' }}
             />
 
             <Button
