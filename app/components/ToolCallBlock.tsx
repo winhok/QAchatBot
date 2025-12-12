@@ -1,6 +1,6 @@
 'use client'
 
-import { Terminal, Copy, Check } from 'lucide-react'
+import { Check, Copy, Terminal } from 'lucide-react'
 import { useState } from 'react'
 
 interface ToolCallBlockProps {
@@ -42,7 +42,7 @@ export function ToolCallBlock({ toolName, input, output, status = 'success' }: T
   }
 
   return (
-    <div className={`backdrop-blur-md bg-gradient-to-br ${statusColors[status]} border rounded-2xl p-4 my-2 shadow-lg`}>
+    <div className={`backdrop-blur-md bg-linear-to-br ${statusColors[status]} border rounded-2xl p-4 my-2 shadow-lg`}>
       <div className='flex items-center gap-2 mb-3'>
         <Terminal className='h-4 w-4 text-purple-300' />
         <span className='text-sm font-semibold text-white'>{toolName}</span>
@@ -63,7 +63,7 @@ export function ToolCallBlock({ toolName, input, output, status = 'success' }: T
             </button>
           </div>
           <div className='bg-black/30 rounded-lg p-3 max-h-32 overflow-y-auto custom-scrollbar'>
-            <pre className='text-xs font-mono text-green-200 whitespace-pre-wrap break-words'>{formatData(input)}</pre>
+            <pre className='text-xs font-mono text-green-200 whitespace-pre-wrap wrap-break-word'>{formatData(input)}</pre>
           </div>
         </div>
 
@@ -81,7 +81,7 @@ export function ToolCallBlock({ toolName, input, output, status = 'success' }: T
               </button>
             </div>
             <div className='bg-black/30 rounded-lg p-3 max-h-32 overflow-y-auto custom-scrollbar'>
-              <pre className='text-xs font-mono text-cyan-200 whitespace-pre-wrap break-words'>{formatData(output)}</pre>
+              <pre className='text-xs font-mono text-cyan-200 whitespace-pre-wrap wrap-break-word'>{formatData(output)}</pre>
             </div>
           </div>
         )}

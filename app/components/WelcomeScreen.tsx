@@ -1,25 +1,15 @@
 'use client'
 
-import { Sparkles, Zap, MessageSquare, Brain } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Brain, MessageSquare, Sparkles, Zap } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface WelcomeScreenProps {
   onFeatureClick?: (prompt: string) => void
 }
 
-const WELCOME_TITLES = [
-  '👋 你好！我是 AI 助手',
-  '✨ 欢迎使用智能对话',
-  '🚀 开启 AI 探索之旅',
-  '💡 让我来帮助你',
-]
+const WELCOME_TITLES = ['👋 你好！我是 AI 助手', '✨ 欢迎使用智能对话', '🚀 开启 AI 探索之旅', '💡 让我来帮助你']
 
-const WELCOME_SUBTITLES = [
-  '随时为您提供智能帮助',
-  '强大的 AI 能力，触手可及',
-  '让对话更智能，让工作更高效',
-  '您的智能助手，随时待命',
-]
+const WELCOME_SUBTITLES = ['随时为您提供智能帮助', '强大的 AI 能力，触手可及', '让对话更智能，让工作更高效', '您的智能助手，随时待命']
 
 const FEATURE_PROMPTS = [
   { icon: Brain, text: '帮我总结一段文本', prompt: '请帮我总结以下内容：' },
@@ -78,13 +68,11 @@ export function WelcomeScreen({ onFeatureClick }: WelcomeScreenProps) {
                 className='group backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 hover:border-white/30 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 text-left transform hover:scale-[1.02] active:scale-[0.98]'
               >
                 <div className='flex items-start gap-4'>
-                  <div className='shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center group-hover:from-purple-500/30 group-hover:to-cyan-500/30 transition-all duration-300'>
+                  <div className='shrink-0 w-12 h-12 bg-linear-to-br from-purple-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center group-hover:from-purple-500/30 group-hover:to-cyan-500/30 transition-all duration-300'>
                     <Icon className='h-6 w-6 text-purple-300 group-hover:text-purple-200 transition-colors duration-300' />
                   </div>
                   <div className='flex-1 min-w-0'>
-                    <div className='text-white font-medium group-hover:text-purple-100 transition-colors duration-300'>
-                      {feature.text}
-                    </div>
+                    <div className='text-white font-medium group-hover:text-purple-100 transition-colors duration-300'>{feature.text}</div>
                     <div className='text-sm text-purple-300 mt-1 truncate'>{feature.prompt}</div>
                   </div>
                 </div>

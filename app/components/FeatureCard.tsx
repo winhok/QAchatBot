@@ -27,14 +27,14 @@ export function FeatureCard({ icon: Icon, title, description, onClick, disabled 
     >
       {/* Coming Soon Badge */}
       {comingSoon && (
-        <div className='absolute -top-2 -right-2 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-semibold rounded-full shadow-lg'>
+        <div className='absolute -top-2 -right-2 px-2 py-1 bg-linear-to-r from-yellow-500 to-orange-500 text-white text-xs font-semibold rounded-full shadow-lg'>
           开发中
         </div>
       )}
 
       {/* Custom Badge */}
       {badge && !comingSoon && (
-        <div className='absolute -top-2 -right-2 px-2 py-1 bg-gradient-to-r from-purple-500 to-cyan-500 text-white text-xs font-semibold rounded-full shadow-lg'>
+        <div className='absolute -top-2 -right-2 px-2 py-1 bg-linear-to-r from-purple-500 to-cyan-500 text-white text-xs font-semibold rounded-full shadow-lg'>
           {badge}
         </div>
       )}
@@ -43,18 +43,14 @@ export function FeatureCard({ icon: Icon, title, description, onClick, disabled 
         <div
           className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
             isDisabled
-              ? 'bg-gradient-to-br from-gray-500/20 to-gray-600/20'
-              : 'bg-gradient-to-br from-purple-500/20 to-cyan-500/20 group-hover:from-purple-500/30 group-hover:to-cyan-500/30'
+              ? 'bg-linear-to-br from-gray-500/20 to-gray-600/20'
+              : 'bg-linear-to-br from-purple-500/20 to-cyan-500/20 group-hover:from-purple-500/30 group-hover:to-cyan-500/30'
           }`}
         >
           <Icon className={`h-6 w-6 transition-colors duration-300 ${isDisabled ? 'text-gray-400' : 'text-purple-300'}`} />
         </div>
         <div className='flex-1 min-w-0'>
-          <h3
-            className={`font-semibold mb-1 transition-colors duration-300 ${
-              isDisabled ? 'text-gray-300' : 'text-white group-hover:text-purple-100'
-            }`}
-          >
+          <h3 className={`font-semibold mb-1 transition-colors duration-300 ${isDisabled ? 'text-gray-300' : 'text-white group-hover:text-purple-100'}`}>
             {title}
           </h3>
           <p className={`text-sm transition-colors duration-300 ${isDisabled ? 'text-gray-400' : 'text-purple-300'}`}>{description}</p>

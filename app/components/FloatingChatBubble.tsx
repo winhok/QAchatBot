@@ -1,7 +1,7 @@
 'use client'
 
-import { MessageCircle, X, Maximize2, Minimize2 } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
+import { Maximize2, MessageCircle, Minimize2, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 interface FloatingChatBubbleProps {
   onToggle?: (isOpen: boolean) => void
@@ -114,7 +114,7 @@ export function FloatingChatBubble({ onToggle, defaultPosition = { x: 20, y: 20 
           {/* Main Bubble Button */}
           <button
             onClick={handleToggle}
-            className='w-16 h-16 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 ring-4 ring-purple-400/30'
+            className='w-16 h-16 bg-linear-to-br from-purple-500 to-cyan-500 rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 ring-4 ring-purple-400/30'
             aria-label='打开聊天'
           >
             {isOpen ? <X className='h-8 w-8 text-white' /> : <MessageCircle className='h-8 w-8 text-white' />}
@@ -137,7 +137,7 @@ export function FloatingChatBubble({ onToggle, defaultPosition = { x: 20, y: 20 
       {/* Chat Panel (when open) */}
       {isOpen && (
         <div className='fixed bottom-28 right-6 w-96 h-[600px] bg-slate-900/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl z-40 flex flex-col overflow-hidden'>
-          <div className='p-4 border-b border-white/10 bg-gradient-to-r from-purple-500/20 to-cyan-500/20'>
+          <div className='p-4 border-b border-white/10 bg-linear-to-r from-purple-500/20 to-cyan-500/20'>
             <h3 className='text-white font-bold text-lg'>AI 助手</h3>
             <p className='text-purple-200 text-xs'>随时为您服务</p>
           </div>
