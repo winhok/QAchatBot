@@ -90,6 +90,10 @@ export default function ChatPage() {
     })
   }
 
+  const handleFeatureClick = (prompt: string) => {
+    handleSend(prompt)
+  }
+
   return (
     <div className='h-screen flex flex-col bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden'>
       <BackgroundEffects />
@@ -100,7 +104,7 @@ export default function ChatPage() {
 
         <div className='flex-1 flex flex-col'>
           <div className='flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0'>
-            <MessageList />
+            <MessageList onFeatureClick={handleFeatureClick} />
             <ChatInput onSend={handleSend} disabled={isLoading} />
           </div>
         </div>
