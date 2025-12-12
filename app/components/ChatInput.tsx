@@ -24,13 +24,15 @@ const quickActions = [
   { icon: Bug, label: '分析 Bug', prompt: '帮我分析以下错误日志：' },
 ]
 
+const MAX_TEXTAREA_HEIGHT = 128
+
 export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const adjustHeight = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto'
-    textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px'
+    textarea.style.height = Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT) + 'px'
   }
 
   const handleSend = () => {
@@ -102,7 +104,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
               placeholder='输入测试需求，让 AI 助手帮你完成...'
               className='min-h-[44px] max-h-32 flex-1 resize-none border-0 bg-transparent p-2 text-foreground placeholder:text-muted-foreground focus-visible:ring-0'
               rows={1}
-              style={{ maxHeight: '128px' }}
+              style={{ maxHeight: `${MAX_TEXTAREA_HEIGHT}px` }}
             />
 
             <Button
