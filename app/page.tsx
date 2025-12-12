@@ -96,8 +96,10 @@ export default function ChatPage() {
   const handleQuickAction = (_action: string, type: SessionType) => {
     // 切换会话类型
     setSessionType(type)
-    // 创建新会话
-    const newSessionId = `${Date.now()}`
+    // 创建新会话 - 使用 crypto.randomUUID() 生成更可靠的 ID
+    const newSessionId = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
     createNewSession(newSessionId, type)
     // 重置消息
     resetMessages()
