@@ -14,7 +14,7 @@ interface FloatingChatBubbleProps {
 export function FloatingChatBubble({ onQuickAction }: FloatingChatBubbleProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const quickReplies = [
+  const sessionTypeActions = [
     {
       label: '开始普通聊天',
       action: 'normal',
@@ -31,9 +31,9 @@ export function FloatingChatBubble({ onQuickAction }: FloatingChatBubbleProps) {
     },
   ]
 
-  const handleQuickReply = (reply: (typeof quickReplies)[0]) => {
+  const handleSessionTypeChange = (action: (typeof sessionTypeActions)[0]) => {
     setIsOpen(false)
-    onQuickAction(reply.action, reply.type)
+    onQuickAction(action.action, action.type)
   }
 
   return (
@@ -42,17 +42,17 @@ export function FloatingChatBubble({ onQuickAction }: FloatingChatBubbleProps) {
       {isOpen && (
         <Card className='absolute bottom-16 right-0 w-64 p-2 mb-2 shadow-xl border-border/50 bg-card/95 backdrop-blur-xl'>
           <div className='space-y-1'>
-            {quickReplies.map(reply => (
+            {sessionTypeActions.map(action => (
               <Button
-                key={reply.action}
+                key={action.action}
                 variant='ghost'
                 className='w-full justify-start gap-3 h-auto py-3 hover:bg-accent'
-                onClick={() => handleQuickReply(reply)}
+                onClick={() => handleSessionTypeChange(action)}
               >
-                <div className={cn('p-2 rounded-lg bg-gradient-to-br', reply.color)}>
-                  <reply.icon className='h-4 w-4 text-white' />
+                <div className={cn('p-2 rounded-lg bg-gradient-to-br', action.color)}>
+                  <action.icon className='h-4 w-4 text-white' />
                 </div>
-                <span className='text-sm'>{reply.label}</span>
+                <span className='text-sm'>{action.label}</span>
               </Button>
             ))}
           </div>

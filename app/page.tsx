@@ -94,12 +94,12 @@ export default function ChatPage() {
     })
   }
 
-  const handleQuickAction = (_action: string, type: SessionType) => {
+  const handleQuickAction = (type: SessionType) => {
     // 切换会话类型
     setSessionType(type)
     // 创建新会话 - 使用 crypto.randomUUID() 生成更可靠的 ID
-    const newSessionId = typeof crypto !== 'undefined' && crypto.randomUUID 
-      ? crypto.randomUUID() 
+    const newSessionId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`
     createNewSession(newSessionId, type)
     // 重置消息
@@ -108,7 +108,7 @@ export default function ChatPage() {
 
   const handleFeatureClick = (_feature: string, type?: SessionType) => {
     if (type) {
-      handleQuickAction(_feature, type)
+      handleQuickAction(type)
     }
   }
 
@@ -126,21 +126,21 @@ export default function ChatPage() {
         {hasUserMessages ? (
           <div className='flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0'>
             <MessageList />
-            <ChatInput onSend={handleSend} disabled={isLoading} />
+            <ChatInput onSend={handleSend} disabled={isLoading} sessionType={sessionType} />
           </div>
         ) : (
           <div className='flex-1 flex flex-col min-h-0'>
             <WelcomeScreen onFeatureClick={handleFeatureClick} />
             <div className='px-4 pb-4'>
               <div className='max-w-3xl mx-auto'>
-                <ChatInput onSend={handleSend} disabled={isLoading} />
+                <ChatInput onSend={handleSend} disabled={isLoading} sessionType={sessionType} />
               </div>
             </div>
           </div>
         )}
       </div>
 
-      <FloatingChatBubble onQuickAction={handleQuickAction} />
+      <FloatingChatBubble onQuickAction={(_action, type) => type && handleQuickAction(type)} />
     </div>
   )
 }

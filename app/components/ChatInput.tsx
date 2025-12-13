@@ -16,6 +16,7 @@ import { Paperclip, ArrowUp, FileCode, TestTube2, Bug, Plus, Sparkles } from 'lu
 interface ChatInputProps {
   onSend: (message: string) => void
   disabled?: boolean
+  sessionType?: 'normal' | 'testcase'
 }
 
 const quickActions = [
@@ -26,7 +27,7 @@ const quickActions = [
 
 const MAX_TEXTAREA_HEIGHT = 128
 
-export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
+export function ChatInput({ onSend, disabled = false, sessionType = 'normal' }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -101,7 +102,11 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
               value={message}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder='输入测试需求，让 AI 助手帮你完成...'
+              placeholder={
+                sessionType === 'testcase'
+                  ? '输入测试需求，让 AI 助手帮你完成...'
+                  : '输入内容，让 AI 助手帮你完成...'
+              }
               className='min-h-[44px] max-h-32 flex-1 resize-none border-0 bg-transparent p-2 text-foreground placeholder:text-muted-foreground focus-visible:ring-0'
               rows={1}
               style={{ maxHeight: `${MAX_TEXTAREA_HEIGHT}px` }}
@@ -121,7 +126,11 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
         {/* Footer hint */}
         <div className='mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground'>
           <Sparkles className='h-3 w-3 text-emerald-400' />
-          <span>支持自然语言描述测试需求，AI 将自动调用相应工具执行</span>
+          <span>
+            {sessionType === 'testcase'
+              ? '支持自然语言描述测试需求，AI 将自动调用相应工具执行'
+              : '支持自然语言对话，AI 将为您提供专业解答'}
+          </span>
         </div>
       </div>
     </div>
