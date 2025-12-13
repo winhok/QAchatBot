@@ -13,7 +13,7 @@ const ANIMATION_DURATIONS = {
 
 export function AIOrb() {
   return (
-    <div className='relative flex items-center justify-center'>
+    <div className='relative flex items-center justify-center' aria-hidden='true'>
       {/* Outer glow rings */}
       <div className='absolute h-40 w-40 animate-pulse rounded-full bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 blur-2xl' />
       <div

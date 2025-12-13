@@ -115,6 +115,7 @@ export function ChatHeader() {
           variant='ghost'
           size='icon'
           onClick={handleNotifications}
+          aria-label='通知 - 您有未读通知'
           className='text-muted-foreground hover:text-foreground relative rounded-xl h-9 w-9'
         >
           <Bell className='h-4 w-4' />
@@ -124,6 +125,7 @@ export function ChatHeader() {
           variant='ghost'
           size='icon'
           onClick={handleSettings}
+          aria-label='设置'
           className='text-muted-foreground hover:text-foreground rounded-xl h-9 w-9'
         >
           <Settings className='h-4 w-4' />

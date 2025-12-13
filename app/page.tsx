@@ -95,7 +95,7 @@ export default function ChatPage() {
     })
   }
 
-  const handleQuickAction = (type: SessionType) => {
+  const handleQuickAction = useCallback((type: SessionType) => {
     // 切换会话类型
     setSessionType(type)
     // 创建新会话 - 使用 crypto.randomUUID() 生成更可靠的 ID
@@ -105,7 +105,7 @@ export default function ChatPage() {
     createNewSession(newSessionId, type)
     // 重置消息
     resetMessages()
-  }
+  }, [setSessionType, createNewSession, resetMessages])
 
   const handleFeatureClick = useCallback((_feature: string, type?: SessionType) => {
     if (type) {

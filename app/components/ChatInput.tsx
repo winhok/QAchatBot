@@ -60,7 +60,6 @@ export function ChatInput({ onSend, disabled = false, sessionType = 'normal' }: 
 
   const handleFileUpload = () => {
     // TODO: Implement file upload functionality
-    console.log('File upload feature coming soon')
   }
 
   return (
