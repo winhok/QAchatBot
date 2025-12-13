@@ -6,6 +6,7 @@ import { ChatInput } from './components/ChatInput'
 import { MessageList } from './components/MessageList'
 import SessionSidebar from './components/SessionSidebar'
 import { FloatingChatBubble } from './components/FloatingChatBubble'
+import { WelcomeScreen } from './components/WelcomeScreen'
 import { useChatMessages } from './stores/useChatMessages'
 import { useSendMessage } from './stores/useSendMessage'
 import { useSession } from './stores/useSession'
@@ -105,6 +106,15 @@ export default function ChatPage() {
     resetMessages()
   }
 
+  const handleFeatureClick = (_feature: string, type?: SessionType) => {
+    if (type) {
+      handleQuickAction(_feature, type)
+    }
+  }
+
+  const messages = useChatMessages(s => s.messages)
+  const hasMessages = messages.length > 1 // 大于1表示有用户消息（排除初始欢迎消息）
+
   return (
     <div className='flex h-screen bg-background'>
       <SessionSidebar />
@@ -112,10 +122,21 @@ export default function ChatPage() {
       <div className='flex flex-1 flex-col'>
         <ChatHeader />
 
-        <div className='flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0'>
-          <MessageList />
-          <ChatInput onSend={handleSend} disabled={isLoading} />
-        </div>
+        {hasMessages ? (
+          <div className='flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0'>
+            <MessageList />
+            <ChatInput onSend={handleSend} disabled={isLoading} />
+          </div>
+        ) : (
+          <div className='flex-1 flex flex-col min-h-0'>
+            <WelcomeScreen onFeatureClick={handleFeatureClick} />
+            <div className='px-4 pb-4'>
+              <div className='max-w-3xl mx-auto'>
+                <ChatInput onSend={handleSend} disabled={isLoading} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <FloatingChatBubble onQuickAction={handleQuickAction} />
