@@ -104,21 +104,35 @@ export default function SessionSidebar() {
 
   return (
     <aside className='w-64 border-r border-border/50 bg-sidebar h-full flex flex-col'>
-      {/* Header */}
-      <div className='p-4 border-b border-border/50 flex items-center justify-between'>
-        <div className='flex items-center gap-2'>
-          <MessageSquare className='h-5 w-5 text-sidebar-primary' />
-          <span className='font-semibold text-sidebar-foreground'>历史会话</span>
+      {/* Logo Header */}
+      <div className='flex items-center gap-3 p-4 pb-2'>
+        <div className='relative'>
+          <div className='absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 blur-lg opacity-50' />
+          <div className='relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg'>
+            <MessageSquare className='h-5 w-5 text-white' />
+          </div>
         </div>
+        <div>
+          <h2 className='text-lg font-bold text-sidebar-foreground'>QA ChatBot</h2>
+          <p className='text-xs text-muted-foreground'>智能测试助手</p>
+        </div>
+      </div>
+      
+      {/* New Chat Button */}
+      <div className='px-4 pb-4'>
         <Button
-          size='sm'
           onClick={handleNew}
           disabled={createMutation.isPending}
-          className='h-8 px-3 bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground'
+          className='w-full bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground'
         >
-          <Plus className='h-4 w-4 mr-1' />
-          新建
+          <Plus className='h-4 w-4 mr-2' />
+          新建会话
         </Button>
+      </div>
+      
+      {/* Sessions Header */}
+      <div className='px-4 py-2 border-b border-border/50'>
+        <span className='text-sm font-medium text-sidebar-foreground'>历史会话</span>
       </div>
 
       {/* Session List */}
@@ -193,10 +207,7 @@ export default function SessionSidebar() {
             <Button variant='outline' onClick={closeRenameModal}>
               取消
             </Button>
-            <Button
-              onClick={() => renameId && handleRename(renameId)}
-              disabled={renameMutation.isPending || !renameValue.trim()}
-            >
+            <Button onClick={() => renameId && handleRename(renameId)} disabled={renameMutation.isPending || !renameValue.trim()}>
               保存
             </Button>
           </DialogFooter>
