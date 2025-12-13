@@ -1,35 +1,52 @@
 'use client'
 
+import type React from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/app/components/ui/button'
 import { Textarea } from '@/app/components/ui/textarea'
-import { cn } from '@/app/lib/utils'
-import { MessageCircle, Send } from 'lucide-react'
-import { useRef, useState } from 'react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/app/components/ui/dropdown-menu'
+import { Paperclip, ArrowUp, FileCode, TestTube2, Bug, Plus, Sparkles } from 'lucide-react'
 
 interface ChatInputProps {
   onSend: (message: string) => void
   disabled?: boolean
+  sessionType?: 'normal' | 'testcase'
 }
 
-export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
-  const [input, setInput] = useState('')
+const quickActions = [
+  { icon: FileCode, label: '测试接口', prompt: '帮我测试以下接口：' },
+  { icon: TestTube2, label: '生成测试用例', prompt: '帮我生成以下功能的测试用例：' },
+  { icon: Bug, label: '分析 Bug', prompt: '帮我分析以下错误日志：' },
+]
+
+const MAX_TEXTAREA_HEIGHT = 128
+
+export function ChatInput({ onSend, disabled = false, sessionType = 'normal' }: ChatInputProps) {
+  const [message, setMessage] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const adjustHeight = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto'
-    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px'
+    textarea.style.height = Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT) + 'px'
   }
 
   const handleSend = () => {
-    if (!input.trim() || disabled) return
-    onSend(input.trim())
-    setInput('')
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
+    if (message.trim() && !disabled) {
+      onSend(message.trim())
+      setMessage('')
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+      }
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -37,60 +54,82 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value)
+    setMessage(e.target.value)
     adjustHeight(e.target)
   }
 
+  const handleFileUpload = () => {
+    // TODO: Implement file upload functionality
+  }
+
   return (
-    <div className='backdrop-blur-xl bg-slate-950/40 rounded-2xl border border-white/10 shadow-2xl shadow-purple-500/10 p-4 shrink-0'>
-      <div className='flex items-end gap-4'>
-        <div className='flex-1 relative'>
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder='输入你的消息... (支持 Shift+Enter 换行)'
-            className={cn(
-              'min-h-[44px] bg-white/5 border-white/20 rounded-xl px-4 py-3',
-              'text-white placeholder:text-purple-300/50 resize-none',
-              'focus-visible:ring-2 focus-visible:ring-purple-500/50 focus-visible:border-purple-500/50',
-              'backdrop-blur-sm transition-all duration-200 text-sm input-scrollbar',
-              'shadow-inner shadow-black/20'
-            )}
-            rows={1}
-            disabled={disabled}
-            style={{ maxHeight: '120px' }}
-          />
+    <div className='border-t border-border/50 bg-gradient-to-t from-background to-background/80 p-4 backdrop-blur-xl'>
+      <div className='mx-auto max-w-3xl'>
+        <div className='relative group'>
+          {/* Glow Effect */}
+          <div className='absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 opacity-0 blur transition-opacity duration-300 group-focus-within:opacity-100' />
+
+          {/* Input Container */}
+          <div className='relative flex items-end gap-2 rounded-2xl border border-border/50 bg-card/80 p-2 shadow-lg backdrop-blur'>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='shrink-0 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent h-10 w-10'
+                >
+                  <Plus className='h-5 w-5' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='start' className='w-48'>
+                {quickActions.map(action => (
+                  <DropdownMenuItem key={action.label} onClick={() => setMessage(action.prompt)}>
+                    <action.icon className='mr-2 h-4 w-4 text-emerald-400' />
+                    {action.label}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleFileUpload}>
+                  <Paperclip className='mr-2 h-4 w-4' />
+                  上传文件
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Textarea
+              ref={textareaRef}
+              value={message}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                sessionType === 'testcase'
+                  ? '输入测试需求，让 AI 助手帮你完成...'
+                  : '输入内容，让 AI 助手帮你完成...'
+              }
+              className='min-h-[44px] max-h-32 flex-1 resize-none border-0 bg-transparent p-2 text-foreground placeholder:text-muted-foreground focus-visible:ring-0'
+              rows={1}
+              style={{ maxHeight: `${MAX_TEXTAREA_HEIGHT}px` }}
+            />
+
+            <Button
+              onClick={handleSend}
+              disabled={!message.trim() || disabled}
+              size='icon'
+              className='shrink-0 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-emerald-500/40 hover:scale-105 disabled:opacity-50 disabled:shadow-none disabled:scale-100 h-10 w-10'
+            >
+              <ArrowUp className='h-5 w-5' />
+            </Button>
+          </div>
         </div>
 
-        <Button
-          onClick={handleSend}
-          disabled={!input.trim() || disabled}
-          size='icon'
-          className={cn(
-            'h-[44px] w-[44px] shrink-0',
-            'bg-linear-to-r from-purple-500 to-pink-500',
-            'hover:from-purple-600 hover:to-pink-600',
-            'shadow-lg shadow-purple-500/30',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
-            'transition-all duration-200',
-            'hover:shadow-xl hover:shadow-purple-500/40 hover:scale-105',
-            'active:scale-95'
-          )}
-        >
-          <Send className='h-5 w-5' />
-        </Button>
-      </div>
-
-      <div className='flex items-center justify-between mt-3 text-xs text-purple-300/60'>
-        <div className='flex items-center gap-2'>
-          <MessageCircle className='h-3 w-3' />
-          <span>按 Enter 发送,Shift+Enter 换行</span>
-        </div>
-        <div className='flex items-center gap-1.5'>
-          <div className='w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.6)]' />
-          <span>实时连接</span>
+        {/* Footer hint */}
+        <div className='mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground'>
+          <Sparkles className='h-3 w-3 text-emerald-400' />
+          <span>
+            {sessionType === 'testcase'
+              ? '支持自然语言描述测试需求，AI 将自动调用相应工具执行'
+              : '支持自然语言对话，AI 将为您提供专业解答'}
+          </span>
         </div>
       </div>
     </div>

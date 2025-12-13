@@ -1,71 +1,135 @@
 'use client'
 
-import { Avatar, AvatarFallback } from '@/app/components/ui/avatar'
+import { useState } from 'react'
 import { Badge } from '@/app/components/ui/badge'
-import { cn } from '@/app/lib/utils'
-import { Sparkles, Zap } from 'lucide-react'
+import { Button } from '@/app/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/app/components/ui/dropdown-menu'
+import { Bell, Settings, ChevronDown, Sparkles, Wrench } from 'lucide-react'
+import { MODELS, TOOLS } from '@/app/lib/constants'
 
 export function ChatHeader() {
+  // TODO: Connect selectedModel to chat logic/API calls to affect actual model behavior
+  const [selectedModel, setSelectedModel] = useState('qwen-plus')
+  const currentModel = MODELS.find(m => m.id === selectedModel) || MODELS[0]
+  const enabledToolsCount = TOOLS.filter(t => t.enabled).length
+
+  const handleNotifications = () => {
+    // TODO: Implement notifications feature
+    console.log('Notifications feature coming soon')
+  }
+
+  const handleSettings = () => {
+    // TODO: Implement settings feature
+    console.log('Settings feature coming soon')
+  }
+
   return (
-    <header className='relative z-10 backdrop-blur-lg bg-slate-950/40 border-b border-white/10 p-4 shrink-0 w-full'>
-      <div className='max-w-4xl mx-auto'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
-            {/* Avatar with glassmorphic style */}
-            <div className='relative'>
-              <Avatar className='w-10 h-10 rounded-xl shadow-lg shadow-purple-500/20'>
-                <AvatarFallback className='bg-linear-to-br from-purple-500 via-pink-500 to-cyan-500 rounded-xl'>
-                  <Sparkles className='h-5 w-5 text-white' />
-                </AvatarFallback>
-              </Avatar>
-              <div className='absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-950 ring-1 ring-emerald-400/50'></div>
-            </div>
+    <header className='flex h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 sticky top-0 z-10'>
+      <div className='flex items-center gap-3'>
+        {/* Model Selector */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant='ghost' className='gap-2 text-foreground hover:bg-accent rounded-xl h-9 px-3'>
+              <div className='flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20'>
+                <Sparkles className='h-3.5 w-3.5 text-emerald-400' />
+              </div>
+              <span className='font-medium'>{currentModel.name}</span>
+              <ChevronDown className='h-4 w-4 text-muted-foreground' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='start' className='w-56'>
+            <DropdownMenuLabel className='text-xs text-muted-foreground'>选择模型</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {MODELS.map(model => (
+              <DropdownMenuItem
+                key={model.id}
+                onClick={() => setSelectedModel(model.id)}
+                className='flex flex-col items-start gap-0.5 py-2.5'
+              >
+                <div className='flex items-center gap-2 w-full'>
+                  <Sparkles className='h-4 w-4 text-emerald-400' />
+                  <span className='font-medium'>{model.name}</span>
+                  {model.badge && (
+                    <Badge
+                      variant='secondary'
+                      className='ml-auto text-[10px] bg-emerald-500/20 text-emerald-400 border-0'
+                    >
+                      {model.badge}
+                    </Badge>
+                  )}
+                </div>
+                <span className='text-xs text-muted-foreground ml-6'>{model.description}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-            {/* Neon gradient title */}
-            <div>
-              <h1 className='text-xl font-bold flex items-center gap-2'>
-                <span className='bg-linear-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent'>LangGraph AI 助手</span>
-                <Zap className='h-4 w-4 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' />
-              </h1>
-              <p className='text-purple-300/70 text-xs'>智能对话 • 实时响应 • 无限可能</p>
-            </div>
-          </div>
+        {/* Divider */}
+        <div className='h-5 w-px bg-border' />
 
-          {/* Status badges with glassmorphism */}
-          <div className='flex items-center gap-2'>
-            <Badge
-              variant='outline'
-              className={cn(
-                'backdrop-blur-md bg-linear-to-r from-purple-500/10 to-cyan-500/10',
-                'border-white/10 text-white text-xs px-2.5 py-1',
-                'shadow-lg shadow-purple-500/10'
-              )}
+        {/* Tools Indicator */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='gap-2 text-muted-foreground hover:text-foreground rounded-xl h-9'
             >
-              <div className='w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse mr-1.5 shadow-[0_0_6px_rgba(52,211,153,0.6)]'></div>
-              qwen-plus
-            </Badge>
-            <Badge
-              variant='outline'
-              className={cn(
-                'backdrop-blur-md bg-linear-to-r from-cyan-500/10 to-teal-500/10',
-                'border-white/10 text-white text-xs px-2.5 py-1',
-                'shadow-lg shadow-cyan-500/10'
-              )}
-            >
-              🚀 StateGraph
-            </Badge>
-            <Badge
-              variant='outline'
-              className={cn(
-                'backdrop-blur-md bg-linear-to-r from-pink-500/10 to-orange-500/10',
-                'border-white/10 text-white text-xs px-2.5 py-1',
-                'shadow-lg shadow-pink-500/10'
-              )}
-            >
-              ⚡ 流式
-            </Badge>
-          </div>
-        </div>
+              <div className='relative'>
+                <Wrench className='h-4 w-4' />
+                <span className='absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-bold text-white'>
+                  {enabledToolsCount}
+                </span>
+              </div>
+              <span className='text-sm'>工具</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='start' className='w-56'>
+            <DropdownMenuLabel className='text-xs text-muted-foreground'>已启用工具</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {TOOLS.map(tool => (
+              <DropdownMenuItem key={tool.id} className='flex items-center justify-between py-2.5'>
+                <div className='flex items-center gap-2.5'>
+                  <div className={`rounded-lg p-1.5 ${tool.enabled ? 'bg-emerald-500/10' : 'bg-muted'}`}>
+                    <tool.icon className={`h-4 w-4 ${tool.enabled ? 'text-emerald-400' : 'text-muted-foreground'}`} />
+                  </div>
+                  <span>{tool.name}</span>
+                </div>
+                <div className={`h-2 w-2 rounded-full ${tool.enabled ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`} />
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Right Actions */}
+      <div className='flex items-center gap-1'>
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={handleNotifications}
+          aria-label='通知 - 您有未读通知'
+          className='text-muted-foreground hover:text-foreground relative rounded-xl h-9 w-9'
+        >
+          <Bell className='h-4 w-4' />
+          <span className='absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background' />
+        </Button>
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={handleSettings}
+          aria-label='设置'
+          className='text-muted-foreground hover:text-foreground rounded-xl h-9 w-9'
+        >
+          <Settings className='h-4 w-4' />
+        </Button>
       </div>
     </header>
   )

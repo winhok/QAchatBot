@@ -52,7 +52,16 @@ async function renameSession(id: string, name: string): Promise<void> {
 }
 
 export default function SessionSidebar() {
-  const { sessionId, setSessionId, createNewSession, renameId, renameValue, setRenameValue, openRenameModal, closeRenameModal } = useSession()
+  const {
+    sessionId,
+    setSessionId,
+    createNewSession,
+    renameId,
+    renameValue,
+    setRenameValue,
+    openRenameModal,
+    closeRenameModal,
+  } = useSession()
   const resetMessages = useChatMessages(s => s.resetMessages)
   const queryClient = useQueryClient()
 
@@ -103,33 +112,42 @@ export default function SessionSidebar() {
   }
 
   return (
-    <aside className='w-64 backdrop-blur-xl bg-slate-950/60 border-r border-white/10 h-full flex flex-col shadow-2xl shadow-purple-500/5'>
-      {/* Header */}
-      <div className='p-4 border-b border-white/10 flex items-center justify-between'>
-        <div className='flex items-center gap-2'>
-          <MessageSquare className='h-5 w-5 text-purple-400' />
-          <span className='text-white font-bold text-lg bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text'>历史会话</span>
+    <aside className='w-64 border-r border-border/50 bg-sidebar h-full flex flex-col'>
+      {/* Logo Header */}
+      <div className='flex items-center gap-3 p-4 pb-2'>
+        <div className='relative'>
+          <div className='absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 blur-lg opacity-50' />
+          <div className='relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg'>
+            <MessageSquare className='h-5 w-5 text-white' />
+          </div>
         </div>
+        <div>
+          <h2 className='text-lg font-bold text-sidebar-foreground'>QA ChatBot</h2>
+          <p className='text-xs text-muted-foreground'>智能测试助手</p>
+        </div>
+      </div>
+      
+      {/* New Chat Button */}
+      <div className='px-4 pb-4'>
         <Button
-          size='sm'
           onClick={handleNew}
           disabled={createMutation.isPending}
-          className={cn(
-            'bg-linear-to-r from-purple-500 to-pink-500',
-            'hover:from-purple-600 hover:to-pink-600',
-            'shadow-lg shadow-purple-500/30',
-            'text-white h-8 px-3'
-          )}
+          className='w-full bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground'
         >
-          <Plus className='h-4 w-4 mr-1' />
-          新建
+          <Plus className='h-4 w-4 mr-2' />
+          新建会话
         </Button>
+      </div>
+      
+      {/* Sessions Header */}
+      <div className='px-4 py-2 border-b border-border/50'>
+        <span className='text-sm font-medium text-sidebar-foreground'>历史会话</span>
       </div>
 
       {/* Session List */}
       <ScrollArea className='flex-1'>
         {sessions.length === 0 ? (
-          <div className='text-purple-300/50 p-4 text-center text-sm'>暂无历史会话</div>
+          <div className='text-muted-foreground p-4 text-center text-sm'>暂无历史会话</div>
         ) : (
           <ul>
             {sessions.map(session => (
@@ -140,11 +158,11 @@ export default function SessionSidebar() {
                   disabled={session.id === sessionId}
                   className={cn(
                     'w-full justify-start text-left px-4 py-3 h-auto',
-                    'hover:bg-white/5 transition-all duration-200',
-                    'rounded-none border-b border-white/5',
+                    'hover:bg-sidebar-accent transition-all duration-200',
+                    'rounded-none border-b border-sidebar-border',
                     session.id === sessionId
-                      ? 'bg-linear-to-r from-purple-500/20 to-pink-500/20 text-white font-semibold border-l-2 border-l-purple-400'
-                      : 'text-purple-200/80 hover:text-white'
+                      ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium border-l-2 border-l-sidebar-primary'
+                      : 'text-sidebar-foreground/80 hover:text-sidebar-foreground'
                   )}
                 >
                   <span className='truncate flex-1'>{getSessionTitle(session)}</span>
@@ -159,7 +177,7 @@ export default function SessionSidebar() {
                       e.stopPropagation()
                       openRenameModal(session.id, session.name)
                     }}
-                    className='h-7 w-7 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10'
+                    className='h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-sidebar-accent'
                   >
                     <Edit2 className='h-3.5 w-3.5' />
                   </Button>
@@ -171,7 +189,7 @@ export default function SessionSidebar() {
                       handleDelete(session.id)
                     }}
                     disabled={deleteMutation.isPending}
-                    className='h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10'
+                    className='h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10'
                   >
                     <Trash2 className='h-3.5 w-3.5' />
                   </Button>
@@ -184,26 +202,21 @@ export default function SessionSidebar() {
 
       {/* Rename Dialog */}
       <Dialog open={!!renameId} onOpenChange={closeRenameModal}>
-        <DialogContent className='backdrop-blur-xl bg-slate-950/90 border-white/20 text-white shadow-2xl shadow-purple-500/20'>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className='bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent'>重命名会话</DialogTitle>
+            <DialogTitle>重命名会话</DialogTitle>
           </DialogHeader>
           <Input
             value={renameValue}
             onChange={e => setRenameValue(e.target.value)}
             placeholder='输入新名称'
-            className='bg-white/5 border-white/20 text-white placeholder:text-purple-300/50'
             autoFocus
           />
           <DialogFooter>
-            <Button variant='outline' onClick={closeRenameModal} className='border-white/20 text-white hover:bg-white/10'>
+            <Button variant='outline' onClick={closeRenameModal}>
               取消
             </Button>
-            <Button
-              onClick={() => renameId && handleRename(renameId)}
-              disabled={renameMutation.isPending || !renameValue.trim()}
-              className={cn('bg-linear-to-r from-purple-500 to-pink-500', 'hover:from-purple-600 hover:to-pink-600', 'shadow-lg shadow-purple-500/30')}
-            >
+            <Button onClick={() => renameId && handleRename(renameId)} disabled={renameMutation.isPending || !renameValue.trim()}>
               保存
             </Button>
           </DialogFooter>
