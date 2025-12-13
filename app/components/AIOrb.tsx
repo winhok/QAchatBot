@@ -1,5 +1,16 @@
 'use client'
 
+const ANIMATION_DURATIONS = {
+  OUTER_RING: '8s',
+  MIDDLE_RING: '4s',
+  PARTICLE_1: '2s',
+  PARTICLE_2: '2.5s',
+  PARTICLE_3: '3s',
+  PULSE_DELAY: '0.5s',
+  PARTICLE_DELAY_2: '0.5s',
+  PARTICLE_DELAY_3: '1s',
+}
+
 export function AIOrb() {
   return (
     <div className='relative flex items-center justify-center'>
@@ -7,11 +18,11 @@ export function AIOrb() {
       <div className='absolute h-40 w-40 animate-pulse rounded-full bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 blur-2xl' />
       <div
         className='absolute h-32 w-32 animate-pulse rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur-xl'
-        style={{ animationDelay: '0.5s' }}
+        style={{ animationDelay: ANIMATION_DURATIONS.PULSE_DELAY }}
       />
 
       {/* Rotating outer ring */}
-      <svg className='absolute h-36 w-36 animate-spin' style={{ animationDuration: '8s' }}>
+      <svg className='absolute h-36 w-36 animate-spin' style={{ animationDuration: ANIMATION_DURATIONS.OUTER_RING }}>
         <defs>
           <linearGradient id='ring-gradient-1' x1='0%' y1='0%' x2='100%' y2='100%'>
             <stop offset='0%' stopColor='#10b981' stopOpacity='0' />
@@ -34,7 +45,7 @@ export function AIOrb() {
       {/* Rotating middle ring */}
       <svg
         className='absolute h-28 w-28 animate-spin'
-        style={{ animationDuration: '4s', animationDirection: 'reverse' }}
+        style={{ animationDuration: ANIMATION_DURATIONS.MIDDLE_RING, animationDirection: 'reverse' }}
       >
         <defs>
           <linearGradient id='ring-gradient-2' x1='0%' y1='0%' x2='100%' y2='100%'>
@@ -79,15 +90,15 @@ export function AIOrb() {
       {/* Floating particles */}
       <div
         className='absolute h-1.5 w-1.5 rounded-full bg-emerald-400/80 animate-bounce'
-        style={{ top: '10%', left: '20%', animationDuration: '2s' }}
+        style={{ top: '10%', left: '20%', animationDuration: ANIMATION_DURATIONS.PARTICLE_1 }}
       />
       <div
         className='absolute h-1 w-1 rounded-full bg-teal-400/60 animate-bounce'
-        style={{ bottom: '20%', right: '15%', animationDuration: '2.5s', animationDelay: '0.5s' }}
+        style={{ bottom: '20%', right: '15%', animationDuration: ANIMATION_DURATIONS.PARTICLE_2, animationDelay: ANIMATION_DURATIONS.PARTICLE_DELAY_2 }}
       />
       <div
         className='absolute h-1 w-1 rounded-full bg-cyan-400/60 animate-bounce'
-        style={{ top: '30%', right: '10%', animationDuration: '3s', animationDelay: '1s' }}
+        style={{ top: '30%', right: '10%', animationDuration: ANIMATION_DURATIONS.PARTICLE_3, animationDelay: ANIMATION_DURATIONS.PARTICLE_DELAY_3 }}
       />
     </div>
   )

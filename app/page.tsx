@@ -113,7 +113,8 @@ export default function ChatPage() {
   }
 
   const messages = useChatMessages(s => s.messages)
-  const hasMessages = messages.length > 1 // 大于1表示有用户消息（排除初始欢迎消息）
+  // 检查是否有用户消息（不仅仅是初始欢迎消息）
+  const hasUserMessages = messages.some(msg => msg.role === 'user')
 
   return (
     <div className='flex h-screen bg-background'>
@@ -122,7 +123,7 @@ export default function ChatPage() {
       <div className='flex flex-1 flex-col'>
         <ChatHeader />
 
-        {hasMessages ? (
+        {hasUserMessages ? (
           <div className='flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0'>
             <MessageList />
             <ChatInput onSend={handleSend} disabled={isLoading} />
