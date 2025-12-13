@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ChatHeader } from './components/ChatHeader'
 import { ChatInput } from './components/ChatInput'
@@ -106,11 +107,17 @@ export default function ChatPage() {
     resetMessages()
   }
 
-  const handleFeatureClick = (_feature: string, type?: SessionType) => {
+  const handleFeatureClick = useCallback((_feature: string, type?: SessionType) => {
     if (type) {
       handleQuickAction(type)
     }
-  }
+  }, [handleQuickAction])
+
+  const handleFloatingBubbleAction = useCallback((_action: string, type?: SessionType) => {
+    if (type) {
+      handleQuickAction(type)
+    }
+  }, [handleQuickAction])
 
   const messages = useChatMessages(s => s.messages)
   // 检查是否有用户消息（不仅仅是初始欢迎消息）
@@ -140,7 +147,7 @@ export default function ChatPage() {
         )}
       </div>
 
-      <FloatingChatBubble onQuickAction={(_action, type) => type && handleQuickAction(type)} />
+      <FloatingChatBubble onQuickAction={handleFloatingBubbleAction} />
     </div>
   )
 }
