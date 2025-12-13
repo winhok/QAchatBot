@@ -162,6 +162,11 @@ export function WelcomeScreen({ onFeatureClick }: WelcomeScreenProps) {
               key={feature.title}
               onClick={() => handleFeatureClick(feature)}
               disabled={!feature.implemented}
+              aria-label={
+                feature.implemented
+                  ? `${feature.title} - 点击开始`
+                  : `${feature.title} - 功能开发中`
+              }
               className={`group relative overflow-hidden rounded-2xl border ${feature.borderColor} bg-gradient-to-b ${feature.bgGradient} p-5 text-left transition-all hover:scale-[1.02] hover:shadow-lg ${!feature.implemented && 'opacity-60 cursor-not-allowed'}`}
             >
               {/* 未实现标记 */}
@@ -194,6 +199,7 @@ export function WelcomeScreen({ onFeatureClick }: WelcomeScreenProps) {
           <button
             key={feature.label}
             disabled={!feature.implemented}
+            aria-label={!feature.implemented ? `${feature.label}（暂不可用）` : feature.label}
             className={`inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-card/50 px-4 py-2 text-sm text-muted-foreground transition-all hover:border-emerald-500/30 hover:bg-card hover:text-foreground ${!feature.implemented && 'opacity-60 cursor-not-allowed'}`}
           >
             <feature.icon className={`h-4 w-4 ${feature.color}`} />

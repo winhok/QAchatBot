@@ -7,7 +7,6 @@ import { ScrollArea } from '@/app/components/ui/scroll-area'
 import { cn } from '@/app/lib/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Edit2, MessageSquare, Plus, Trash2 } from 'lucide-react'
-import { useCallback } from 'react'
 import { useChatMessages } from '../stores/useChatMessages'
 import { useSession } from '../stores/useSession'
 

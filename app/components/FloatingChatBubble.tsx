@@ -63,6 +63,7 @@ export function FloatingChatBubble({ onQuickAction }: FloatingChatBubbleProps) {
       <Button
         size='icon'
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? '关闭快速切换菜单' : '打开快速切换菜单'}
         className={cn(
           'h-14 w-14 rounded-full shadow-lg transition-all duration-300',
           'bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700',
