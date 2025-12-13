@@ -1,11 +1,13 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { BackgroundEffects } from './components/BackgroundEffects'
 import { ChatHeader } from './components/ChatHeader'
 import { ChatInput } from './components/ChatInput'
 import { MessageList } from './components/MessageList'
 import SessionSidebar from './components/SessionSidebar'
+import { FloatingChatBubble } from './components/FloatingChatBubble'
+import { WelcomeScreen } from './components/WelcomeScreen'
 import { useChatMessages } from './stores/useChatMessages'
 import { useSendMessage } from './stores/useSendMessage'
 import { useSession } from './stores/useSession'
@@ -50,8 +52,10 @@ async function fetchHistory(sessionId: string, sessionType: SessionType): Promis
 export default function ChatPage() {
   const sessionId = useSession(s => s.sessionId)
   const sessionType = useSession(s => s.sessionType)
+  const setSessionType = useSession(s => s.setSessionType)
   const updateSessionName = useSession(s => s.updateSessionName)
   const resetHasUserMessage = useSession(s => s.resetHasUserMessage)
+  const createNewSession = useSession(s => s.createNewSession)
 
   const isLoading = useChatMessages(s => s.isLoading)
   const setIsLoading = useChatMessages(s => s.setIsLoading)
@@ -61,6 +65,7 @@ export default function ChatPage() {
   const finishStreaming = useChatMessages(s => s.finishStreaming)
   const addErrorMessage = useChatMessages(s => s.addErrorMessage)
   const loadMessages = useChatMessages(s => s.loadMessages)
+  const resetMessages = useChatMessages(s => s.resetMessages)
 
   const sendMessageFn = useSendMessage(s => s.sendMessage)
 
@@ -90,21 +95,59 @@ export default function ChatPage() {
     })
   }
 
+  const handleQuickAction = useCallback((type: SessionType) => {
+    // 切换会话类型
+    setSessionType(type)
+    // 创建新会话 - 使用 crypto.randomUUID() 生成更可靠的 ID
+    const newSessionId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    createNewSession(newSessionId, type)
+    // 重置消息
+    resetMessages()
+  }, [setSessionType, createNewSession, resetMessages])
+
+  const handleFeatureClick = useCallback((_feature: string, type?: SessionType) => {
+    if (type) {
+      handleQuickAction(type)
+    }
+  }, [handleQuickAction])
+
+  const handleFloatingBubbleAction = useCallback((_action: string, type?: SessionType) => {
+    if (type) {
+      handleQuickAction(type)
+    }
+  }, [handleQuickAction])
+
+  const messages = useChatMessages(s => s.messages)
+  // 检查是否有用户消息（不仅仅是初始欢迎消息）
+  const hasUserMessages = messages.some(msg => msg.role === 'user')
+
   return (
-    <div className='h-screen flex flex-col bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden'>
-      <BackgroundEffects />
-      <ChatHeader />
+    <div className='flex h-screen bg-background'>
+      <SessionSidebar />
 
-      <div className='relative z-10 flex flex-1 h-0'>
-        <SessionSidebar />
+      <div className='flex flex-1 flex-col'>
+        <ChatHeader />
 
-        <div className='flex-1 flex flex-col'>
+        {hasUserMessages ? (
           <div className='flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0'>
             <MessageList />
-            <ChatInput onSend={handleSend} disabled={isLoading} />
+            <ChatInput onSend={handleSend} disabled={isLoading} sessionType={sessionType} />
           </div>
-        </div>
+        ) : (
+          <div className='flex-1 flex flex-col min-h-0'>
+            <WelcomeScreen onFeatureClick={handleFeatureClick} />
+            <div className='px-4 pb-4'>
+              <div className='max-w-3xl mx-auto'>
+                <ChatInput onSend={handleSend} disabled={isLoading} sessionType={sessionType} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      <FloatingChatBubble onQuickAction={handleFloatingBubbleAction} />
     </div>
   )
 }

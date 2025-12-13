@@ -1,6 +1,8 @@
 'use client'
 
 import { ScrollArea } from '@/app/components/ui/scroll-area'
+import { Avatar, AvatarFallback } from '@/app/components/ui/avatar'
+import { Bot } from 'lucide-react'
 import { useChatMessages } from '../stores/useChatMessages'
 import { LoadingIndicator } from './LoadingIndicator'
 import { MessageBubble } from './MessageBubble'
@@ -10,18 +12,25 @@ export function MessageList() {
   const isLoading = useChatMessages(state => state.isLoading)
 
   return (
-    <div className='flex-1 backdrop-blur-xl bg-slate-950/30 rounded-3xl border border-white/10 shadow-2xl shadow-purple-500/5 overflow-hidden mb-4 min-h-0'>
-      <ScrollArea className='h-full'>
-        <div className='p-6 space-y-4 custom-scrollbar'>
-          {messages.map((message, index) => (
-            <MessageBubble key={message.id} message={message} index={index} />
-          ))}
+    <ScrollArea className='flex-1 px-4'>
+      <div className='mx-auto max-w-3xl space-y-6 py-6'>
+        {messages.map(message => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
 
-          {isLoading && <LoadingIndicator />}
+        {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
+          <div className='flex gap-3'>
+            <Avatar className='h-8 w-8 shrink-0 bg-gradient-to-br from-emerald-500 to-teal-600'>
+              <AvatarFallback className='bg-transparent'>
+                <Bot className='h-4 w-4 text-white' />
+              </AvatarFallback>
+            </Avatar>
+            <LoadingIndicator />
+          </div>
+        )}
 
-          <div ref={node => node?.scrollIntoView({ behavior: 'smooth' })} />
-        </div>
-      </ScrollArea>
-    </div>
+        <div ref={node => node?.scrollIntoView({ behavior: 'smooth' })} />
+      </div>
+    </ScrollArea>
   )
 }
