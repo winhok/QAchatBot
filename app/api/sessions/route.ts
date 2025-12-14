@@ -71,7 +71,7 @@ export async function DELETE(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { id, name } = await request.json()
+    const { id, name, type = 'normal' } = await request.json()
     if (!id || !name) {
       return NextResponse.json(
         {
@@ -82,7 +82,7 @@ export async function PATCH(request: NextRequest) {
         }
       )
     }
-    updateSessionName(id, name)
+    updateSessionName(id, name, type as SessionType)
     return NextResponse.json({
       success: true,
     })

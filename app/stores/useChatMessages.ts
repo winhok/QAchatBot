@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Message } from '../types/messages'
+import type { Message, ToolCallData } from '../types/messages'
 import type { ChatMessagesState } from '../types/stores'
 
 const INITIAL_MESSAGE: Message = {
@@ -34,6 +34,7 @@ export const useChatMessages = create<ChatMessagesState>(set => ({
       role: 'assistant',
       timestamp: new Date(),
       isStreaming: true,
+      toolCalls: [],
     }
     set(state => ({ messages: [...state.messages, assistantMessage] }))
     return assistantMessage
@@ -65,5 +66,40 @@ export const useChatMessages = create<ChatMessagesState>(set => ({
 
   loadMessages: historyMessages => {
     set({ messages: historyMessages.length > 0 ? historyMessages : [INITIAL_MESSAGE] })
+  },
+
+  addToolCall: (messageId, toolCall) => {
+    set(state => ({
+      messages: state.messages.map(msg => {
+        if (msg.id === messageId) {
+          const existingToolCalls = msg.toolCalls || []
+          return { ...msg, toolCalls: [...existingToolCalls, toolCall] }
+        }
+        return msg
+      }),
+    }))
+  },
+
+  updateToolCallStatus: (messageId, toolCallId, status, output, duration) => {
+    set(state => ({
+      messages: state.messages.map(msg => {
+        if (msg.id === messageId && msg.toolCalls) {
+          return {
+            ...msg,
+            toolCalls: msg.toolCalls.map(tc =>
+              tc.id === toolCallId
+                ? {
+                    ...tc,
+                    status,
+                    output: output !== undefined ? (output as Record<string, unknown>) : tc.output,
+                    duration: duration !== undefined ? duration : tc.duration,
+                  }
+                : tc
+            ),
+          }
+        }
+        return msg
+      }),
+    }))
   },
 }))

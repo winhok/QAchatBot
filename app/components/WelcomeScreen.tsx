@@ -46,11 +46,22 @@ const welcomeMessages = [
     subtitle: '无论是测试设计还是问题咨询，随时为你提供专业支持',
     highlightColor: 'from-cyan-400 to-blue-400',
   },
+  {
+    headline: '测试从这里开始',
+    subtitle: '描述你的需求，AI 帮你规划测试策略和用例设计',
+    highlightColor: 'from-purple-400 to-pink-400',
+  },
+  {
+    headline: '更聪明地工作',
+    subtitle: 'AI 辅助分析、生成、优化，让测试工作事半功倍',
+    highlightColor: 'from-amber-400 to-orange-400',
+  },
 ]
 
 const featureTips = [
   '试试输入「帮我设计登录模块的测试用例」开始测试设计',
   '可以直接描述功能需求，AI 会生成对应的测试场景',
+  '上传接口文档，快速生成接口测试用例',
   '有任何测试相关的问题，都可以向 AI 助手咨询',
 ]
 

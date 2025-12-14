@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { ToolCallData } from '../types/messages'
 import type { SendMessageParams, SendMessageState, SessionType } from '../types/stores'
 
 const API_ENDPOINTS: Record<SessionType, string> = {
@@ -6,9 +7,34 @@ const API_ENDPOINTS: Record<SessionType, string> = {
   testcase: '/api/qa-workflow',
 }
 
+// 根据工具名推断工具类型
+function inferToolType(toolName: string): ToolCallData['type'] {
+  const name = toolName.toLowerCase()
+  if (name.includes('api') || name.includes('http') || name.includes('fetch') || name.includes('request')) {
+    return 'api'
+  }
+  if (name.includes('db') || name.includes('database') || name.includes('query') || name.includes('sql')) {
+    return 'database'
+  }
+  return 'script'
+}
+
 export const useSendMessage = create<SendMessageState>()(() => ({
   sendMessage: async (input: string, params: SendMessageParams) => {
-    const { sessionId, sessionType, addUserMessage, addAssistantMessage, updateMessageContent, finishStreaming, addErrorMessage, setIsLoading, updateSessionName } = params
+    const {
+      sessionId,
+      sessionType,
+      addUserMessage,
+      addAssistantMessage,
+      updateMessageContent,
+      finishStreaming,
+      addErrorMessage,
+      setIsLoading,
+      updateSessionName,
+      addToolCall,
+      updateToolCallStatus,
+      onSessionCreated,
+    } = params
 
     const apiEndpoint = API_ENDPOINTS[sessionType] || '/api/chat'
 
@@ -24,6 +50,7 @@ export const useSendMessage = create<SendMessageState>()(() => ({
         throw new Error('Failed to send message')
       }
       updateSessionName(input)
+      onSessionCreated?.()
       const assistantMessage = addAssistantMessage()
       const reader = response.body?.getReader()
       if (!reader) {
@@ -43,13 +70,34 @@ export const useSendMessage = create<SendMessageState>()(() => ({
           if (line.trim()) {
             try {
               const data = JSON.parse(line)
-              if (data.type === 'chunk' && data.content) {
-                updateMessageContent(assistantMessage.id, data.content)
-              } else if (data.type === 'end') {
-                finishStreaming(assistantMessage.id)
-                break
-              } else if (data.type === 'error') {
-                throw new Error(data.message || 'Server error')
+              switch (data.type) {
+                case 'chunk':
+                  if (data.content) {
+                    updateMessageContent(assistantMessage.id, data.content)
+                  }
+                  break
+                case 'tool_start': {
+                  const toolCall: ToolCallData = {
+                    id: data.tool_call_id,
+                    name: data.name,
+                    type: inferToolType(data.name),
+                    status: 'running',
+                    input: data.input,
+                  }
+                  addToolCall(assistantMessage.id, toolCall)
+                  break
+                }
+                case 'tool_end':
+                  updateToolCallStatus(assistantMessage.id, data.tool_call_id, 'success', { result: data.output }, data.duration)
+                  break
+                case 'tool_error':
+                  updateToolCallStatus(assistantMessage.id, data.tool_call_id, 'error', { error: data.error }, data.duration)
+                  break
+                case 'end':
+                  finishStreaming(assistantMessage.id)
+                  break
+                case 'error':
+                  throw new Error(data.message || 'Server error')
               }
             } catch (parseError) {
               console.error('Parse error:', parseError)
