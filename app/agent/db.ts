@@ -6,25 +6,27 @@ const db = new Database(dbPath)
 
 export type SessionType = 'normal' | 'testcase'
 
+// Initialize sessions table on module load
+db.prepare(
+  `CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  type TEXT DEFAULT 'normal',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`
+).run()
+
+// Add type column if it doesn't exist (for migration)
+try {
+  db.prepare(`ALTER TABLE sessions ADD COLUMN type TEXT DEFAULT 'normal'`).run()
+} catch {
+  // Column already exists
+}
+
 export interface Session {
   id: string
   name: string
   type: SessionType
   created_at: string
-}
-
-export function initSessionTable() {
-  db.prepare(
-    `CREATE TABLE IF NOT EXISTS sessions (
-    id TEXT PRIMARY KEY,
-    name TEXT,
-    type TEXT DEFAULT 'normal',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`
-  ).run()
-
-  try {
-    db.prepare(`ALTER TABLE sessions ADD COLUMN type TEXT DEFAULT 'normal'`).run()
-  } catch {}
 }
 
 export function createSession(id: string, name: string, type: SessionType = 'normal') {
@@ -43,8 +45,12 @@ export function getSession(id: string): Session | undefined {
   return db.prepare('SELECT id, name, type, created_at FROM sessions WHERE id = ?').get(id) as Session | undefined
 }
 
-export function updateSessionName(id: string, name: string) {
-  db.prepare('UPDATE sessions SET name = ? WHERE id = ?').run(name, id)
+export function updateSessionName(id: string, name: string, type: SessionType = 'normal') {
+  // Upsert: 如果会话不存在则创建，存在则更新名称
+  db.prepare(
+    `INSERT INTO sessions (id, name, type) VALUES (?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET name = excluded.name`
+  ).run(id, name, type)
 }
 
 export function updateSessionType(id: string, type: SessionType) {

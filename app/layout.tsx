@@ -1,3 +1,5 @@
+import { GeistMono } from 'geist/font/mono'
+import { GeistSans } from 'geist/font/sans'
 import type { Metadata } from 'next'
 import './globals.css'
 import { QueryProvider } from './providers/QueryProvider'
@@ -15,13 +17,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='zh-CN' suppressHydrationWarning>
-      <body className='font-sans antialiased'>
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='dark'
-          enableSystem
-          disableTransitionOnChange
-        >
+      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}>
+        <ThemeProvider attribute='class' defaultTheme='dark' enableSystem disableTransitionOnChange>
           <QueryProvider>{children}</QueryProvider>
         </ThemeProvider>
       </body>

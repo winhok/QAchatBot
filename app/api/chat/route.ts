@@ -23,7 +23,10 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         try {
           const app = await getApp()
+          const toolCallsMap = new Map<string, { name: string; startTime: number }>()
+
           for await (const event of app.streamEvents({ messages: [userMessage] }, { version: 'v2', ...threadConfig })) {
+            // 处理模型流式输出
             if (event.event === 'on_chat_model_stream') {
               const chunk = event.data?.chunk
               if (chunk?.content) {
@@ -35,6 +38,64 @@ export async function POST(request: NextRequest) {
                 controller.enqueue(new TextEncoder().encode(data))
               }
             }
+
+            // 处理工具调用开始
+            if (event.event === 'on_tool_start') {
+              const toolName = event.name || 'unknown_tool'
+              const runId = event.run_id
+              const input = event.data?.input
+
+              toolCallsMap.set(runId, { name: toolName, startTime: Date.now() })
+
+              const data =
+                JSON.stringify({
+                  type: 'tool_start',
+                  tool_call_id: runId,
+                  name: toolName,
+                  input: input,
+                }) + '\n'
+              controller.enqueue(new TextEncoder().encode(data))
+            }
+
+            // 处理工具调用结束
+            if (event.event === 'on_tool_end') {
+              const runId = event.run_id
+              const output = event.data?.output
+              const toolInfo = toolCallsMap.get(runId)
+              const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
+
+              const data =
+                JSON.stringify({
+                  type: 'tool_end',
+                  tool_call_id: runId,
+                  name: toolInfo?.name || 'unknown_tool',
+                  output: output,
+                  duration: duration,
+                }) + '\n'
+              controller.enqueue(new TextEncoder().encode(data))
+
+              toolCallsMap.delete(runId)
+            }
+
+            // 处理工具调用错误
+            if (event.event === 'on_tool_error') {
+              const runId = event.run_id
+              const error = (event.data as { error?: unknown })?.error
+              const toolInfo = toolCallsMap.get(runId)
+              const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
+
+              const data =
+                JSON.stringify({
+                  type: 'tool_error',
+                  tool_call_id: runId,
+                  name: toolInfo?.name || 'unknown_tool',
+                  error: error instanceof Error ? error.message : String(error),
+                  duration: duration,
+                }) + '\n'
+              controller.enqueue(new TextEncoder().encode(data))
+
+              toolCallsMap.delete(runId)
+            }
           }
           const endData =
             JSON.stringify({
@@ -45,7 +106,14 @@ export async function POST(request: NextRequest) {
           controller.enqueue(new TextEncoder().encode(endData))
           controller.close()
         } catch (error) {
-          console.error('Error streaming chat:', error)
+          console.error('=== Error streaming chat ===')
+          console.error('Error name:', error instanceof Error ? error.name : 'Unknown')
+          console.error('Error message:', error instanceof Error ? error.message : String(error))
+          console.error('Error stack:', error instanceof Error ? error.stack : 'No stack')
+          if (error && typeof error === 'object') {
+            console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
+          }
+          console.error('============================')
           const errorData =
             JSON.stringify({
               type: 'error',

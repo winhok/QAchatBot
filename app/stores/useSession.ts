@@ -1,16 +1,14 @@
 import { create } from 'zustand'
 import type { SessionState, SessionType } from '../types/stores'
-import { getOrCreateThreadId, setThreadId } from '../utils/threadId'
 
 export const useSession = create<SessionState>((set, get) => ({
-  sessionId: getOrCreateThreadId(),
+  sessionId: '',
   sessionType: 'normal' as SessionType,
   hasUserMessage: false,
   renameId: null,
   renameValue: '',
 
   setSessionId: id => {
-    setThreadId(id)
     set({ sessionId: id })
   },
 
@@ -19,7 +17,6 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   createNewSession: (id, type = 'normal') => {
-    setThreadId(id)
     set({ sessionId: id, sessionType: type, hasUserMessage: false })
   },
 
@@ -27,12 +24,13 @@ export const useSession = create<SessionState>((set, get) => ({
     if (get().hasUserMessage) return
 
     try {
-      await fetch('/api/chat/sessions', {
+      await fetch('/api/sessions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: get().sessionId,
           name: name.slice(0, 20),
+          type: get().sessionType,
         }),
       })
       set({ hasUserMessage: true })

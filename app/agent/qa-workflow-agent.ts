@@ -183,7 +183,7 @@ const model = new ChatOpenAI({
   timeout: parseInt(process.env.OPENAI_TIMEOUT || '120000'),
   maxRetries: parseInt(process.env.OPENAI_MAX_RETRIES || '3'),
   temperature: 0.2,
-  streaming: true,
+  streaming: false,
   configuration: {
     baseURL: process.env.OPENAI_BASE_URL,
   },

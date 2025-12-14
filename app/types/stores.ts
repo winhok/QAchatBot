@@ -1,4 +1,4 @@
-import type { Message } from './messages'
+import type { Message, ToolCallData } from './messages'
 
 export type SessionType = 'normal' | 'testcase'
 
@@ -20,6 +20,8 @@ export interface ChatMessagesState {
   addErrorMessage: () => void
   resetMessages: () => void
   loadMessages: (historyMessages: Message[]) => void
+  addToolCall: (messageId: string, toolCall: ToolCallData) => void
+  updateToolCallStatus: (messageId: string, toolCallId: string, status: ToolCallData['status'], output?: unknown, duration?: number) => void
 }
 
 export interface SendMessageParams {
@@ -32,6 +34,9 @@ export interface SendMessageParams {
   addErrorMessage: () => void
   setIsLoading: (loading: boolean) => void
   updateSessionName: (name: string) => void
+  addToolCall: (messageId: string, toolCall: ToolCallData) => void
+  updateToolCallStatus: (messageId: string, toolCallId: string, status: ToolCallData['status'], output?: unknown, duration?: number) => void
+  onSessionCreated?: () => void
 }
 
 export interface SendMessageState {
