@@ -2,8 +2,8 @@ import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import type { Metadata } from 'next'
 import './globals.css'
-import { QueryProvider } from './providers/QueryProvider'
-import { ThemeProvider } from './providers/ThemeProvider'
+import { QueryProvider } from '@/app/providers/QueryProvider'
+import { ThemeProvider } from '@/app/providers/ThemeProvider'
 
 export const metadata: Metadata = {
   title: 'QAchatBot - 智能问答机器人',

@@ -1,10 +1,12 @@
 'use client'
 
 import 'highlight.js/styles/github-dark.css'
+import type { Components } from 'react-markdown'
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
+import { CodeBlock } from '@/app/components/CodeBlock'
 
 interface MarkdownRendererProps {
   content: string
@@ -12,84 +14,83 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
+  const components: Components = {
+    code({ className, children, ...props }) {
+      const text = Array.isArray(children) ? children.join('') : String(children ?? '')
+      const isBlock = (className && className.includes('language-')) || text.includes('\n')
+
+      if (isBlock) {
+        return <CodeBlock code={text.replace(/\n$/, '')} className={className} />
+      }
+      return (
+        <code className={`${className} break-all bg-muted/50 px-1.5 py-0.5 rounded text-sm`} style={{ wordBreak: 'break-all' }} {...props}>
+          {children}
+        </code>
+      )
+    },
+    pre({ children }) {
+      // pre 标签直接返回 children，因为 CodeBlock 已经处理了容器
+      return <>{children}</>
+    },
+    table({ children, ...props }) {
+      return (
+        <div className='overflow-hidden'>
+          <table className='table-fixed w-full' style={{ tableLayout: 'fixed', wordBreak: 'break-word' }} {...props}>
+            {children}
+          </table>
+        </div>
+      )
+    },
+    th({ children, ...props }) {
+      return (
+        <th style={{ wordBreak: 'break-word', maxWidth: '200px' }} {...props}>
+          {children}
+        </th>
+      )
+    },
+    td({ children, ...props }) {
+      return (
+        <td style={{ wordBreak: 'break-word', maxWidth: '200px' }} {...props}>
+          {children}
+        </td>
+      )
+    },
+    p({ children, ...props }) {
+      return (
+        <p style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }} {...props}>
+          {children}
+        </p>
+      )
+    },
+    h1({ children, ...props }) {
+      return (
+        <h1 style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }} {...props}>
+          {children}
+        </h1>
+      )
+    },
+    h2({ children, ...props }) {
+      return (
+        <h2 style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }} {...props}>
+          {children}
+        </h2>
+      )
+    },
+    h3({ children, ...props }) {
+      return (
+        <h3 style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }} {...props}>
+          {children}
+        </h3>
+      )
+    },
+  }
+
   return (
     <div className={`markdown-body ${className} max-w-full overflow-hidden`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight, rehypeRaw]}
-        components={{
-          code({ node, inline, className, children, ...props }: any) {
-            if (!inline) {
-              return (
-                <div className='rounded-md overflow-hidden'>
-                  <code
-                    className={`${className} block wrap-break-word whitespace-pre-wrap`}
-                    style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
-                    {...props}
-                  >
-                    {children}
-                  </code>
-                </div>
-              )
-            }
-            return (
-              <code className={`${className} break-all`} style={{ wordBreak: 'break-all' }} {...props}>
-                {children}
-              </code>
-            )
-          },
-          table({ node, children, ...props }: any) {
-            return (
-              <div className='overflow-hidden'>
-                <table className='table-fixed w-full' style={{ tableLayout: 'fixed', wordBreak: 'break-word' }} {...props}>
-                  {children}
-                </table>
-              </div>
-            )
-          },
-          th({ node, children, ...props }: any) {
-            return (
-              <th style={{ wordBreak: 'break-word', maxWidth: '200px' }} {...props}>
-                {children}
-              </th>
-            )
-          },
-          td({ node, children, ...props }: any) {
-            return (
-              <td style={{ wordBreak: 'break-word', maxWidth: '200px' }} {...props}>
-                {children}
-              </td>
-            )
-          },
-          p({ node, children, ...props }: any) {
-            return (
-              <p style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }} {...props}>
-                {children}
-              </p>
-            )
-          },
-          h1({ node, children, ...props }: any) {
-            return (
-              <h1 style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }} {...props}>
-                {children}
-              </h1>
-            )
-          },
-          h2({ node, children, ...props }: any) {
-            return (
-              <h2 style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }} {...props}>
-                {children}
-              </h2>
-            )
-          },
-          h3({ node, children, ...props }: any) {
-            return (
-              <h3 style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }} {...props}>
-                {children}
-              </h3>
-            )
-          },
-        }}
+        components={components}
       >
         {content}
       </ReactMarkdown>

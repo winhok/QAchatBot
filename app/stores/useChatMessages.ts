@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { Message, ToolCallData } from '../types/messages'
-import type { ChatMessagesState } from '../types/stores'
+import type { Message, ChatMessageContent } from '@/app/schemas'
+import type { ChatMessagesState } from '@/app/types/stores'
 
 const INITIAL_MESSAGE: Message = {
   id: '1',
@@ -13,10 +13,15 @@ const INITIAL_MESSAGE: Message = {
 export const useChatMessages = create<ChatMessagesState>(set => ({
   messages: [INITIAL_MESSAGE],
   isLoading: false,
+  draftMessage: '',
 
   setIsLoading: loading => set({ isLoading: loading }),
 
-  addUserMessage: content => {
+  setDraftMessage: message => set({ draftMessage: message }),
+
+  clearDraftMessage: () => set({ draftMessage: '' }),
+
+  addUserMessage: (content: ChatMessageContent) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       content,
@@ -61,6 +66,8 @@ export const useChatMessages = create<ChatMessagesState>(set => ({
     }
     set(state => ({ messages: [...state.messages, errorMessage] }))
   },
+
+  clearMessages: () => set({ messages: [] }),
 
   resetMessages: () => set({ messages: [INITIAL_MESSAGE] }),
 

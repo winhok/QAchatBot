@@ -1,7 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-import { Badge } from '@/app/components/ui/badge'
 import { Button } from '@/app/components/ui/button'
 import {
   DropdownMenu,
@@ -11,13 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/app/components/ui/dropdown-menu'
-import { Bell, Settings, ChevronDown, Sparkles, Wrench } from 'lucide-react'
-import { MODELS, TOOLS } from '@/app/lib/constants'
+import { Bell, Settings, Wrench } from 'lucide-react'
+import { TOOLS } from '@/app/lib/constants'
 
 export function ChatHeader() {
-  // TODO: Connect selectedModel to chat logic/API calls to affect actual model behavior
-  const [selectedModel, setSelectedModel] = useState('qwen-plus')
-  const currentModel = MODELS.find(m => m.id === selectedModel) || MODELS[0]
   const enabledToolsCount = TOOLS.filter(t => t.enabled).length
 
   const handleNotifications = () => {
@@ -33,47 +28,6 @@ export function ChatHeader() {
   return (
     <header className='flex h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 sticky top-0 z-10'>
       <div className='flex items-center gap-3'>
-        {/* Model Selector */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='ghost' className='gap-2 text-foreground hover:bg-accent rounded-xl h-9 px-3'>
-              <div className='flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20'>
-                <Sparkles className='h-3.5 w-3.5 text-emerald-400' />
-              </div>
-              <span className='font-medium'>{currentModel.name}</span>
-              <ChevronDown className='h-4 w-4 text-muted-foreground' />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='start' className='w-56'>
-            <DropdownMenuLabel className='text-xs text-muted-foreground'>选择模型</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {MODELS.map(model => (
-              <DropdownMenuItem
-                key={model.id}
-                onClick={() => setSelectedModel(model.id)}
-                className='flex flex-col items-start gap-0.5 py-2.5'
-              >
-                <div className='flex items-center gap-2 w-full'>
-                  <Sparkles className='h-4 w-4 text-emerald-400' />
-                  <span className='font-medium'>{model.name}</span>
-                  {model.badge && (
-                    <Badge
-                      variant='secondary'
-                      className='ml-auto text-[10px] bg-emerald-500/20 text-emerald-400 border-0'
-                    >
-                      {model.badge}
-                    </Badge>
-                  )}
-                </div>
-                <span className='text-xs text-muted-foreground ml-6'>{model.description}</span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Divider */}
-        <div className='h-5 w-px bg-border' />
-
         {/* Tools Indicator */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -23,12 +23,10 @@ export default function NotFound() {
           <span className='bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent'>404</span>
         </div>
 
-        <h1 className='mb-2 text-2xl font-bold text-foreground'>功能开发中</h1>
+        <h1 className='mb-2 text-2xl font-bold text-foreground'>页面未找到</h1>
 
         <p className='mb-8 max-w-md text-muted-foreground'>
-          该功能模块正在紧张开发中，敬请期待！您可以先使用已上线的
-          <span className='text-emerald-400'>普通聊天</span>和
-          <span className='text-teal-400'>测试用例设计</span>功能。
+          您访问的页面不存在或已被移除。您可以尝试返回首页。
         </p>
 
         <div className='mb-8 flex items-center gap-2 rounded-full bg-amber-500/10 px-4 py-2 text-amber-400'>

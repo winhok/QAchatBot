@@ -1,59 +1,22 @@
 'use client'
 
 import { Button } from '@/app/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/app/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/app/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/app/components/ui/dropdown-menu'
 import { Input } from '@/app/components/ui/input'
 import { ScrollArea } from '@/app/components/ui/scroll-area'
+import { useQuickAction } from '@/app/hooks/useQuickAction'
+import { useDeleteSession, useRenameSession, useSessions } from '@/app/hooks/useSessions'
 import { cn } from '@/app/lib/utils'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useChatMessages } from '@/app/stores/useChatMessages'
+import { useSession } from '@/app/stores/useSession'
+import type { Session, SessionType } from '@/app/types/stores'
 import { Bug, ChevronRight, FileCode, FlaskConical, MessageSquare, MoreHorizontal, Pencil, Plus, Search, TestTube2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useChatMessages } from '../stores/useChatMessages'
-import { useSession } from '../stores/useSession'
-import type { SessionType } from '../types/stores'
-
-interface Session {
-  id: string
-  name: string
-  type?: SessionType
-  created_at: string
-}
 
 function getSessionTitle(session: Session) {
   return session.name || `会话 ${session.id.slice(0, 8)}`
-}
-
-async function fetchSessions(): Promise<Session[]> {
-  const res = await fetch('/api/sessions')
-  const data = await res.json()
-  return Array.isArray(data.sessions) ? data.sessions : []
-}
-
-async function createSession(name: string): Promise<{ id: string }> {
-  const res = await fetch('/api/sessions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
-  })
-  return res.json()
-}
-
-async function deleteSession(id: string): Promise<void> {
-  await fetch('/api/sessions', {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id }),
-  })
-}
-
-async function renameSession(id: string, name: string): Promise<void> {
-  await fetch('/api/sessions', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, name }),
-  })
 }
 
 const quickActions = [
@@ -93,48 +56,24 @@ const quickActions = [
 
 export default function SessionSidebar() {
   const router = useRouter()
-  const { sessionId, setSessionId, setSessionType, createNewSession, renameId, renameValue, setRenameValue, openRenameModal, closeRenameModal } = useSession()
+  const { startNewSession } = useQuickAction()
+
+  const { sessionId, setSessionId, renameId, renameValue, setRenameValue, openRenameModal, closeRenameModal } = useSession()
   const resetMessages = useChatMessages(s => s.resetMessages)
-  const queryClient = useQueryClient()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 
-  const { data: sessions = [] } = useQuery({
-    queryKey: ['sessions'],
-    queryFn: fetchSessions,
-  })
+  // 使用新的 hooks
+  const { data: sessions = [] } = useSessions()
+  const deleteMutation = useDeleteSession()
+  const renameMutation = useRenameSession()
 
   const filteredSessions = sessions.filter(session => getSessionTitle(session).toLowerCase().includes(searchQuery.toLowerCase()))
 
-  const createMutation = useMutation({
-    mutationFn: (name: string) => createSession(name),
-    onSuccess: data => {
-      if (data.id) {
-        createNewSession(data.id)
-        resetMessages()
-        queryClient.invalidateQueries({ queryKey: ['sessions'] })
-      }
-    },
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteSession(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sessions'] })
-    },
-  })
-
-  const renameMutation = useMutation({
-    mutationFn: ({ id, name }: { id: string; name: string }) => renameSession(id, name),
-    onSuccess: () => {
-      closeRenameModal()
-      queryClient.invalidateQueries({ queryKey: ['sessions'] })
-    },
-  })
-
   const handleNew = () => {
-    router.push('/')
+    startNewSession('normal')
   }
 
   const handleSelect = (id: string) => {
@@ -144,11 +83,26 @@ export default function SessionSidebar() {
     }
   }
 
-  const handleDelete = (id: string) => deleteMutation.mutate(id)
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        if (id === sessionId) {
+          setSessionId('')
+          resetMessages()
+          if (window.location.pathname !== '/') {
+            router.push('/')
+          }
+        }
+      },
+    })
+  }
 
   const handleRename = (id: string) => {
     if (!renameValue.trim()) return
-    renameMutation.mutate({ id, name: renameValue.trim() })
+    renameMutation.mutate(
+      { id, name: renameValue.trim() },
+      { onSuccess: closeRenameModal }
+    )
   }
 
   const handleQuickAction = (action: (typeof quickActions)[0]) => {
@@ -156,11 +110,7 @@ export default function SessionSidebar() {
       router.push('/not-found')
       return
     }
-    setSessionType(action.id as SessionType)
-    const newSessionId = crypto.randomUUID()
-    createNewSession(newSessionId, action.id as SessionType)
-    resetMessages()
-    router.push(`/${newSessionId}`)
+    startNewSession(action.id as SessionType)
   }
 
   const getTypeIcon = (type?: string) => {
@@ -206,7 +156,6 @@ export default function SessionSidebar() {
       <div className='px-3 py-2'>
         <Button
           onClick={handleNew}
-          disabled={createMutation.isPending}
           className='w-full justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20 transition-all hover:shadow-emerald-500/40 hover:scale-[1.02]'
         >
           <Plus className='h-4 w-4' />
@@ -260,8 +209,8 @@ export default function SessionSidebar() {
                     <span className='truncate flex-1 text-left'>{getSessionTitle(session)}</span>
                   </button>
 
-                  {hoveredId === session.id && (
-                    <DropdownMenu>
+                  {(hoveredId === session.id || openMenuId === session.id) && (
+                    <DropdownMenu open={openMenuId === session.id} onOpenChange={(open) => setOpenMenuId(open ? session.id : null)}>
                       <DropdownMenuTrigger asChild>
                         <button className='absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'>
                           <MoreHorizontal className='h-4 w-4' />
@@ -290,6 +239,7 @@ export default function SessionSidebar() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>重命名会话</DialogTitle>
+            <DialogDescription>为当前会话设置一个新名称</DialogDescription>
           </DialogHeader>
           <Input
             value={renameValue}
