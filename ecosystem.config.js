@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'langgraphjs-chat-app',
       script: 'node_modules/next/dist/bin/next',
-      args: 'start',
+      args: 'start --port 3001',
       cwd: __dirname,
       instances: 1,
       autorestart: true,

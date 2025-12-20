@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { toolManager } from '../tools'
+import { toolManager } from '@/app/agent/tools'
 
 toolManager.add('current_time', {
   description: 'Get the current time',

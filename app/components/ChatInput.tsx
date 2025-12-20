@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useState, useRef } from 'react'
+import { useRef } from 'react'
 import { Button } from '@/app/components/ui/button'
 import { Textarea } from '@/app/components/ui/textarea'
 import {
@@ -12,11 +12,14 @@ import {
   DropdownMenuSeparator,
 } from '@/app/components/ui/dropdown-menu'
 import { Paperclip, ArrowUp, FileCode, TestTube2, Bug, Plus, Sparkles } from 'lucide-react'
+import { ModelSelector } from '@/app/components/ModelSelector'
+import { useChatMessages } from '@/app/stores/useChatMessages'
+import { useSession } from '@/app/stores/useSession'
 
 interface ChatInputProps {
   onSend: (message: string) => void
   disabled?: boolean
-  sessionType?: 'normal' | 'testcase'
+  placeholder?: string
 }
 
 const quickActions = [
@@ -27,8 +30,13 @@ const quickActions = [
 
 const MAX_TEXTAREA_HEIGHT = 128
 
-export function ChatInput({ onSend, disabled = false, sessionType = 'normal' }: ChatInputProps) {
-  const [message, setMessage] = useState('')
+export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputProps) {
+  // 直接从 store 获取状态
+  const sessionType = useSession(s => s.sessionType)
+  const modelId = useSession(s => s.modelId)
+  const setModelId = useSession(s => s.setModelId)
+
+  const { draftMessage: message, setDraftMessage: setMessage, clearDraftMessage } = useChatMessages()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const adjustHeight = (textarea: HTMLTextAreaElement) => {
@@ -39,7 +47,7 @@ export function ChatInput({ onSend, disabled = false, sessionType = 'normal' }: 
   const handleSend = () => {
     if (message.trim() && !disabled) {
       onSend(message.trim())
-      setMessage('')
+      clearDraftMessage()
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
       }
@@ -102,9 +110,10 @@ export function ChatInput({ onSend, disabled = false, sessionType = 'normal' }: 
               onChange={handleChange}
               onKeyDown={handleKeyDown}
               placeholder={
-                sessionType === 'testcase'
-                  ? '输入测试需求，让 AI 助手帮你完成...'
-                  : '输入内容，让 AI 助手帮你完成...'
+                placeholder ||
+                (sessionType === 'testcase'
+                  ? '输入 PRD 需求文档，AI 将分阶段生成测试用例...'
+                  : '输入内容，让 AI 助手帮你完成...')
               }
               className='min-h-[44px] max-h-32 flex-1 resize-none border-0 bg-transparent p-2 text-foreground placeholder:text-muted-foreground focus-visible:ring-0'
               rows={1}
@@ -123,13 +132,16 @@ export function ChatInput({ onSend, disabled = false, sessionType = 'normal' }: 
         </div>
 
         {/* Footer hint */}
-        <div className='mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground'>
-          <Sparkles className='h-3 w-3 text-emerald-400' />
-          <span>
-            {sessionType === 'testcase'
-              ? '支持自然语言描述测试需求，AI 将自动调用相应工具执行'
-              : '支持自然语言对话，AI 将为您提供专业解答'}
-          </span>
+        <div className='mt-3 flex items-center justify-between text-xs text-muted-foreground'>
+          <ModelSelector currentModelId={modelId} onModelChange={setModelId} disabled={disabled} />
+          <div className='flex items-center gap-2'>
+            <Sparkles className='h-3 w-3 text-emerald-400' />
+            <span>
+              {sessionType === 'testcase'
+                ? '支持 Human-in-the-Loop 模式，每个阶段可审核修改'
+                : '支持自然语言对话，AI 将为您提供专业解答'}
+            </span>
+          </div>
         </div>
       </div>
     </div>

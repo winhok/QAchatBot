@@ -1,25 +1,33 @@
 'use client'
 
-import { AIOrb } from './AIOrb'
-import {
-  FileCode,
-  TestTube2,
-  Bug,
-  BarChart3,
-  HelpCircle,
-  Headphones,
-  BookOpen,
-  Lightbulb,
-  ArrowRight,
-  MessageSquare,
-  Construction,
-  Sparkles,
-} from 'lucide-react'
-import { useState, useEffect, useMemo } from 'react'
+import { AIOrb } from '@/app/components/AIOrb'
+import { useQuickAction } from '@/app/hooks/useQuickAction'
+import { useSession } from '@/app/stores/useSession'
 import type { SessionType } from '@/app/types/stores'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  Bug,
+  Construction,
+  FileCode,
+  Headphones,
+  HelpCircle,
+  Lightbulb,
+  MessageSquare,
+  Sparkles,
+  TestTube2,
+} from 'lucide-react'
+import { useEffect, useState, useSyncExternalStore, useTransition } from 'react'
 
-interface WelcomeScreenProps {
-  onFeatureClick: (feature: string, type?: SessionType) => void
+const STORAGE_KEY = 'last_welcome_index'
+const TIP_STORAGE_KEY = 'last_tip_index'
+
+interface WelcomeMessage {
+  headline: (context: { time: string; user?: string }) => string
+  subtitle: string
+  highlightColor: string
 }
 
 const getTimeGreeting = () => {
@@ -30,29 +38,29 @@ const getTimeGreeting = () => {
   return '晚上好'
 }
 
-const welcomeMessages = [
+const welcomeMessages: WelcomeMessage[] = [
   {
-    headline: '让测试更智能',
+    headline: ({ time }) => `${time}，让测试更智能`,
     subtitle: 'AI 驱动的测试用例生成，告别手动编写的繁琐',
     highlightColor: 'from-teal-400 to-cyan-400',
   },
   {
-    headline: '释放你的生产力',
+    headline: ({ time }) => `${time}，释放你的生产力`,
     subtitle: '一句话生成完整测试方案，专注于更有价值的工作',
     highlightColor: 'from-emerald-400 to-teal-400',
   },
   {
-    headline: '你的 QA 智能伙伴',
+    headline: ({ time }) => `${time}，我是你的 QA 伙伴`,
     subtitle: '无论是测试设计还是问题咨询，随时为你提供专业支持',
     highlightColor: 'from-cyan-400 to-blue-400',
   },
   {
-    headline: '测试从这里开始',
+    headline: ({ time }) => `${time}，测试从这里开始`,
     subtitle: '描述你的需求，AI 帮你规划测试策略和用例设计',
     highlightColor: 'from-purple-400 to-pink-400',
   },
   {
-    headline: '更聪明地工作',
+    headline: ({ time }) => `${time}，今天想更聪明地工作吗？`,
     subtitle: 'AI 辅助分析、生成、优化，让测试工作事半功倍',
     highlightColor: 'from-amber-400 to-orange-400',
   },
@@ -65,18 +73,104 @@ const featureTips = [
   '有任何测试相关的问题，都可以向 AI 助手咨询',
 ]
 
-export function WelcomeScreen({ onFeatureClick }: WelcomeScreenProps) {
-  const [welcomeIndex, setWelcomeIndex] = useState(0)
-  const [tipIndex, setTipIndex] = useState(0)
+/**
+ * 随机选择索引，确保不与上次重复
+ */
+export function getRandomIndex(length: number, lastIndex: number | null): number {
+  if (length <= 1) return 0
+  let nextIndex: number
+  do {
+    nextIndex = Math.floor(Math.random() * length)
+  } while (nextIndex === lastIndex)
+  return nextIndex
+}
 
+export function WelcomeScreen() {
+  const { startNewSession } = useQuickAction()
+  const sessionId = useSession(s => s.sessionId)
+  const welcomeRefreshTrigger = useSession(s => s.welcomeRefreshTrigger)
+  const [welcomeIndex, setWelcomeIndex] = useState<number | null>(null)
+  const [tipIndex, setTipIndex] = useState<number | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  // 1. 初始挂载随机化
   useEffect(() => {
-    setWelcomeIndex(Math.floor(Math.random() * welcomeMessages.length))
-    setTipIndex(Math.floor(Math.random() * featureTips.length))
+    setIsMounted(true)
+    const lastWelcome = localStorage.getItem(STORAGE_KEY)
+    const lastTip = localStorage.getItem(TIP_STORAGE_KEY)
+    
+    const nextWelcome = getRandomIndex(welcomeMessages.length, lastWelcome ? parseInt(lastWelcome) : null)
+    const nextTip = getRandomIndex(featureTips.length, lastTip ? parseInt(lastTip) : null)
+    
+    setWelcomeIndex(nextWelcome)
+    setTipIndex(nextTip)
+    
+    localStorage.setItem(STORAGE_KEY, nextWelcome.toString())
+    localStorage.setItem(TIP_STORAGE_KEY, nextTip.toString())
   }, [])
 
-  const timeGreeting = useMemo(() => getTimeGreeting(), [])
+  // 2. 监听 sessionId 变化或刷新触发器
+  useEffect(() => {
+    // 逻辑：
+    // 1. 如果是从具体会话切换到首页 (sessionId 变为空)
+    // 2. 或者已经在首页时手动触发了刷新 (welcomeRefreshTrigger 变化)
+    if (isMounted && sessionId === '') {
+      startTransition(() => {
+        setWelcomeIndex(prev => {
+          const next = getRandomIndex(welcomeMessages.length, prev)
+          localStorage.setItem(STORAGE_KEY, next.toString())
+          return next
+        })
+        setTipIndex(prev => {
+          const next = getRandomIndex(featureTips.length, prev)
+          localStorage.setItem(TIP_STORAGE_KEY, next.toString())
+          return next
+        })
+      })
+    }
+  }, [sessionId, welcomeRefreshTrigger, isMounted])
+
+  // 3. 自动播放逻辑：每 15 秒随机切换一次
+  useEffect(() => {
+    if (!isMounted || welcomeIndex === null || tipIndex === null) return
+
+    const interval = setInterval(() => {
+      startTransition(() => {
+        setWelcomeIndex(prev => {
+          const next = getRandomIndex(welcomeMessages.length, prev)
+          localStorage.setItem(STORAGE_KEY, next.toString())
+          return next
+        })
+        setTipIndex(prev => {
+          const next = getRandomIndex(featureTips.length, prev)
+          localStorage.setItem(TIP_STORAGE_KEY, next.toString())
+          return next
+        })
+      })
+    }, 15000)
+
+    return () => clearInterval(interval)
+  }, [isMounted, welcomeIndex, tipIndex])
+
+  const timeGreeting = useSyncExternalStore(
+    () => () => {},
+    () => getTimeGreeting(),
+    () => '你好'
+  )
+
+  // 防止 Hydration 不匹配
+  if (!isMounted || welcomeIndex === null || tipIndex === null) {
+    return (
+      <div className='flex flex-1 flex-col items-center justify-center px-4 py-8 opacity-0'>
+        <AIOrb />
+      </div>
+    )
+  }
+
   const currentWelcome = welcomeMessages[welcomeIndex]
   const currentTip = featureTips[tipIndex]
+  const headlineText = currentWelcome.headline({ time: timeGreeting })
 
   const primaryFeatures = [
     {
@@ -128,45 +222,88 @@ export function WelcomeScreen({ onFeatureClick }: WelcomeScreenProps) {
   ]
 
   const handleFeatureClick = (feature: (typeof primaryFeatures)[0]) => {
-    if (!feature.implemented) {
+    if (!feature.implemented || !feature.type) {
       return
     }
-    onFeatureClick(feature.title, feature.type)
+    startNewSession(feature.type)
   }
 
   return (
     <div className='flex flex-1 flex-col items-center justify-center px-4 py-8 overflow-auto'>
       {/* AI Orb Animation */}
-      <div className='mb-6'>
+      <motion.div 
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className='mb-6'
+      >
         <AIOrb />
-      </div>
+      </motion.div>
 
       <div className='text-center mb-10 space-y-4'>
         {/* 时间问候语 */}
-        <p className='text-muted-foreground text-sm flex items-center justify-center gap-2'>
+        <motion.p 
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className='text-muted-foreground text-sm flex items-center justify-center gap-2'
+        >
           <Sparkles className='h-4 w-4 text-amber-400' />
           {timeGreeting}，有什么可以帮助你的？
-        </p>
+        </motion.p>
 
         {/* 主标题 - 随机切换 */}
-        <h1 className='text-4xl font-bold text-foreground md:text-5xl tracking-tight'>
-          <span className={`bg-gradient-to-r ${currentWelcome.highlightColor} bg-clip-text text-transparent`}>
-            {currentWelcome.headline}
-          </span>
-        </h1>
+        <AnimatePresence mode='wait'>
+          <motion.h1 
+            key={welcomeIndex}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className='text-4xl font-bold text-foreground md:text-5xl tracking-tight'
+          >
+            <span className={`bg-gradient-to-r ${currentWelcome.highlightColor} bg-clip-text text-transparent`}>
+              {headlineText}
+            </span>
+          </motion.h1>
+        </AnimatePresence>
 
         {/* 副标题 */}
-        <p className='max-w-lg mx-auto text-muted-foreground text-lg'>{currentWelcome.subtitle}</p>
+        <AnimatePresence mode='wait'>
+          <motion.p 
+            key={welcomeIndex}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className='max-w-lg mx-auto text-muted-foreground text-lg'
+          >
+            {currentWelcome.subtitle}
+          </motion.p>
+        </AnimatePresence>
 
         {/* 功能提示 */}
-        <div className='inline-flex items-center gap-2 rounded-full bg-card/50 border border-border/50 px-4 py-2 text-sm text-muted-foreground'>
-          <Lightbulb className='h-4 w-4 text-amber-400' />
-          {currentTip}
-        </div>
+        <AnimatePresence mode='wait'>
+          <motion.div 
+            key={tipIndex}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.05, opacity: 0 }}
+            className='inline-flex items-center gap-2 rounded-full bg-card/50 border border-border/50 px-4 py-2 text-sm text-muted-foreground'
+          >
+            <Lightbulb className='h-4 w-4 text-amber-400' />
+            {currentTip}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Primary Feature Cards */}
-      <div className='w-full max-w-4xl mb-8'>
+      <motion.div 
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className='w-full max-w-4xl mb-8'
+      >
         <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
           {primaryFeatures.map(feature => (
             <button
@@ -201,10 +338,15 @@ export function WelcomeScreen({ onFeatureClick }: WelcomeScreenProps) {
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Secondary Features */}
-      <div className='flex items-center gap-2 flex-wrap justify-center'>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className='flex items-center gap-2 flex-wrap justify-center'
+      >
         <span className='text-sm text-muted-foreground mr-2'>快速访问:</span>
         {secondaryFeatures.map(feature => (
           <button
@@ -218,7 +360,7 @@ export function WelcomeScreen({ onFeatureClick }: WelcomeScreenProps) {
             {!feature.implemented && <Construction className='h-3 w-3 text-amber-400 ml-1' />}
           </button>
         ))}
-      </div>
+      </motion.div>
     </div>
   )
 }

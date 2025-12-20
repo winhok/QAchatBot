@@ -1,10 +1,13 @@
 import { create } from 'zustand'
-import type { SessionState, SessionType } from '../types/stores'
+import type { SessionState, SessionType } from '@/app/types/stores'
+import { DEFAULT_MODEL_ID } from '@/app/config/models'
 
 export const useSession = create<SessionState>((set, get) => ({
   sessionId: '',
   sessionType: 'normal' as SessionType,
+  modelId: DEFAULT_MODEL_ID,
   hasUserMessage: false,
+  welcomeRefreshTrigger: 0,
   renameId: null,
   renameValue: '',
 
@@ -14,6 +17,14 @@ export const useSession = create<SessionState>((set, get) => ({
 
   setSessionType: type => {
     set({ sessionType: type })
+  },
+
+  setModelId: modelId => {
+    set({ modelId })
+  },
+
+  refreshWelcome: () => {
+    set(state => ({ welcomeRefreshTrigger: state.welcomeRefreshTrigger + 1 }))
   },
 
   createNewSession: (id, type = 'normal') => {

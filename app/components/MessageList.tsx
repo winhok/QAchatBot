@@ -3,17 +3,24 @@
 import { Avatar, AvatarFallback } from '@/app/components/ui/avatar'
 import { ScrollArea } from '@/app/components/ui/scroll-area'
 import { Bot } from 'lucide-react'
-import { useChatMessages } from '../stores/useChatMessages'
-import { LoadingIndicator } from './LoadingIndicator'
-import { MessageBubble } from './MessageBubble'
+import { useChatMessages } from '@/app/stores/useChatMessages'
+import { useSendMessage } from '@/app/stores/useSendMessage'
+import { LoadingIndicator } from '@/app/components/LoadingIndicator'
+import { MessageBubble } from '@/app/components/MessageBubble'
+import { StopGenerationButton } from '@/app/components/StopGenerationButton'
 
 export function MessageList() {
   const messages = useChatMessages(state => state.messages)
   const isLoading = useChatMessages(state => state.isLoading)
+  const abortCurrent = useSendMessage(state => state.abortCurrent)
+
+  if (messages.length === 0) {
+    return <ScrollArea className='flex-1 px-4' />
+  }
 
   return (
     <ScrollArea className='flex-1 px-4'>
-      <div className='mx-auto max-w-3xl space-y-6 py-6'>
+      <div className='mx-auto max-w-3xl space-y-8 py-6'>
         {messages.map(message => (
           <MessageBubble key={message.id} message={message} />
         ))}
@@ -26,6 +33,13 @@ export function MessageList() {
               </AvatarFallback>
             </Avatar>
             <LoadingIndicator />
+          </div>
+        )}
+
+        {/* 停止生成按钮 */}
+        {isLoading && (
+          <div className='flex justify-center py-2'>
+            <StopGenerationButton onStop={abortCurrent} isGenerating={isLoading} />
           </div>
         )}
 

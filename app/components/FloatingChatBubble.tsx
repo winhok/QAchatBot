@@ -6,25 +6,21 @@ import { Card } from '@/app/components/ui/card'
 import { MessageCircle, X, TestTube2, FlaskConical } from 'lucide-react'
 import { cn } from '@/app/lib/utils'
 import type { SessionType } from '@/app/types/stores'
+import { useQuickAction } from '@/app/hooks/useQuickAction'
 
-interface FloatingChatBubbleProps {
-  onQuickAction: (action: string, type: SessionType) => void
-}
-
-export function FloatingChatBubble({ onQuickAction }: FloatingChatBubbleProps) {
+export function FloatingChatBubble() {
   const [isOpen, setIsOpen] = useState(false)
+  const { startNewSession } = useQuickAction()
 
   const sessionTypeActions = [
     {
       label: '开始普通聊天',
-      action: 'normal',
       type: 'normal' as SessionType,
       icon: MessageCircle,
       color: 'from-emerald-500 to-teal-600',
     },
     {
       label: '设计测试用例',
-      action: 'testcase',
       type: 'testcase' as SessionType,
       icon: TestTube2,
       color: 'from-blue-500 to-cyan-600',
@@ -33,7 +29,7 @@ export function FloatingChatBubble({ onQuickAction }: FloatingChatBubbleProps) {
 
   const handleSessionTypeChange = (action: (typeof sessionTypeActions)[0]) => {
     setIsOpen(false)
-    onQuickAction(action.action, action.type)
+    startNewSession(action.type)
   }
 
   return (
@@ -44,7 +40,7 @@ export function FloatingChatBubble({ onQuickAction }: FloatingChatBubbleProps) {
           <div className='space-y-1'>
             {sessionTypeActions.map(action => (
               <Button
-                key={action.action}
+                key={action.type}
                 variant='ghost'
                 className='w-full justify-start gap-3 h-auto py-3 hover:bg-accent'
                 onClick={() => handleSessionTypeChange(action)}
