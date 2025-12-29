@@ -1,0 +1,8 @@
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@prisma/engines'
+  - core-js
+  - es5-ext
+  - esbuild
+  - prisma
+  - unrs-resolver

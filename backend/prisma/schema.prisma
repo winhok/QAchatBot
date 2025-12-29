@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Session {
+  id            String   @id @default(cuid())
+  name          String?
+  type          String   @default("normal")
+  status        String   @default("active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  lastMessageAt DateTime? @map("last_message_at")
+
+  messages Message[]
+
+  @@map("sessions")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  sessionId String   @map("session_id")
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seq       Int
+  role      String
+  content   String?
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  toolCalls ToolCall[]
+
+  @@unique([sessionId, seq])
+  @@index([sessionId, seq])
+  @@map("messages")
+}
+
+model ToolCall {
+  id         String   @id @default(cuid())
+  messageId  String   @map("message_id")
+  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  seq        Int
+  toolCallId String   @map("tool_call_id")
+  toolName   String   @map("tool_name")
+  args       Json
+  result     Json?
+  status     String   @default("pending")
+  duration   Int?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([messageId, seq])
+  @@index([messageId])
+  @@index([toolName])
+  @@map("tool_calls")
+}
