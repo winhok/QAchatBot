@@ -13,7 +13,7 @@ export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
 
   @Post()
-  async submit(@Body() dto: FeedbackPayload) {
+  submit(@Body() dto: FeedbackPayload) {
     // TODO: 实现反馈提交逻辑
     // - 验证参数
     // - 存储反馈数据
@@ -22,7 +22,7 @@ export class FeedbackController {
   }
 
   @Get()
-  async get(@Query('messageId') messageId?: string) {
+  get(@Query('messageId') messageId?: string) {
     // TODO: 获取反馈状态（可选）
     return this.feedbackService.get(messageId);
   }

@@ -23,7 +23,7 @@ export interface ExportResult {
 
 @Injectable()
 export class ExportService {
-  async export(dto: ExportRequest): Promise<ExportResult> {
+  export(dto: ExportRequest): ExportResult {
     const { sessionId, format } = dto;
 
     // TODO: 根据 sessionId 获取数据

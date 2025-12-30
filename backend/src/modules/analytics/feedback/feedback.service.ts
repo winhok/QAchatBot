@@ -16,7 +16,8 @@ export interface FeedbackPayload {
 
 @Injectable()
 export class FeedbackService {
-  async submit(_dto: FeedbackPayload) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  submit(dto: FeedbackPayload) {
     // TODO: 存储反馈
     // - 可以存到数据库
     // - 或发送到分析服务（如 PostHog, Mixpanel）
@@ -25,7 +26,8 @@ export class FeedbackService {
     return { success: true };
   }
 
-  async get(_messageId?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  get(messageId?: string) {
     // TODO: 查询反馈记录
 
     return { feedback: null };

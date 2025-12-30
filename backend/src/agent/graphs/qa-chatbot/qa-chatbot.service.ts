@@ -87,15 +87,17 @@ export class QaChatbotService implements OnModuleInit {
    */
   async getStage(threadId: string): Promise<QAWorkflowStage> {
     const state = await this.getState(threadId);
-    return state?.values?.stage || 'init';
+    const values = state?.values as { stage?: QAWorkflowStage } | undefined;
+    return values?.stage || 'init';
   }
 
   /**
    * 获取聊天历史
    */
-  async getHistory(threadId: string) {
+  async getHistory(threadId: string): Promise<unknown[]> {
     const state = await this.getState(threadId);
-    return state?.values?.messages || [];
+    const values = state?.values as { messages?: unknown[] } | undefined;
+    return values?.messages || [];
   }
 
   /**
@@ -103,10 +105,11 @@ export class QaChatbotService implements OnModuleInit {
    */
   async getArtifacts(threadId: string) {
     const state = await this.getState(threadId);
+    const values = state?.values as Record<string, unknown> | undefined;
     return {
-      prdContent: state?.values?.prdContent || '',
-      testPoints: state?.values?.testPoints || '',
-      testCases: state?.values?.testCases || '',
+      prdContent: (values?.prdContent as string) || '',
+      testPoints: (values?.testPoints as string) || '',
+      testCases: (values?.testCases as string) || '',
     };
   }
 }

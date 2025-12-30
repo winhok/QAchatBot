@@ -5,6 +5,7 @@ import {
   HumanMessage,
   SystemMessage,
 } from '@langchain/core/messages';
+import type { RunnableConfig } from '@langchain/core/runnables';
 import {
   END,
   MessagesAnnotation,
@@ -22,6 +23,11 @@ import {
   type PersonaConfig,
   DEFAULT_PERSONA,
 } from '@/agent/prompts';
+import {
+  MemoryStoreService,
+  type MergedMemory,
+} from '@/infrastructure/memory/memory-store.service';
+import { HistoryOptimizerService } from '@/infrastructure/memory/history-optimizer.service';
 
 @Injectable()
 export class ChatbotService implements OnModuleInit {
@@ -32,6 +38,8 @@ export class ChatbotService implements OnModuleInit {
   constructor(
     private readonly config: ConfigService,
     private readonly tools: ToolsService,
+    private readonly memoryStore: MemoryStoreService,
+    private readonly historyOptimizer: HistoryOptimizerService,
   ) {}
 
   async onModuleInit() {
@@ -68,12 +76,46 @@ export class ChatbotService implements OnModuleInit {
   }
 
   /**
-   * 获取系统指令
+   * 获取基础系统指令
    */
-  private getSystemMessage(): SystemMessage {
+  private getBaseSystemPrompt(): string {
     const toolNames = this.tools.getEnabledToolNames();
-    const prompt = buildChatbotSystemPrompt(this.currentPersona, toolNames);
-    return new SystemMessage(prompt);
+    return buildChatbotSystemPrompt(this.currentPersona, toolNames);
+  }
+
+  /**
+   * 构建增强的系统提示（包含分层记忆）
+   */
+  private buildEnhancedSystemPrompt(memory: MergedMemory): string {
+    const parts: string[] = [this.getBaseSystemPrompt()];
+
+    // 添加用户偏好
+    if (Object.keys(memory.prefs).length > 0) {
+      parts.push('\n## 用户偏好');
+      for (const [k, v] of Object.entries(memory.prefs)) {
+        parts.push(`- ${k}: ${JSON.stringify(v)}`);
+      }
+    }
+
+    // 添加行为规则
+    if (memory.rules.length > 0) {
+      parts.push('\n## 行为规则');
+      memory.rules.forEach((r) => parts.push(`- ${r}`));
+    }
+
+    // 添加项目上下文
+    if (Object.keys(memory.context).length > 0) {
+      parts.push('\n## 项目上下文');
+      parts.push(JSON.stringify(memory.context, null, 2));
+    }
+
+    // 添加知识库
+    if (Object.keys(memory.knowledge).length > 0) {
+      parts.push('\n## 领域知识');
+      parts.push(JSON.stringify(memory.knowledge, null, 2));
+    }
+
+    return parts.join('\n');
   }
 
   createHumanMessage(message: ChatMessageContent): HumanMessage {
@@ -140,23 +182,40 @@ export class ChatbotService implements OnModuleInit {
     const model = this.createModelInstance(modelId).bindTools(allTools);
     const toolNode = new ToolNode(allTools);
 
-    // 获取系统指令的引用
-    const getSystemMessage = () => this.getSystemMessage();
+    // 创建闭包引用
+    const memoryStore = this.memoryStore;
+    const historyOptimizer = this.historyOptimizer;
+    const buildEnhancedSystemPrompt = (memory: MergedMemory) =>
+      this.buildEnhancedSystemPrompt(memory);
 
-    const chatbotNode = async (state: typeof MessagesAnnotation.State) => {
-      // 准备消息列表
-      let messagesToSend = state.messages;
+    const chatbotNode = async (
+      state: typeof MessagesAnnotation.State,
+      config: RunnableConfig,
+    ) => {
+      const threadId = config.configurable?.thread_id as string;
+      const userId = config.configurable?.user_id as string | undefined;
 
-      // 检查是否已有 SystemMessage（避免重复注入）
-      const hasSystemMessage = state.messages.some(
+      // 1. 获取合并后的分层记忆
+      const mergedMemory = await memoryStore.getMergedMemoryForSession(
+        threadId,
+        userId,
+      );
+
+      // 2. 构建增强系统提示
+      const enhancedPrompt = buildEnhancedSystemPrompt(mergedMemory);
+
+      // 3. 优化历史记录
+      let messagesToSend = await historyOptimizer.optimize(state.messages);
+
+      // 4. 检查是否已有 SystemMessage（避免重复注入）
+      const hasSystemMessage = messagesToSend.some(
         (msg) => msg._getType() === 'system',
       );
 
       if (!hasSystemMessage) {
         // 首次对话，注入系统指令
-        const systemMessage = getSystemMessage();
-        messagesToSend = [systemMessage, ...state.messages];
-        console.log('[ChatbotService] Injected SystemMessage');
+        messagesToSend = [new SystemMessage(enhancedPrompt), ...messagesToSend];
+        console.log('[ChatbotService] Injected enhanced SystemMessage');
       }
 
       console.log(
@@ -209,9 +268,10 @@ export class ChatbotService implements OnModuleInit {
   /**
    * 获取聊天历史
    */
-  async getHistory(threadId: string, modelId?: string) {
+  async getHistory(threadId: string, modelId?: string): Promise<unknown[]> {
     const app = this.getApp(modelId);
     const state = await app.getState({ configurable: { thread_id: threadId } });
-    return state?.values?.messages || [];
+    const values = state?.values as { messages?: unknown[] } | undefined;
+    return values?.messages || [];
   }
 }

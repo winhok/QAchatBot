@@ -14,7 +14,7 @@ export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
   @Get()
-  async search(
+  search(
     @Query('q') query?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,

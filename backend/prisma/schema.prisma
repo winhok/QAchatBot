@@ -7,8 +7,28 @@ datasource db {
   provider = "postgresql"
 }
 
+model Folder {
+  id          String    @id @default(cuid())
+  userId      String?   @map("user_id")
+  name        String
+  icon        String?
+  color       String?
+  description String?   @db.Text
+  isDefault   Boolean   @default(false) @map("is_default")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  sessions    Session[]
+  memories    Memory[]
+
+  @@index([userId])
+  @@map("folders")
+}
+
 model Session {
   id            String   @id @default(cuid())
+  folderId      String?  @map("folder_id")
+  folder        Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
   name          String?
   type          String   @default("normal")
   status        String   @default("active")
@@ -18,7 +38,29 @@ model Session {
 
   messages Message[]
 
+  @@index([folderId])
   @@map("sessions")
+}
+
+model Memory {
+  id        String    @id @default(cuid())
+  userId    String?   @map("user_id")
+  folderId  String?   @map("folder_id")
+  folder    Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  scope     String    @default("folder")
+  category  String    @default("general")
+  key       String
+  value     Json
+  priority  Int       @default(0)
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@unique([userId, folderId, scope, category, key])
+  @@index([userId, scope])
+  @@index([folderId])
+  @@index([expiresAt])
+  @@map("memories")
 }
 
 model Message {
@@ -56,4 +98,16 @@ model ToolCall {
   @@index([messageId])
   @@index([toolName])
   @@map("tool_calls")
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  collection String   @default("default")
+  content    String   @db.Text
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([collection])
+  @@map("documents")
 }

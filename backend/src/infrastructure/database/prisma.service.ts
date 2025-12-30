@@ -40,7 +40,18 @@ export class PrismaService
     });
 
     if (isDev) {
-      (this as any).$on(
+      (
+        this as unknown as {
+          $on: (
+            event: string,
+            cb: (e: {
+              query: string;
+              params: string;
+              duration: number;
+            }) => void,
+          ) => void;
+        }
+      ).$on(
         'query',
         (e: { query: string; params: string; duration: number }) => {
           const traceId = this.contextService.getTraceId() || 'N/A';

@@ -22,6 +22,7 @@ export class SessionsService {
         ...(dto.id && { id: dto.id }),
         name: dto.name ?? '',
         type: dto.type,
+        ...(dto.folderId && { folderId: dto.folderId }),
       },
     });
     this.logger.logQueryResult(this.className, 'create', result);
@@ -45,6 +46,9 @@ export class SessionsService {
       where: status ? { status } : { status: { not: 'deleted' } },
       orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
       include: {
+        folder: {
+          select: { id: true, name: true, icon: true, color: true },
+        },
         messages: {
           orderBy: { seq: 'desc' },
           take: 1,
@@ -64,6 +68,9 @@ export class SessionsService {
       },
       orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
       include: {
+        folder: {
+          select: { id: true, name: true, icon: true, color: true },
+        },
         messages: {
           orderBy: { seq: 'desc' },
           take: 1,
@@ -79,6 +86,9 @@ export class SessionsService {
     const result = await this.prisma.session.findUnique({
       where: { id },
       include: {
+        folder: {
+          select: { id: true, name: true, icon: true, color: true },
+        },
         messages: {
           orderBy: { seq: 'asc' },
           include: {

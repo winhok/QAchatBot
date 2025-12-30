@@ -33,34 +33,32 @@ export class LoggingMiddleware implements NestMiddleware {
 
     res.setHeader('X-Trace-Id', traceId);
 
-    // 请求日志
+    // 请求日志（立即输出）
     if (isDev) {
-      // 开发环境：全量打印
-      const headers = { ...req.headers };
       this.logger.info({
         traceId,
         event: 'request',
         method: req.method,
         url: req.url,
-        headers,
-        body: req.body,
+        headers: { ...req.headers },
+        body: req.body as unknown,
         query: req.query,
       });
     } else {
-      // 生产环境：只打印关键信息，过滤敏感 header
       const safeHeaders: Record<string, string | string[] | undefined> = {};
       for (const [key, value] of Object.entries(req.headers)) {
         if (!SENSITIVE_HEADERS.has(key.toLowerCase())) {
           safeHeaders[key] = value;
         }
       }
+      const user = (req as Request & { user?: { id?: string } }).user;
       this.logger.info({
         traceId,
         event: 'request',
         method: req.method,
         url: req.url,
         headers: safeHeaders,
-        userId: (req as any).user?.id,
+        userId: user?.id,
       });
     }
 
@@ -77,7 +75,6 @@ export class LoggingMiddleware implements NestMiddleware {
             : JSON.stringify(resBody);
 
       if (isDev) {
-        // 开发环境：全量打印响应体
         this.logger.info({
           traceId,
           event: 'response',
@@ -86,7 +83,6 @@ export class LoggingMiddleware implements NestMiddleware {
           body: bodyStr,
         });
       } else {
-        // 生产环境：只打印关键指标
         const logData: Record<string, unknown> = {
           traceId,
           event: 'response',
@@ -95,7 +91,6 @@ export class LoggingMiddleware implements NestMiddleware {
           bodyLength: bodyStr.length,
         };
 
-        // 错误响应时额外打印截断的 body
         if (res.statusCode >= 400) {
           logData.body = bodyStr.slice(0, 500);
           this.logger.error(logData);

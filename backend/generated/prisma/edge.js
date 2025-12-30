@@ -92,14 +92,41 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.FolderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  icon: 'icon',
+  color: 'color',
+  description: 'description',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SessionScalarFieldEnum = {
   id: 'id',
+  folderId: 'folderId',
   name: 'name',
   type: 'type',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   lastMessageAt: 'lastMessageAt'
+};
+
+exports.Prisma.MemoryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  folderId: 'folderId',
+  scope: 'scope',
+  category: 'category',
+  key: 'key',
+  value: 'value',
+  priority: 'priority',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.MessageScalarFieldEnum = {
@@ -122,6 +149,15 @@ exports.Prisma.ToolCallScalarFieldEnum = {
   result: 'result',
   status: 'status',
   duration: 'duration',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DocumentScalarFieldEnum = {
+  id: 'id',
+  collection: 'collection',
+  content: 'content',
+  metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -158,9 +194,12 @@ exports.Prisma.JsonNullValueFilter = {
 
 
 exports.Prisma.ModelName = {
+  Folder: 'Folder',
   Session: 'Session',
+  Memory: 'Memory',
   Message: 'Message',
-  ToolCall: 'ToolCall'
+  ToolCall: 'ToolCall',
+  Document: 'Document'
 };
 /**
  * Create the Client
@@ -170,10 +209,10 @@ const config = {
   "clientVersion": "7.2.0",
   "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
   "activeProvider": "postgresql",
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel Session {\n  id            String    @id @default(cuid())\n  name          String?\n  type          String    @default(\"normal\")\n  status        String    @default(\"active\")\n  createdAt     DateTime  @default(now()) @map(\"created_at\")\n  updatedAt     DateTime  @updatedAt @map(\"updated_at\")\n  lastMessageAt DateTime? @map(\"last_message_at\")\n\n  messages Message[]\n\n  @@map(\"sessions\")\n}\n\nmodel Message {\n  id        String   @id @default(cuid())\n  sessionId String   @map(\"session_id\")\n  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)\n  seq       Int\n  role      String\n  content   String?\n  metadata  Json     @default(\"{}\")\n  createdAt DateTime @default(now()) @map(\"created_at\")\n\n  toolCalls ToolCall[]\n\n  @@unique([sessionId, seq])\n  @@index([sessionId, seq])\n  @@map(\"messages\")\n}\n\nmodel ToolCall {\n  id         String   @id @default(cuid())\n  messageId  String   @map(\"message_id\")\n  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)\n  seq        Int\n  toolCallId String   @map(\"tool_call_id\")\n  toolName   String   @map(\"tool_name\")\n  args       Json\n  result     Json?\n  status     String   @default(\"pending\")\n  duration   Int?\n  createdAt  DateTime @default(now()) @map(\"created_at\")\n  updatedAt  DateTime @updatedAt @map(\"updated_at\")\n\n  @@unique([messageId, seq])\n  @@index([messageId])\n  @@index([toolName])\n  @@map(\"tool_calls\")\n}\n"
+  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel Folder {\n  id          String   @id @default(cuid())\n  userId      String?  @map(\"user_id\")\n  name        String\n  icon        String?\n  color       String?\n  description String?  @db.Text\n  isDefault   Boolean  @default(false) @map(\"is_default\")\n  createdAt   DateTime @default(now()) @map(\"created_at\")\n  updatedAt   DateTime @updatedAt @map(\"updated_at\")\n\n  sessions Session[]\n  memories Memory[]\n\n  @@index([userId])\n  @@map(\"folders\")\n}\n\nmodel Session {\n  id            String    @id @default(cuid())\n  folderId      String?   @map(\"folder_id\")\n  folder        Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)\n  name          String?\n  type          String    @default(\"normal\")\n  status        String    @default(\"active\")\n  createdAt     DateTime  @default(now()) @map(\"created_at\")\n  updatedAt     DateTime  @updatedAt @map(\"updated_at\")\n  lastMessageAt DateTime? @map(\"last_message_at\")\n\n  messages Message[]\n\n  @@index([folderId])\n  @@map(\"sessions\")\n}\n\nmodel Memory {\n  id        String    @id @default(cuid())\n  userId    String?   @map(\"user_id\")\n  folderId  String?   @map(\"folder_id\")\n  folder    Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)\n  scope     String    @default(\"folder\")\n  category  String    @default(\"general\")\n  key       String\n  value     Json\n  priority  Int       @default(0)\n  expiresAt DateTime? @map(\"expires_at\")\n  createdAt DateTime  @default(now()) @map(\"created_at\")\n  updatedAt DateTime  @updatedAt @map(\"updated_at\")\n\n  @@unique([userId, folderId, scope, category, key])\n  @@index([userId, scope])\n  @@index([folderId])\n  @@index([expiresAt])\n  @@map(\"memories\")\n}\n\nmodel Message {\n  id        String   @id @default(cuid())\n  sessionId String   @map(\"session_id\")\n  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)\n  seq       Int\n  role      String\n  content   String?\n  metadata  Json     @default(\"{}\")\n  createdAt DateTime @default(now()) @map(\"created_at\")\n\n  toolCalls ToolCall[]\n\n  @@unique([sessionId, seq])\n  @@index([sessionId, seq])\n  @@map(\"messages\")\n}\n\nmodel ToolCall {\n  id         String   @id @default(cuid())\n  messageId  String   @map(\"message_id\")\n  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)\n  seq        Int\n  toolCallId String   @map(\"tool_call_id\")\n  toolName   String   @map(\"tool_name\")\n  args       Json\n  result     Json?\n  status     String   @default(\"pending\")\n  duration   Int?\n  createdAt  DateTime @default(now()) @map(\"created_at\")\n  updatedAt  DateTime @updatedAt @map(\"updated_at\")\n\n  @@unique([messageId, seq])\n  @@index([messageId])\n  @@index([toolName])\n  @@map(\"tool_calls\")\n}\n\nmodel Document {\n  id         String   @id @default(cuid())\n  collection String   @default(\"default\")\n  content    String   @db.Text\n  metadata   Json     @default(\"{}\")\n  createdAt  DateTime @default(now()) @map(\"created_at\")\n  updatedAt  DateTime @updatedAt @map(\"updated_at\")\n\n  @@index([collection])\n  @@map(\"documents\")\n}\n"
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Session\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"updated_at\"},{\"name\":\"lastMessageAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"last_message_at\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"Message\",\"relationName\":\"MessageToSession\"}],\"dbName\":\"sessions\"},\"Message\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"session_id\"},{\"name\":\"session\",\"kind\":\"object\",\"type\":\"Session\",\"relationName\":\"MessageToSession\"},{\"name\":\"seq\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"role\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"toolCalls\",\"kind\":\"object\",\"type\":\"ToolCall\",\"relationName\":\"MessageToToolCall\"}],\"dbName\":\"messages\"},\"ToolCall\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"messageId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"message_id\"},{\"name\":\"message\",\"kind\":\"object\",\"type\":\"Message\",\"relationName\":\"MessageToToolCall\"},{\"name\":\"seq\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"toolCallId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"tool_call_id\"},{\"name\":\"toolName\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"tool_name\"},{\"name\":\"args\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"result\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"duration\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"updated_at\"}],\"dbName\":\"tool_calls\"}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Folder\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"user_id\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"icon\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"color\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isDefault\",\"kind\":\"scalar\",\"type\":\"Boolean\",\"dbName\":\"is_default\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"updated_at\"},{\"name\":\"sessions\",\"kind\":\"object\",\"type\":\"Session\",\"relationName\":\"FolderToSession\"},{\"name\":\"memories\",\"kind\":\"object\",\"type\":\"Memory\",\"relationName\":\"FolderToMemory\"}],\"dbName\":\"folders\"},\"Session\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"folderId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"folder_id\"},{\"name\":\"folder\",\"kind\":\"object\",\"type\":\"Folder\",\"relationName\":\"FolderToSession\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"updated_at\"},{\"name\":\"lastMessageAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"last_message_at\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"Message\",\"relationName\":\"MessageToSession\"}],\"dbName\":\"sessions\"},\"Memory\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"user_id\"},{\"name\":\"folderId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"folder_id\"},{\"name\":\"folder\",\"kind\":\"object\",\"type\":\"Folder\",\"relationName\":\"FolderToMemory\"},{\"name\":\"scope\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"category\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"key\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"value\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"priority\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"expires_at\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"updated_at\"}],\"dbName\":\"memories\"},\"Message\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"session_id\"},{\"name\":\"session\",\"kind\":\"object\",\"type\":\"Session\",\"relationName\":\"MessageToSession\"},{\"name\":\"seq\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"role\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"toolCalls\",\"kind\":\"object\",\"type\":\"ToolCall\",\"relationName\":\"MessageToToolCall\"}],\"dbName\":\"messages\"},\"ToolCall\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"messageId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"message_id\"},{\"name\":\"message\",\"kind\":\"object\",\"type\":\"Message\",\"relationName\":\"MessageToToolCall\"},{\"name\":\"seq\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"toolCallId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"tool_call_id\"},{\"name\":\"toolName\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"tool_name\"},{\"name\":\"args\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"result\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"duration\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"updated_at\"}],\"dbName\":\"tool_calls\"},\"Document\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"collection\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"metadata\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"updated_at\"}],\"dbName\":\"documents\"}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.compilerWasm = {
   getRuntime: async () => require('./query_compiler_bg.js'),

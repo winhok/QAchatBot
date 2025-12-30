@@ -5,6 +5,7 @@ import { MessagesService } from '../messages/messages.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { Injectable } from '@nestjs/common';
 import type { Response } from 'express';
+import type { Prisma } from '../../../../generated/prisma/index.js';
 
 interface StreamChatParams {
   message: ChatMessageContent;
@@ -23,7 +24,7 @@ export class ChatService {
     private readonly messages: MessagesService,
   ) {}
 
-  async getHistory(threadId: string, modelId?: string) {
+  async getHistory(threadId: string, modelId?: string): Promise<unknown[]> {
     return this.chatbot.getHistory(threadId, modelId);
   }
 
@@ -110,13 +111,14 @@ export class ChatService {
       if (event.event === 'on_tool_start') {
         const toolName = event.name || 'unknown_tool';
         const runId = event.run_id;
+        const inputData = (event.data as { input?: unknown })?.input ?? {};
 
         // Create tool call in database
         const toolCall = await this.messages.createToolCall({
           messageId: assistantMessage.id,
           toolCallId: runId,
           toolName,
-          args: event.data?.input ?? {},
+          args: inputData as Prisma.InputJsonValue,
         });
 
         // Update status to running
@@ -133,7 +135,7 @@ export class ChatService {
             type: 'tool_start',
             tool_call_id: runId,
             name: toolName,
-            input: event.data?.input,
+            input: inputData,
           }) + '\n',
         );
       }
@@ -143,12 +145,13 @@ export class ChatService {
         const runId = event.run_id;
         const toolInfo = toolCallsMap.get(runId);
         const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined;
+        const outputData = (event.data as { output?: unknown })?.output;
 
         // Update tool call in database
         if (toolInfo?.dbId) {
           await this.messages.updateToolCall(toolInfo.dbId, {
             status: 'completed',
-            result: event.data?.output,
+            result: outputData as Prisma.InputJsonValue | undefined,
             duration,
           });
         }
@@ -158,7 +161,7 @@ export class ChatService {
             type: 'tool_end',
             tool_call_id: runId,
             name: toolInfo?.name || 'unknown_tool',
-            output: event.data?.output,
+            output: outputData,
             duration,
           }) + '\n',
         );

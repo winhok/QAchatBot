@@ -14,10 +14,10 @@ export class ExportController {
   constructor(private readonly exportService: ExportService) {}
 
   @Post()
-  async export(@Body() dto: ExportRequest, @Res() res: Response) {
+  export(@Body() dto: ExportRequest, @Res() res: Response) {
     // TODO: 实现导出逻辑
     try {
-      const result = await this.exportService.export(dto);
+      const result = this.exportService.export(dto);
 
       res.setHeader('Content-Type', result.contentType);
       res.setHeader(

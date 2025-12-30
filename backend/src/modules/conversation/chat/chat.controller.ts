@@ -52,7 +52,7 @@ export class ChatController {
   async chat(
     @Body(new ZodValidationPipe(ChatRequestSchema)) dto: ChatRequest,
     @Res() res: Response,
-    @Req() req: Request<unknown, unknown, ChatRequest>,
+    @Req() req: Request,
   ): Promise<void> {
     const sessionId = dto.session_id || createId();
     const modelId = dto.model_id || 'gpt-4o';

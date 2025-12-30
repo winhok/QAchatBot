@@ -79,7 +79,7 @@ function detectUserIntent(userMessage: string): UserIntent {
  * 路由节点 - 检测用户意图
  */
 export function createRouterNode() {
-  return async (state: QAChatbotStateType) => {
+  return (state: QAChatbotStateType) => {
     const userMessage = getLastUserMessage(state);
     const intent = detectUserIntent(userMessage);
 

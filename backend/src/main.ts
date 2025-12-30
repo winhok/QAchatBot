@@ -26,4 +26,4 @@ async function bootstrap() {
 
   logger.log('NestJS server running on http://localhost:3000');
 }
-bootstrap();
+void bootstrap();

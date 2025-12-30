@@ -5,7 +5,7 @@ export const currentTimeTool: ToolDefinition = {
   name: 'current_time',
   description: 'Get the current time',
   schema: z.object({}),
-  handler: async () => {
+  handler: () => {
     const date = new Date();
     return date.toLocaleString('zh-CN', {
       year: 'numeric',

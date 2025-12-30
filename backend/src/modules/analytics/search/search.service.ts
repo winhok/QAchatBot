@@ -26,11 +26,8 @@ export interface SearchResponse {
 
 @Injectable()
 export class SearchService {
-  async search(
-    query: string,
-    _limit: number,
-    _offset: number,
-  ): Promise<SearchResponse> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  search(query: string, limit: number, offset: number): SearchResponse {
     // TODO: 实现搜索
     // 1. 搜索会话名称（模糊匹配）
     // 2. 搜索消息内容（全文检索）

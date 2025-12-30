@@ -120,14 +120,41 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.FolderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  icon: 'icon',
+  color: 'color',
+  description: 'description',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SessionScalarFieldEnum = {
   id: 'id',
+  folderId: 'folderId',
   name: 'name',
   type: 'type',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   lastMessageAt: 'lastMessageAt'
+};
+
+exports.Prisma.MemoryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  folderId: 'folderId',
+  scope: 'scope',
+  category: 'category',
+  key: 'key',
+  value: 'value',
+  priority: 'priority',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.MessageScalarFieldEnum = {
@@ -150,6 +177,15 @@ exports.Prisma.ToolCallScalarFieldEnum = {
   result: 'result',
   status: 'status',
   duration: 'duration',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DocumentScalarFieldEnum = {
+  id: 'id',
+  collection: 'collection',
+  content: 'content',
+  metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -186,9 +222,12 @@ exports.Prisma.JsonNullValueFilter = {
 
 
 exports.Prisma.ModelName = {
+  Folder: 'Folder',
   Session: 'Session',
+  Memory: 'Memory',
   Message: 'Message',
-  ToolCall: 'ToolCall'
+  ToolCall: 'ToolCall',
+  Document: 'Document'
 };
 
 /**
