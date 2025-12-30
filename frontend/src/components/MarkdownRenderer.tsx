@@ -1,21 +1,61 @@
+import { CodeBlock } from '@/components/CodeBlock'
+import { CanvasTitleCard } from '@/components/canvas/CanvasTitleCard'
+import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts'
 import 'highlight.js/styles/github-dark.css'
+import type { Components } from 'react-markdown'
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
-import type { Components } from 'react-markdown'
-import { CodeBlock } from '@/components/CodeBlock'
 
 interface MarkdownRendererProps {
   content: string
   className?: string
+  messageId?: string // Added to link artifacts to specific messages
 }
 
 export function MarkdownRenderer({
   content,
   className = '',
+  messageId,
 }: MarkdownRendererProps) {
+  const { getArtifact, setIsCanvasVisible, setActiveArtifactId } = useCanvasArtifacts()
+
+  const handleOpenArtifact = (artifactId: string) => {
+    setActiveArtifactId(artifactId)
+    setIsCanvasVisible(true, 'preview')
+  }
+
   const components: Components = {
+    // Custom handling for canvasartifact tag
+    // @ts-ignore
+    canvasartifact: ({ node, ...props }: any) => {
+        const artifactId = props.id
+        // Try to get fully parsed artifact from store first
+        const artifact = messageId ? getArtifact(messageId, artifactId) : undefined
+
+         // Fallback display if store doesn't have it yet (or just metadata from tag)
+        const displayArtifact = artifact || {
+              id: artifactId,
+              type: props.type || 'component',
+              title: props.title || 'Untitled Component',
+              code: { language: 'jsx', content: '' },
+              status: 'creating',
+              isStreaming: true,
+              messageId: messageId || '',
+              sessionId: '',
+              currentVersion: 1,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }
+
+        return (
+            <CanvasTitleCard 
+                artifact={displayArtifact}
+                onOpen={handleOpenArtifact}
+            />
+        )
+    },
     code({ className: codeClassName, children, ...props }) {
       const text = Array.isArray(children)
         ? children.join('')
@@ -70,7 +110,16 @@ export function MarkdownRenderer({
         </td>
       )
     },
-    p({ children, ...props }) {
+    p({ children, ...props }: any) {
+       // Check if children contain canvasartifact
+      const hasCanvasArtifact = props.node?.children?.some(
+        (child: any) =>
+          child.type === 'element' && child.tagName === 'canvasartifact'
+      )
+      
+      if (hasCanvasArtifact) {
+        return <div {...props}>{children}</div>
+      }
       return (
         <p
           style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
