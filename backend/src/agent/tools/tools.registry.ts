@@ -1,49 +1,58 @@
+import {
+    DynamicStructuredTool,
+    StructuredToolInterface,
+    tool,
+} from '@langchain/core/tools';
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { StructuredToolInterface, tool } from '@langchain/core/tools';
-import { z } from 'zod';
-import { currentTimeTool, calculatorTool, readFileTool } from './builtin';
+import {
+    getCustomToolConfigs,
+    getLangChainToolConfigs,
+    getMCPServersConfig,
+    getToolConfigById,
+    unifiedToolsConfig
+} from './config';
+import type { ToolType } from './types';
 
 /**
- * 工具定义接口
+ * MCP 连接超时时间（毫秒）
  */
-export interface ToolDefinition<T = Record<string, unknown>> {
-  name: string;
-  description: string;
-  schema: z.ZodSchema<T>;
-  handler: (params: T) => Promise<string> | string;
-}
+const MCP_TIMEOUT = 15000;
 
 /**
- * 工具配置接口（内部使用）
+ * 增强版工具注册表
+ *
+ * 支持三种工具类型：
+ * - custom: 自定义工具
+ * - langchain: LangChain 预构建工具（动态导入）
+ * - mcp: MCP 服务器工具
+ *
+ * 特性：
+ * - 应用启动时预加载工具
+ * - 工具缓存避免重复初始化
+ * - MCP 连接超时处理
  */
-export interface ToolConfig<T = Record<string, unknown>> {
-  name: string;
-  description: string;
-  enabled: boolean;
-  schema: z.ZodSchema;
-  handler: (params: T) => Promise<string> | string;
-  options?: Record<string, unknown>;
-}
-
-type ToolHandler<T> = (params: T) => Promise<string> | string;
-
-interface AddToolOptions<T> {
-  description: string;
-  schema: z.ZodSchema<T>;
-  handler: ToolHandler<T>;
-  enabled?: boolean;
-  options?: Record<string, unknown>;
-}
-
 @Injectable()
 export class ToolsRegistry implements OnModuleInit {
-  private toolsConfig: Record<string, ToolConfig> = {};
+  /** 启用的工具 ID 集合 */
   private enabledTools = new Set<string>();
-  private toolsCache: StructuredToolInterface[] | null = null;
-  private toolsMapCache: Record<string, StructuredToolInterface> | null = null;
 
-  onModuleInit() {
-    this.registerBuiltinTools();
+  /** 自定义工具缓存 */
+  private customToolsCache: Map<string, StructuredToolInterface> = new Map();
+
+  /** LangChain 预构建工具缓存 */
+  private langChainToolsCache: Map<string, StructuredToolInterface> = new Map();
+
+  /** MCP 工具缓存 */
+  private mcpToolsCache: DynamicStructuredTool[] | null = null;
+
+  /** 所有工具缓存（合并后） */
+  private allToolsCache: StructuredToolInterface[] | null = null;
+
+  /** 预加载完成标志 */
+  private preloaded = false;
+
+  async onModuleInit() {
+    await this.preloadTools();
     console.log(
       '[ToolsRegistry] Initialized with',
       this.enabledTools.size,
@@ -52,146 +61,262 @@ export class ToolsRegistry implements OnModuleInit {
   }
 
   /**
-   * 注册内置工具
+   * 预加载所有工具
+   * 在应用启动时调用
    */
-  private registerBuiltinTools() {
-    this.register(currentTimeTool);
-    this.register(calculatorTool);
-    this.register(readFileTool);
+  async preloadTools(): Promise<void> {
+    console.log('[ToolsRegistry] Starting tool preloading...');
+
+    // 1. 加载自定义工具
+    this.loadCustomTools();
+
+    // 2. 预加载 LangChain 工具
+    await this.preloadLangChainTools();
+
+    // 3. 预加载 MCP 工具
+    await this.preloadMCPTools();
+
+    this.preloaded = true;
+    console.log('[ToolsRegistry] Preloading complete');
   }
 
   /**
-   * 注册工具（从 ToolDefinition）
+   * 加载自定义工具
    */
-  register<T = Record<string, unknown>>(def: ToolDefinition<T>) {
-    return this.add(def.name, {
-      description: def.description,
-      schema: def.schema,
-      handler: def.handler,
-    } as AddToolOptions<T>);
+  private loadCustomTools(): void {
+    const customConfigs = getCustomToolConfigs();
+    console.log(
+      `[ToolsRegistry] Loading ${customConfigs.length} custom tools...`,
+    );
+
+    for (const config of customConfigs) {
+      if (config.schema && config.handler) {
+        const toolInstance = tool(config.handler, {
+          name: config.id,
+          description: config.description,
+          schema: config.schema,
+        });
+        this.customToolsCache.set(config.id, toolInstance);
+        this.enabledTools.add(config.id);
+        console.log(`[ToolsRegistry]   + ${config.name}`);
+      }
+    }
+  }
+
+  /**
+   * 预加载 LangChain 工具
+   */
+  private async preloadLangChainTools(): Promise<void> {
+    const langChainConfigs = getLangChainToolConfigs();
+
+    if (langChainConfigs.length === 0) {
+      console.log('[ToolsRegistry] No LangChain tools to preload');
+      return;
+    }
+
+    console.log(
+      `[ToolsRegistry] Preloading ${langChainConfigs.length} LangChain tools...`,
+    );
+
+    for (const config of langChainConfigs) {
+      if (!config.langChainTool) continue;
+
+      const { importPath, className, options } = config.langChainTool;
+
+      try {
+        console.log(
+          `[ToolsRegistry]   Loading: ${config.name} from ${importPath}`,
+        );
+
+        // 动态导入模块
+        const module = await import(/* webpackIgnore: true */ importPath);
+
+        // 获取工具类
+        let ToolClass: any;
+        if (className) {
+          ToolClass = module[className];
+        } else {
+          ToolClass =
+            module.default ||
+            Object.values(module).find((v: any) => typeof v === 'function');
+        }
+
+        if (!ToolClass) {
+          console.error(
+            `[ToolsRegistry]   Failed to find class: ${className} in ${importPath}`,
+          );
+          continue;
+        }
+
+        // 实例化工具
+        const toolInstance = new ToolClass(options);
+        this.langChainToolsCache.set(config.id, toolInstance);
+        this.enabledTools.add(config.id);
+        console.log(`[ToolsRegistry]   + ${config.name}`);
+      } catch (error) {
+        console.error(`[ToolsRegistry]   Failed to load: ${config.name}`, error);
+      }
+    }
+  }
+
+  /**
+   * 预加载 MCP 工具
+   */
+  private async preloadMCPTools(): Promise<void> {
+    if (this.mcpToolsCache !== null) {
+      console.log('[ToolsRegistry] MCP tools already cached');
+      return;
+    }
+
+    const mcpServersConfig = getMCPServersConfig();
+    const serverNames = Object.keys(mcpServersConfig);
+
+    if (serverNames.length === 0) {
+      console.log('[ToolsRegistry] No MCP servers configured');
+      return;
+    }
+
+    console.log(
+      `[ToolsRegistry] Preloading ${serverNames.length} MCP servers...`,
+    );
+
+    try {
+      const { MultiServerMCPClient } = await import('@langchain/mcp-adapters');
+
+      // 构建符合 MultiServerMCPClient 格式的配置
+      const serversForClient: Record<string, unknown> = {};
+      for (const [name, config] of Object.entries(mcpServersConfig)) {
+        serversForClient[name] = {
+          command: config.command,
+          args: config.args,
+          transport: config.transport,
+        };
+      }
+
+      const mcpClient = new MultiServerMCPClient({
+        mcpServers: serversForClient as any,
+      });
+
+      // 设置超时
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error('MCP server connection timeout')),
+          MCP_TIMEOUT,
+        );
+      });
+
+      // 获取 MCP 工具，带超时处理
+      const tools = await Promise.race([
+        mcpClient.getTools(),
+        timeoutPromise,
+      ]);
+
+      const mcpTools = tools as unknown as DynamicStructuredTool[];
+      console.log(`[ToolsRegistry]   Loaded ${mcpTools.length} MCP tools`);
+      mcpTools.forEach((t) => {
+        console.log(`[ToolsRegistry]   + ${t.name}`);
+        this.enabledTools.add(t.name);
+      });
+
+      this.mcpToolsCache = mcpTools;
+    } catch (error) {
+      console.error('[ToolsRegistry] MCP tools loading failed:', error);
+      this.mcpToolsCache = []; // 失败时设为空数组
+    }
   }
 
   /**
    * 使缓存失效
    */
-  private invalidateCache() {
-    this.toolsCache = null;
-    this.toolsMapCache = null;
-  }
-
-  /**
-   * 从配置创建工具实例
-   */
-  private createToolFromConfig(config: ToolConfig): StructuredToolInterface {
-    return tool(config.handler, {
-      name: config.name,
-      description: config.description,
-      schema: config.schema,
-    });
-  }
-
-  /**
-   * 添加工具
-   */
-  add<T = Record<string, unknown>>(name: string, opts: AddToolOptions<T>) {
-    const fullConfig: ToolConfig = {
-      name,
-      description: opts.description,
-      schema: opts.schema,
-      handler: opts.handler as ToolHandler<Record<string, unknown>>,
-      enabled: opts.enabled ?? true,
-      options: opts.options,
-    };
-
-    this.toolsConfig[name] = fullConfig;
-    if (fullConfig.enabled) {
-      this.enabledTools.add(name);
-    }
-    this.invalidateCache();
-    return this;
-  }
-
-  /**
-   * 移除工具
-   */
-  remove(name: string) {
-    delete this.toolsConfig[name];
-    this.enabledTools.delete(name);
-    this.invalidateCache();
-    return this;
-  }
-
-  /**
-   * 禁用工具
-   */
-  disable(name: string) {
-    if (this.toolsConfig[name]) {
-      this.toolsConfig[name].enabled = false;
-      this.enabledTools.delete(name);
-      this.invalidateCache();
-    }
-    return this;
-  }
-
-  /**
-   * 启用工具
-   */
-  enable(name: string) {
-    if (this.toolsConfig[name]) {
-      this.toolsConfig[name].enabled = true;
-      this.enabledTools.add(name);
-      this.invalidateCache();
-    }
-    return this;
+  private invalidateCache(): void {
+    this.allToolsCache = null;
   }
 
   /**
    * 获取所有启用的工具
    */
   getAllTools(): StructuredToolInterface[] {
-    if (this.toolsCache) return this.toolsCache;
+    if (this.allToolsCache) return this.allToolsCache;
 
-    this.toolsCache = Array.from(this.enabledTools)
-      .map((name) => this.toolsConfig[name])
-      .filter((config) => config && config.enabled)
-      .map((config) => this.createToolFromConfig(config));
+    const tools: StructuredToolInterface[] = [];
 
-    return this.toolsCache;
+    // 添加自定义工具
+    for (const [id, tool] of this.customToolsCache) {
+      if (this.enabledTools.has(id)) {
+        tools.push(tool);
+      }
+    }
+
+    // 添加 LangChain 工具
+    for (const [id, tool] of this.langChainToolsCache) {
+      if (this.enabledTools.has(id)) {
+        tools.push(tool);
+      }
+    }
+
+    // 添加 MCP 工具
+    if (this.mcpToolsCache) {
+      tools.push(...this.mcpToolsCache);
+    }
+
+    this.allToolsCache = tools;
+    return tools;
   }
 
   /**
    * 获取工具映射
    */
   getToolsMap(): Record<string, StructuredToolInterface> {
-    if (this.toolsMapCache) return this.toolsMapCache;
-
-    this.toolsMapCache = {};
-    for (const name of this.enabledTools) {
-      const config = this.toolsConfig[name];
-      if (config && config.enabled) {
-        this.toolsMapCache[name] = this.createToolFromConfig(config);
-      }
+    const tools = this.getAllTools();
+    const map: Record<string, StructuredToolInterface> = {};
+    for (const t of tools) {
+      map[t.name] = t;
     }
-    return this.toolsMapCache;
+    return map;
   }
 
   /**
    * 获取单个工具
    */
   getTool(name: string): StructuredToolInterface {
-    const map = this.getToolsMap();
-    const t = map[name];
-    if (!t) throw new Error(`Tool "${name}" not found or not enabled`);
-    return t;
+    const customTool = this.customToolsCache.get(name);
+    if (customTool && this.enabledTools.has(name)) return customTool;
+
+    const langChainTool = this.langChainToolsCache.get(name);
+    if (langChainTool && this.enabledTools.has(name)) return langChainTool;
+
+    const mcpTool = this.mcpToolsCache?.find((t) => t.name === name);
+    if (mcpTool) return mcpTool;
+
+    throw new Error(`Tool "${name}" not found or not enabled`);
+  }
+
+  /**
+   * 启用工具
+   */
+  enable(name: string): this {
+    const config = getToolConfigById(name);
+    if (config) {
+      this.enabledTools.add(name);
+      this.invalidateCache();
+    }
+    return this;
+  }
+
+  /**
+   * 禁用工具
+   */
+  disable(name: string): this {
+    this.enabledTools.delete(name);
+    this.invalidateCache();
+    return this;
   }
 
   /**
    * 检查工具是否启用
    */
   isEnabled(name: string): boolean {
-    return (
-      this.enabledTools.has(name) && this.toolsConfig[name]?.enabled === true
-    );
+    return this.enabledTools.has(name);
   }
 
   /**
@@ -202,31 +327,27 @@ export class ToolsRegistry implements OnModuleInit {
   }
 
   /**
-   * 获取工具信息
-   */
-  getToolInfo(name: string) {
-    const config = this.toolsConfig[name];
-    if (!config) return null;
-    return {
-      name: config.name,
-      description: config.description,
-      enabled: config.enabled,
-      options: config.options,
-    };
-  }
-
-  /**
    * 获取所有工具信息
    */
-  getAllToolsInfo() {
-    return Object.values(this.toolsConfig).map((config) => ({
+  getAllToolsInfo(): Array<{
+    id: string;
+    name: string;
+    description: string;
+    type: ToolType;
+    enabled: boolean;
+    icon?: string;
+  }> {
+    return unifiedToolsConfig.map((config) => ({
+      id: config.id,
       name: config.name,
       description: config.description,
-      enabled: config.enabled,
-      options: config.options,
+      type: config.type,
+      enabled: this.enabledTools.has(config.id),
+      icon: config.icon,
     }));
   }
 }
 
 // 向后兼容别名
 export { ToolsRegistry as ToolsService };
+

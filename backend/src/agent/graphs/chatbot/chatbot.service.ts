@@ -1,36 +1,38 @@
+import {
+    buildChatbotSystemPrompt,
+    DEFAULT_PERSONA,
+    type PersonaConfig,
+} from '@/agent/prompts';
+import { ToolsService } from '@/agent/tools';
+import { ModelFactory } from '@/agent/utils';
+import { HistoryOptimizerService } from '@/infrastructure/memory/history-optimizer.service';
+import {
+    MemoryStoreService,
+    type MergedMemory,
+} from '@/infrastructure/memory/memory-store.service';
 import type { ChatMessageContentBlock } from '@/shared/schemas/content-blocks';
 import type { ChatMessageContent } from '@/shared/schemas/requests';
 import {
-  AIMessage,
-  HumanMessage,
-  SystemMessage,
+    AIMessage,
+    HumanMessage,
+    SystemMessage,
 } from '@langchain/core/messages';
 import type { RunnableConfig } from '@langchain/core/runnables';
 import {
-  END,
-  MessagesAnnotation,
-  START,
-  StateGraph,
+    END,
+    MessagesAnnotation,
+    START,
+    StateGraph,
 } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
-import { ChatOpenAI } from '@langchain/openai';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ToolsService } from '@/agent/tools';
-import {
-  buildChatbotSystemPrompt,
-  type PersonaConfig,
-  DEFAULT_PERSONA,
-} from '@/agent/prompts';
-import {
-  MemoryStoreService,
-  type MergedMemory,
-} from '@/infrastructure/memory/memory-store.service';
-import { HistoryOptimizerService } from '@/infrastructure/memory/history-optimizer.service';
 
 @Injectable()
 export class ChatbotService implements OnModuleInit {
+  /** 工作流缓存最大数量 */
+  private readonly MAX_CACHE_SIZE = 10;
   private checkpointer: PostgresSaver;
   private appCache = new Map<string, ReturnType<typeof this.compileWorkflow>>();
   private currentPersona: Partial<PersonaConfig> = {};
@@ -40,6 +42,7 @@ export class ChatbotService implements OnModuleInit {
     private readonly tools: ToolsService,
     private readonly memoryStore: MemoryStoreService,
     private readonly historyOptimizer: HistoryOptimizerService,
+    private readonly modelFactory: ModelFactory,
   ) {}
 
   async onModuleInit() {
@@ -153,25 +156,11 @@ export class ChatbotService implements OnModuleInit {
 
   /**
    * 创建模型实例
+   * 支持 "provider:modelName" 格式，如 "openai:gpt-4o" 或 "google:gemini-2.5-flash"
    */
   private createModelInstance(modelId: string) {
-    const apiKey = this.config.get<string>('OPENAI_API_KEY');
-    const baseURL = this.config.get<string>('OPENAI_BASE_URL');
-    const timeout = parseInt(
-      this.config.get<string>('OPENAI_TIMEOUT') || '120000',
-    );
-
     console.log(`[ChatbotService] Creating model: ${modelId}`);
-    console.log(`[ChatbotService] Base URL: ${baseURL}`);
-
-    return new ChatOpenAI({
-      model: modelId,
-      apiKey,
-      temperature: 0.7,
-      streaming: true,
-      timeout,
-      configuration: { baseURL },
-    });
+    return this.modelFactory.createModel(modelId);
   }
 
   /**
@@ -256,13 +245,31 @@ export class ChatbotService implements OnModuleInit {
 
   /**
    * 获取 App 实例（带缓存）
+   *
+   * 缓存 key 格式：modelId-toolId1,toolId2,...
+   * 采用 FIFO 策略，超过 MAX_CACHE_SIZE 时淘汰最早的缓存
+   *
+   * @param modelId 模型 ID
+   * @param toolIds 可选的工具 ID 列表（用于缓存区分）
    */
-  getApp(modelId: string = 'gpt-4o') {
-    if (!this.appCache.has(modelId)) {
-      console.log(`[ChatbotService] Creating app for model: ${modelId}`);
-      this.appCache.set(modelId, this.compileWorkflow(modelId));
+  getApp(modelId: string = 'gpt-4o', toolIds?: string[]) {
+    // 生成包含工具组合的缓存 key
+    const cacheKey = `${modelId}-${(toolIds || []).sort().join(',')}`;
+
+    if (!this.appCache.has(cacheKey)) {
+      // FIFO 淘汰策略
+      if (this.appCache.size >= this.MAX_CACHE_SIZE) {
+        const firstKey = this.appCache.keys().next().value;
+        if (firstKey) {
+          this.appCache.delete(firstKey);
+          console.log(`[ChatbotService] Cache evicted: ${firstKey}`);
+        }
+      }
+
+      console.log(`[ChatbotService] Creating app for: ${cacheKey}`);
+      this.appCache.set(cacheKey, this.compileWorkflow(modelId));
     }
-    return this.appCache.get(modelId)!;
+    return this.appCache.get(cacheKey)!;
   }
 
   /**

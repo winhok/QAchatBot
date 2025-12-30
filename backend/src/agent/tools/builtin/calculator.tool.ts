@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { ToolDefinition } from '../tools.registry';
+import type { ToolDefinition } from '../types';
 
 /**
  * 安全的数学表达式计算器
