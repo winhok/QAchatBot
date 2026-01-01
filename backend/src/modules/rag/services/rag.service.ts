@@ -1,8 +1,7 @@
 import { Document } from '@langchain/core/documents';
 import { ChatOpenAI } from '@langchain/openai';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { VectorStoreService } from './vector-store.service';
 
 /**
@@ -30,12 +29,11 @@ export interface RagQueryOptions {
 @Injectable()
 export class RagService {
   private llm: ChatOpenAI;
+  private readonly logger = new Logger(RagService.name);
 
   constructor(
     private readonly configService: ConfigService,
     private readonly vectorStore: VectorStoreService,
-    @InjectPinoLogger(RagService.name)
-    private readonly logger: PinoLogger,
   ) {
     this.llm = new ChatOpenAI({
       model: this.configService.get<string>('OPENAI_DEFAULT_MODEL') || 'gpt-4o',
@@ -59,7 +57,7 @@ export class RagService {
       relevanceThreshold = 0.3,
     } = options;
 
-    this.logger.info({ event: 'rag_query_start', question, collection, topK });
+    this.logger.log({ event: 'rag_query_start', question, collection, topK });
 
     // 1. 检索相关文档（带分数）
     const searchResults = await this.vectorStore.similaritySearchWithScore(
@@ -103,7 +101,7 @@ export class RagService {
     // 5. 生成回答
     const answer = await this.generateAnswer(question, context);
 
-    this.logger.info({
+    this.logger.log({
       event: 'rag_query_complete',
       question,
       sourcesCount: sources.length,

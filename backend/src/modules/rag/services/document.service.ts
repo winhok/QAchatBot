@@ -1,9 +1,8 @@
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { Document } from '@langchain/core/documents';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import { Prisma } from '../../../../generated/prisma/index.js';
+import { Prisma } from '@prisma/client';
 import { VectorStoreService } from './vector-store.service';
 
 /**
@@ -12,11 +11,11 @@ import { VectorStoreService } from './vector-store.service';
  */
 @Injectable()
 export class DocumentService {
+  private readonly logger = new Logger(DocumentService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly vectorStore: VectorStoreService,
-    @InjectPinoLogger(DocumentService.name)
-    private readonly logger: PinoLogger,
   ) {}
 
   /**
@@ -47,7 +46,7 @@ export class DocumentService {
 
     await this.vectorStore.addDocuments([doc], collection, [id]);
 
-    this.logger.info({ event: 'document_added', id, collection });
+    this.logger.log({event: 'document_added', id, collection });
     return id;
   }
 
@@ -81,7 +80,7 @@ export class DocumentService {
 
     await this.vectorStore.addDocuments(langchainDocs, collection, ids);
 
-    this.logger.info({
+    this.logger.log({
       event: 'documents_added_batch',
       count: docs.length,
       collection,
@@ -104,7 +103,7 @@ export class DocumentService {
     // 2. 从 Prisma 删除
     await this.prisma.document.delete({ where: { id } });
 
-    this.logger.info({ event: 'document_deleted', id });
+    this.logger.log({ event: 'document_deleted', id });
   }
 
   /**

@@ -3,9 +3,8 @@ import {
     PGVectorStore,
 } from '@langchain/community/vectorstores/pgvector';
 import { Document } from '@langchain/core/documents';
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { Pool } from 'pg';
 import { EmbeddingsService } from './embeddings.service';
 
@@ -48,11 +47,11 @@ export class VectorStoreService implements OnModuleInit, OnModuleDestroy {
   private vectorStores: Map<string, PGVectorStore> = new Map();
   private initialized = false;
 
+  private readonly logger = new Logger(VectorStoreService.name);
+
   constructor(
     private readonly configService: ConfigService,
     private readonly embeddingsService: EmbeddingsService,
-    @InjectPinoLogger(VectorStoreService.name)
-    private readonly logger: PinoLogger,
   ) {}
 
   async onModuleInit() {
@@ -62,7 +61,7 @@ export class VectorStoreService implements OnModuleInit, OnModuleDestroy {
     // 初始化默认 collection 的向量存储
     await this.getOrCreateVectorStore('default');
     this.initialized = true;
-    this.logger.info({ event: 'vector_store', status: 'initialized' });
+    this.logger.log({ event: 'vector_store', status: 'initialized' });
   }
 
   async onModuleDestroy() {
@@ -98,7 +97,7 @@ export class VectorStoreService implements OnModuleInit, OnModuleDestroy {
     );
 
     this.vectorStores.set(collectionName, vectorStore);
-    this.logger.info({
+    this.logger.log({
       event: 'vector_store_created',
       collection: collectionName,
     });
@@ -116,7 +115,7 @@ export class VectorStoreService implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     const vectorStore = await this.getOrCreateVectorStore(collection);
     await vectorStore.addDocuments(docs, { ids });
-    this.logger.info({
+    this.logger.log({
       event: 'documents_added',
       collection,
       count: docs.length,
@@ -132,7 +131,7 @@ export class VectorStoreService implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     const vectorStore = await this.getOrCreateVectorStore(collection);
     await vectorStore.delete({ ids });
-    this.logger.info({
+    this.logger.log({
       event: 'documents_deleted',
       collection,
       count: ids.length,

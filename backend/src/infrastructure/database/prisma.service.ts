@@ -8,7 +8,7 @@ import {
 import { PrismaPg } from '@prisma/adapter-pg';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { Pool } from 'pg';
-import { PrismaClient } from '../../../generated/prisma/index.js';
+import { PrismaClient } from '@prisma/client';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
