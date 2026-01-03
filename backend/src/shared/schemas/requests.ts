@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { SessionStatusSchema, SessionTypeSchema } from './enums';
 import { ChatMessageContentBlockSchema } from './content-blocks';
+import { SessionStatusSchema, SessionTypeSchema } from './enums';
 
 // ========== Session Schemas ==========
 
@@ -32,6 +32,7 @@ export const ChatRequestSchema = z.object({
   session_id: z.string().cuid().optional(),
   model_id: z.string().optional(),
   session_type: SessionTypeSchema.optional(),
+  tools: z.array(z.string()).optional(),
 });
 
 export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>;

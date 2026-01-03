@@ -1,18 +1,18 @@
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { ChatRequestSchema, type ChatRequest } from '@/shared/schemas/requests';
-import { SessionsService } from '../sessions/sessions.service';
 import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-  Req,
-  Res,
+    BadRequestException,
+    Body,
+    Controller,
+    Get,
+    Post,
+    Query,
+    Req,
+    Res,
 } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 import type { Request, Response } from 'express';
+import { SessionsService } from '../sessions/sessions.service';
 import { ChatService } from './chat.service';
 
 @Controller('api/chat')
@@ -57,6 +57,7 @@ export class ChatController {
     const sessionId = dto.session_id || createId();
     const modelId = dto.model_id || 'gpt-4o';
     const sessionType = dto.session_type || 'normal';
+    const tools = dto.tools;
 
     // Set streaming response headers
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -80,6 +81,7 @@ export class ChatController {
         sessionType,
         res,
         isAborted: () => aborted,
+        tools,
       });
     } catch (error) {
       console.error('[Chat API] Error:', error);

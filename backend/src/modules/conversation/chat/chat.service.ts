@@ -1,11 +1,12 @@
 import { ChatbotService } from '@/agent/graphs/chatbot';
+import { QaChatbotService } from '@/agent/graphs/qa-chatbot';
 import type { SessionType } from '@/shared/schemas/enums';
 import type { ChatMessageContent } from '@/shared/schemas/requests';
-import { MessagesService } from '../messages/messages.service';
-import { SessionsService } from '../sessions/sessions.service';
 import { Injectable } from '@nestjs/common';
 import type { Response } from 'express';
 import type { Prisma } from '../../../../generated/prisma/index.js';
+import { MessagesService } from '../messages/messages.service';
+import { SessionsService } from '../sessions/sessions.service';
 
 interface StreamChatParams {
   message: ChatMessageContent;
@@ -20,6 +21,7 @@ interface StreamChatParams {
 export class ChatService {
   constructor(
     private readonly chatbot: ChatbotService,
+    private readonly qaChatbot: QaChatbotService,
     private readonly sessions: SessionsService,
     private readonly messages: MessagesService,
   ) {}
@@ -29,7 +31,15 @@ export class ChatService {
   }
 
   async streamChat(params: StreamChatParams) {
-    const { message, sessionId, modelId, sessionType, res, isAborted } = params;
+    const {
+      message,
+      sessionId,
+      modelId,
+      sessionType,
+      res,
+      isAborted,
+      tools,
+    } = params;
 
     // Ensure session exists
     await this.sessions.findOrCreate(sessionId, sessionType);
@@ -52,7 +62,17 @@ export class ChatService {
     });
 
     const userMessage = this.chatbot.createHumanMessage(message);
-    const app = this.chatbot.getApp(modelId);
+
+    // Dispatch based on session type
+    let app: any; // Using any to accommodate different graph types
+    if (sessionType === 'testcase') {
+      console.log('[ChatService] Dispatching to QA Chatbot');
+      app = this.qaChatbot.getApp();
+    } else {
+      console.log('[ChatService] Dispatching to General Chatbot');
+      app = this.chatbot.getApp(modelId, tools);
+    }
+
     const threadConfig = { configurable: { thread_id: sessionId } };
 
     // Track tool calls: runId -> { dbId, name, startTime }
