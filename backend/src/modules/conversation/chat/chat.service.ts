@@ -31,6 +31,36 @@ export class ChatService {
     return this.chatbot.getHistory(threadId, modelId);
   }
 
+  /**
+   * 从消息内容中提取会话名称
+   * 支持字符串、多模态数组、对象格式
+   */
+  extractSessionName(message: ChatMessageContent): string {
+    const MAX_LENGTH = 50;
+
+    if (typeof message === 'string') {
+      const name = message.trim();
+      return name.length > MAX_LENGTH ? name.slice(0, MAX_LENGTH) + '...' : name;
+    }
+
+    if (Array.isArray(message)) {
+      // 从多模态内容中提取第一个文本块
+      const textBlock = message.find(
+        (block): block is { type: 'text'; text: string } => block.type === 'text',
+      );
+      if (textBlock) {
+        const name = textBlock.text.trim();
+        return name.length > MAX_LENGTH
+          ? name.slice(0, MAX_LENGTH) + '...'
+          : name;
+      }
+      return '新会话';
+    }
+
+    // 对象格式 fallback
+    return '新会话';
+  }
+
   async streamChat(params: StreamChatParams) {
     const {
       message,
@@ -42,8 +72,12 @@ export class ChatService {
       tools,
     } = params;
 
-    // Ensure session exists
-    await this.sessions.findOrCreate(sessionId, sessionType);
+    // Ensure session exists, and auto-name if new
+    const session = await this.sessions.findOrCreate(sessionId, sessionType);
+    if (!session.name) {
+      const autoName = this.extractSessionName(message);
+      await this.sessions.update(sessionId, { name: autoName });
+    }
 
     // Save user message
     const userMessageContent =

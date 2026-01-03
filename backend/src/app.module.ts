@@ -9,7 +9,7 @@ import { MemoryModule } from '@/infrastructure/memory/memory.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AgentModule } from './agent/agent.module';
-import { AnalyticsModule, ConversationModule, RagModule } from './modules';
+import { AnalyticsModule, AuthModule, ConversationModule, RagModule } from './modules';
 
 @Module({
   imports: [
@@ -18,6 +18,7 @@ import { AnalyticsModule, ConversationModule, RagModule } from './modules';
     LoggerModule,
     PrismaModule,
     MemoryModule,
+    AuthModule,
     AgentModule,
     ConversationModule,
     AnalyticsModule,

@@ -1,25 +1,26 @@
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { UserSection } from '@/components/UserSection'
 import { useQuickAction } from '@/hooks/useQuickAction'
 import {
-  useDeleteSession,
-  useRenameSession,
-  useSessions,
+    useDeleteSession,
+    useRenameSession,
+    useSessions,
 } from '@/hooks/useSessions'
 import { listItemVariants, staggerFastContainer } from '@/lib/motion'
 import { cn } from '@/lib/utils'
@@ -29,15 +30,15 @@ import { rankItem } from '@tanstack/match-sorter-utils'
 import { useNavigate } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ChevronRight,
-  FlaskConical,
-  MessageSquare,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Search,
-  TestTube2,
-  Trash2,
+    ChevronRight,
+    FlaskConical,
+    MessageSquare,
+    MoreHorizontal,
+    Pencil,
+    Plus,
+    Search,
+    TestTube2,
+    Trash2
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -262,6 +263,11 @@ export default function SessionSidebar() {
             </AnimatePresence>
           </motion.div>
         </ScrollArea>
+      </div>
+
+      {/* 用户区域 */}
+      <div className="px-3 py-3 border-t border-border/50 mt-auto">
+        <UserSection />
       </div>
 
       <Dialog open={!!renameId} onOpenChange={closeRenameModal}>
