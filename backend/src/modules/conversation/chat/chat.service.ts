@@ -15,6 +15,7 @@ interface StreamChatParams {
   sessionType: SessionType;
   res: Response;
   isAborted: () => boolean;
+  tools?: string[];
 }
 
 @Injectable()

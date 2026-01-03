@@ -42,7 +42,9 @@ export function useSendMessage() {
   }
 
   const sendMessage = async (
-    input: ChatMessageContent,
+    input: string,
+    tools?: string[],
+    files?: File[],
     options?: SendMessageOptions,
   ) => {
     const {
@@ -70,7 +72,31 @@ export function useSendMessage() {
     const abortController = new AbortController()
     setCurrentAbortController(abortController)
 
-    addUserMessage(input)
+    // Construct message content with images if present
+    let messageContent: ChatMessageContent = input
+    if (files && files.length > 0) {
+      const imageBlocks = await Promise.all(
+        files.map(async (file) => {
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => resolve(reader.result as string)
+            reader.readAsDataURL(file)
+          })
+          return {
+            type: 'image_url' as const,
+            image_url: {
+              url: base64,
+            },
+          }
+        }),
+      )
+      messageContent = [
+        { type: 'text', text: input },
+        ...imageBlocks,
+      ]
+    }
+
+    addUserMessage(messageContent)
     setIsLoading(true)
 
     const textContent = extractTextContent(input)
@@ -81,10 +107,11 @@ export function useSendMessage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: input,
+          message: messageContent,
           session_id: sessionId || undefined,
           model_id: modelId,
           session_type: sessionType,
+          tools,
         }),
         signal: abortController.signal,
       })

@@ -49,8 +49,8 @@ function ThreadPage() {
 
   useChatHistory({ threadId, enabled: !isLoading })
 
-  const handleSend = (input: string) => {
-    sendMessage(input, {
+  const handleSend = (input: string, tools?: string[], files?: File[]) => {
+    sendMessage(input, tools, files, {
       sessionId: threadId,
       onSessionCreated: invalidateSessions,
     })

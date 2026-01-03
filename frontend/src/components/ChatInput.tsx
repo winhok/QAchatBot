@@ -1,32 +1,50 @@
-import { useRef } from 'react'
-import {
-  ArrowUp,
-  Bug,
-  FileCode,
-  MessageSquare,
-  Paperclip,
-  Plus,
-  Sparkles,
-  TestTube2,
-} from 'lucide-react'
-import type React from 'react'
+import { ModelSelector } from '@/components/ModelSelector'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ModelSelector } from '@/components/ModelSelector'
+import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useChatMessages } from '@/stores/useChatMessages'
 import { useSession } from '@/stores/useSession'
+import {
+    ArrowUp,
+    Bug,
+    FileCode,
+    MessageSquare,
+    Paperclip,
+    Plus,
+    Sparkles,
+    TestTube2,
+    X,
+} from 'lucide-react'
+import type React from 'react'
+import { useRef, useState } from 'react'
+import { ToolSelector, type Tool } from './ToolSelector'
+
+// TODO: Move this to a shared config or fetch from API
+const AVAILABLE_TOOLS: Tool[] = [
+  {
+    id: 'tavily-search',
+    name: '联网搜索',
+    description: '使用 Tavily 搜索互联网获取最新信息',
+    icon: '🔍',
+  },
+  {
+    id: 'calculator',
+    name: '计算器',
+    description: '执行数学计算',
+    icon: '🧮',
+  },
+]
 
 interface ChatInputProps {
-  onSend: (message: string) => void
+  onSend: (message: string, tools?: string[], files?: File[]) => void
   disabled?: boolean
   placeholder?: string
 }
@@ -84,6 +102,30 @@ export function ChatInput({
     clearDraftMessage,
   } = useChatMessages()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [selectedTools, setSelectedTools] = useState<string[]>([])
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+
+  const handleToolToggle = (toolId: string) => {
+    setSelectedTools((prev) =>
+      prev.includes(toolId)
+        ? prev.filter((id) => id !== toolId)
+        : [...prev, toolId],
+    )
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files)
+      // Limit to 4 images
+      setSelectedFiles((prev) => [...prev, ...newFiles].slice(0, 4))
+    }
+  }
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
+  }
 
   const adjustHeight = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto'
@@ -92,9 +134,10 @@ export function ChatInput({
   }
 
   const handleSend = () => {
-    if (message.trim() && !disabled) {
-      onSend(message.trim())
+    if ((message.trim() || selectedFiles.length > 0) && !disabled) {
+      onSend(message.trim(), selectedTools, selectedFiles)
       clearDraftMessage()
+      setSelectedFiles([])
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
       }
@@ -114,7 +157,7 @@ export function ChatInput({
   }
 
   const handleFileUpload = () => {
-    // TODO: Implement file upload functionality
+    fileInputRef.current?.click()
   }
 
   return (
@@ -128,6 +171,29 @@ export function ChatInput({
               theme.glowClass,
             )}
           />
+
+          {/* Image Previews */}
+          {selectedFiles.length > 0 && (
+            <div className="absolute bottom-full left-0 mb-2 w-full flex gap-2 overflow-x-auto px-1 py-2">
+              {selectedFiles.map((file, index) => (
+                <div key={index} className="relative group/preview shrink-0">
+                  <div className="w-16 h-16 rounded-lg border border-border overflow-hidden bg-muted">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Preview ${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover/preview:opacity-100 transition-opacity shadow-sm"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Input Container */}
           <div className="relative flex items-end gap-2 rounded-2xl border border-border/50 bg-card/80 p-2 shadow-lg backdrop-blur">
@@ -154,10 +220,20 @@ export function ChatInput({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleFileUpload}>
                   <Paperclip className="mr-2 h-4 w-4" />
-                  上传文件
+                  上传图片
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              className="hidden"
+              accept="image/*"
+              multiple
+            />
 
             <Textarea
               ref={textareaRef}
@@ -178,7 +254,7 @@ export function ChatInput({
             {/* 发送按钮 - 根据模式变化主题色 */}
             <Button
               onClick={handleSend}
-              disabled={!message.trim() || disabled}
+              disabled={(!message.trim() && selectedFiles.length === 0) || disabled}
               size="icon"
               className={cn(
                 'shrink-0 rounded-xl text-white shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:shadow-none disabled:scale-100 h-10 w-10',
@@ -198,6 +274,13 @@ export function ChatInput({
               onModelChange={setModelId}
               disabled={disabled}
             />
+            {sessionType === 'normal' && (
+              <ToolSelector
+                tools={AVAILABLE_TOOLS}
+                selectedTools={selectedTools}
+                onToolToggle={handleToolToggle}
+              />
+            )}
             <Badge variant={theme.badgeVariant} size="sm" className="gap-1">
               <ThemeIcon className="h-3 w-3" />
               {theme.label}
