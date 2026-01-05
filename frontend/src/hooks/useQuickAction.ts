@@ -1,4 +1,4 @@
-import { useChatMessages } from '@/stores/useChatMessages'
+import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
 import type { SessionType } from '@/types/stores'
 import { useNavigate } from '@tanstack/react-router'
@@ -14,7 +14,7 @@ export function useQuickAction() {
   const setSessionId = useSession((s) => s.setSessionId)
   const setHasModeSelected = useSession((s) => s.setHasModeSelected)
   const refreshWelcome = useSession((s) => s.refreshWelcome)
-  const clearMessages = useChatMessages((s) => s.clearMessages)
+  const clearMessages = useChatStore((s) => s.clearMessages)
 
   const startNewSession = (type: SessionType = 'normal') => {
     const { sessionId } = useSession.getState()

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
-import { useChatMessages } from '@/stores/useChatMessages'
+import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
 import {
     ArrowUp,
@@ -100,7 +100,7 @@ export function ChatInput({
     draftMessage: message,
     setDraftMessage: setMessage,
     clearDraftMessage,
-  } = useChatMessages()
+  } = useChatStore()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 

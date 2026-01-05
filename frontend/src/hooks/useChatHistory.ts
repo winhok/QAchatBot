@@ -1,5 +1,5 @@
 import type { Message } from '@/schemas'
-import { useChatMessages } from '@/stores/useChatMessages'
+import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
@@ -62,7 +62,7 @@ async function fetchHistory(sessionId: string): Promise<Array<Message>> {
  * 负责加载和管理会话的聊天历史：
  * 1. 根据 threadId 从服务器获取历史消息
  * 2. 转换 LangGraph 消息格式为前端 Message 格式
- * 3. 加载到 useChatMessages store 中
+ * 3. 加载到 useChatStore 中
  * 4. 切换会话时自动重置加载状态
  *
  * 使用 TanStack Query 进行数据获取和缓存管理
@@ -86,7 +86,7 @@ export function useChatHistory({
   threadId: string
   enabled: boolean
 }) {
-  const loadMessages = useChatMessages((s) => s.loadMessages)
+  const loadMessages = useChatStore((s) => s.loadMessages)
   const resetHasUserMessage = useSession((s) => s.resetHasUserMessage)
   const hasLoadedRef = useRef(false)
 

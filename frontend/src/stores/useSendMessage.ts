@@ -3,7 +3,7 @@ import type { ChatMessageContent, ToolCallData } from '@/schemas'
 import type { SendMessageOptions } from '@/types/stores'
 import { extractTextContent } from '@/utils/message'
 import { useState } from 'react'
-import { useChatMessages } from './useChatMessages'
+import { getChatStoreState } from './chat'
 import { useSession } from './useSession'
 
 // 统一使用 /api/chat 端点
@@ -63,7 +63,7 @@ export function useSendMessage() {
       setIsLoading,
       addToolCall,
       updateToolCallStatus,
-    } = useChatMessages.getState()
+    } = getChatStoreState()
 
     const isNewSession = !options?.sessionId && !storeSessionId
     const sessionId = options?.sessionId ?? storeSessionId

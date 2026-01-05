@@ -3,19 +3,19 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useQuickAction } from '@/hooks/useQuickAction'
 import { cn } from '@/lib/utils'
-import { useChatMessages } from '@/stores/useChatMessages'
+import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ArrowUp,
-  Command,
-  FlaskConical,
-  Home,
-  Keyboard,
-  MessageSquare,
-  Sparkles,
-  TestTube2,
-  X,
+    ArrowUp,
+    Command,
+    FlaskConical,
+    Home,
+    Keyboard,
+    MessageSquare,
+    Sparkles,
+    TestTube2,
+    X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -60,8 +60,8 @@ export function FloatingChatBubble() {
   const sessionId = useSession((s) => s.sessionId)
   const sessionType = useSession((s) => s.sessionType)
   const hasModeSelected = useSession((s) => s.hasModeSelected)
-  const setDraftMessage = useChatMessages((s) => s.setDraftMessage)
-  const draftMessage = useChatMessages((s) => s.draftMessage)
+  const setDraftMessage = useChatStore((s) => s.setDraftMessage)
+  const draftMessage = useChatStore((s) => s.draftMessage)
 
   const [position, setPosition] = useState<Position>(() => ({
     x:

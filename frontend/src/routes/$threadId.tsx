@@ -4,7 +4,7 @@ import { FloatingChatBubble } from '@/components/FloatingChatBubble'
 import { MessageList } from '@/components/MessageList'
 import { useChatHistory } from '@/hooks/useChatHistory'
 import { useInvalidateSessions, useSessions } from '@/hooks/useSessions'
-import { useChatMessages } from '@/stores/useChatMessages'
+import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 import { useSession } from '@/stores/useSession'
 import { isCuid } from '@paralleldrive/cuid2'
@@ -28,7 +28,7 @@ function ThreadPage() {
   const setSessionId = useSession((s) => s.setSessionId)
   const setSessionType = useSession((s) => s.setSessionType)
 
-  const isLoading = useChatMessages((s) => s.isLoading)
+  const isLoading = useChatStore((s) => s.isLoading)
 
   const { sendMessage } = useSendMessage()
 

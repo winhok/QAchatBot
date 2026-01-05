@@ -3,7 +3,7 @@ import { ChatInput } from '@/components/ChatInput'
 import { FloatingChatBubble } from '@/components/FloatingChatBubble'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { useInvalidateSessions } from '@/hooks/useSessions'
-import { useChatMessages } from '@/stores/useChatMessages'
+import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -14,7 +14,7 @@ export const Route = createFileRoute('/')({
 function HomePage() {
   const invalidateSessions = useInvalidateSessions()
 
-  const isLoading = useChatMessages((s) => s.isLoading)
+  const isLoading = useChatStore((s) => s.isLoading)
   const { sendMessage } = useSendMessage()
 
   const handleSend = (input: string, tools?: string[], files?: File[]) => {

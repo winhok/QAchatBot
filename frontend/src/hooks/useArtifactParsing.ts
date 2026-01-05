@@ -1,9 +1,9 @@
+import { useChatStore } from '@/stores/chat';
 import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts';
-import { useChatMessages } from '@/stores/useChatMessages';
 import { useEffect } from 'react';
 
 export function useArtifactParsing() {
-  const messages = useChatMessages(state => state.messages);
+  const messages = useChatStore(state => state.messages);
   const { restoreArtifactsFromMessage } = useCanvasArtifacts();
   
   // Keep track of processed content hash or length to avoid re-parsing identical content

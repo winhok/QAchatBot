@@ -1,17 +1,17 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { Bot } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { fadeInUp, staggerContainer } from '@/lib/motion'
-import { useChatMessages } from '@/stores/useChatMessages'
-import { useSendMessage } from '@/stores/useSendMessage'
 import { LoadingIndicator } from '@/components/LoadingIndicator'
 import { MessageBubble } from '@/components/MessageBubble'
 import { StopGenerationButton } from '@/components/StopGenerationButton'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { fadeInUp, staggerContainer } from '@/lib/motion'
+import { useChatStore } from '@/stores/chat'
+import { useSendMessage } from '@/stores/useSendMessage'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Bot } from 'lucide-react'
 
 export function MessageList() {
-  const messages = useChatMessages((state) => state.messages)
-  const isLoading = useChatMessages((state) => state.isLoading)
+  const messages = useChatStore((state) => state.messages)
+  const isLoading = useChatStore((state) => state.isLoading)
   const { abortCurrent } = useSendMessage()
 
   if (messages.length === 0) {
