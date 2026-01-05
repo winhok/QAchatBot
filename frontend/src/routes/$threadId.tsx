@@ -2,7 +2,7 @@ import { ChatHeader } from '@/components/ChatHeader'
 import { ChatInput } from '@/components/ChatInput'
 import { FloatingChatBubble } from '@/components/FloatingChatBubble'
 import { MessageList } from '@/components/MessageList'
-import { useChatHistory } from '@/hooks/useChatHistory'
+import { useChatHistory, useRegisterChatHotkeys } from '@/hooks'
 import { useInvalidateSessions, useSessions } from '@/hooks/useSessions'
 import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
@@ -48,6 +48,9 @@ function ThreadPage() {
   }, [threadId, setSessionId])
 
   useChatHistory({ threadId, enabled: !isLoading })
+
+  // 注册聊天热键（如 Escape 停止生成）
+  useRegisterChatHotkeys()
 
   const handleSend = (input: string, tools?: string[], files?: File[]) => {
     sendMessage(input, tools, files, {

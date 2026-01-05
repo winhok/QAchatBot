@@ -2,7 +2,7 @@ import { ChatHeader } from '@/components/ChatHeader'
 import { ChatInput } from '@/components/ChatInput'
 import { FloatingChatBubble } from '@/components/FloatingChatBubble'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
-import { useInvalidateSessions } from '@/hooks/useSessions'
+import { useInvalidateSessions, useRegisterChatHotkeys } from '@/hooks'
 import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 import { createFileRoute } from '@tanstack/react-router'
@@ -16,6 +16,9 @@ function HomePage() {
 
   const isLoading = useChatStore((s) => s.isLoading)
   const { sendMessage } = useSendMessage()
+
+  // 注册聊天热键（如 Escape 停止生成）
+  useRegisterChatHotkeys()
 
   const handleSend = (input: string, tools?: string[], files?: File[]) => {
     // 首页发送第一条消息时，逻辑统一交给 useSendMessage 处理

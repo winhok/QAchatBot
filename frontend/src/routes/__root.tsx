@@ -1,11 +1,14 @@
+import { SearchDialog } from '@/components/SearchDialog'
 import SessionSidebar from '@/components/SessionSidebar'
 import { CanvasSidebar } from '@/components/canvas/CanvasSidebar'
-import { useArtifactParsing } from '@/hooks/useArtifactParsing'; // We will create this hook next
+import { useRegisterGlobalHotkeys } from '@/hooks'
+import { useArtifactParsing } from '@/hooks/useArtifactParsing'
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import type { QueryClient } from '@tanstack/react-query'
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import { useState } from 'react'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -28,16 +31,34 @@ function NotFoundComponent() {
 }
 
 function RootComponent() {
-  // Global artifact parsing listener
+  // 搜索对话框状态
+  const [searchOpen, setSearchOpen] = useState(false)
+  // 侧边栏折叠状态
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  // 全局 artifact 解析监听
   useArtifactParsing()
+
+  // 注册全局热键
+  useRegisterGlobalHotkeys({
+    onSearchOpen: () => setSearchOpen(true),
+    onToggleSidebar: () => setSidebarCollapsed((prev) => !prev),
+  })
 
   return (
     <div className="flex h-screen bg-background">
-      <SessionSidebar />
+      {/* 侧边栏 - 支持折叠 */}
+      {!sidebarCollapsed && <SessionSidebar />}
+      
       <main className="flex-1 flex flex-col overflow-hidden">
         <Outlet />
       </main>
+      
       <CanvasSidebar />
+      
+      {/* 搜索对话框 */}
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      
       {import.meta.env.DEV && (
         <TanStackDevtools
           config={{ position: 'bottom-right' }}
@@ -50,3 +71,4 @@ function RootComponent() {
     </div>
   )
 }
+

@@ -33,8 +33,13 @@ export const useToggleThemeHotkey = () => {
 /**
  * 切换侧边栏热键 (Cmd/Ctrl + B)
  */
-export const useToggleSidebarHotkey = (onToggle: () => void) => {
-  return useHotkeyById('toggleSidebar', onToggle)
+export const useToggleSidebarHotkey = (
+  onToggle: (() => void) | undefined,
+) => {
+  // 使用空函数作为占位符，通过 enabled 控制是否启用
+  return useHotkeyById('toggleSidebar', onToggle ?? (() => {}), {
+    enabled: !!onToggle,
+  })
 }
 
 interface GlobalHotkeyProps {
@@ -66,8 +71,6 @@ export const useRegisterGlobalHotkeys = (props: GlobalHotkeyProps) => {
   useNewSessionHotkey()
   useSearchHotkey(props.onSearchOpen)
   useToggleThemeHotkey()
-
-  if (props.onToggleSidebar) {
-    useToggleSidebarHotkey(props.onToggleSidebar)
-  }
+  useToggleSidebarHotkey(props.onToggleSidebar)
 }
+
