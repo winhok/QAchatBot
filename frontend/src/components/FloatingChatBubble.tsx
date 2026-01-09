@@ -7,15 +7,15 @@ import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-    ArrowUp,
-    Command,
-    FlaskConical,
-    Home,
-    Keyboard,
-    MessageSquare,
-    Sparkles,
-    TestTube2,
-    X,
+  ArrowUp,
+  Command,
+  FlaskConical,
+  Home,
+  Keyboard,
+  MessageSquare,
+  Sparkles,
+  TestTube2,
+  X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -64,14 +64,8 @@ export function FloatingChatBubble() {
   const draftMessage = useChatStore((s) => s.draftMessage)
 
   const [position, setPosition] = useState<Position>(() => ({
-    x:
-      typeof window !== 'undefined'
-        ? window.innerWidth - BUBBLE_SIZE - DOCK_OFFSET
-        : 100,
-    y:
-      typeof window !== 'undefined'
-        ? window.innerHeight - BUBBLE_SIZE - DOCK_OFFSET
-        : 100,
+    x: typeof window !== 'undefined' ? window.innerWidth - BUBBLE_SIZE - DOCK_OFFSET : 100,
+    y: typeof window !== 'undefined' ? window.innerHeight - BUBBLE_SIZE - DOCK_OFFSET : 100,
   }))
   const [isDragging, setIsDragging] = useState(false)
   const [dockedSide, setDockedSide] = useState<DockSide>('none')
@@ -107,33 +101,21 @@ export function FloatingChatBubble() {
       case 'left':
         return {
           x: DOCK_OFFSET,
-          y: Math.max(
-            DOCK_OFFSET,
-            Math.min(y, windowHeight - BUBBLE_SIZE - DOCK_OFFSET),
-          ),
+          y: Math.max(DOCK_OFFSET, Math.min(y, windowHeight - BUBBLE_SIZE - DOCK_OFFSET)),
         }
       case 'right':
         return {
           x: windowWidth - BUBBLE_SIZE - DOCK_OFFSET,
-          y: Math.max(
-            DOCK_OFFSET,
-            Math.min(y, windowHeight - BUBBLE_SIZE - DOCK_OFFSET),
-          ),
+          y: Math.max(DOCK_OFFSET, Math.min(y, windowHeight - BUBBLE_SIZE - DOCK_OFFSET)),
         }
       case 'top':
         return {
-          x: Math.max(
-            DOCK_OFFSET,
-            Math.min(x, windowWidth - BUBBLE_SIZE - DOCK_OFFSET),
-          ),
+          x: Math.max(DOCK_OFFSET, Math.min(x, windowWidth - BUBBLE_SIZE - DOCK_OFFSET)),
           y: DOCK_OFFSET,
         }
       case 'bottom':
         return {
-          x: Math.max(
-            DOCK_OFFSET,
-            Math.min(x, windowWidth - BUBBLE_SIZE - DOCK_OFFSET),
-          ),
+          x: Math.max(DOCK_OFFSET, Math.min(x, windowWidth - BUBBLE_SIZE - DOCK_OFFSET)),
           y: windowHeight - BUBBLE_SIZE - DOCK_OFFSET,
         }
       default:
@@ -162,17 +144,11 @@ export function FloatingChatBubble() {
       const deltaY = e.clientY - dragStartRef.current.y
       const newX = Math.max(
         0,
-        Math.min(
-          dragStartRef.current.posX + deltaX,
-          window.innerWidth - BUBBLE_SIZE,
-        ),
+        Math.min(dragStartRef.current.posX + deltaX, window.innerWidth - BUBBLE_SIZE),
       )
       const newY = Math.max(
         0,
-        Math.min(
-          dragStartRef.current.posY + deltaY,
-          window.innerHeight - BUBBLE_SIZE,
-        ),
+        Math.min(dragStartRef.current.posY + deltaY, window.innerHeight - BUBBLE_SIZE),
       )
       setPosition({ x: newX, y: newY })
     }
@@ -402,9 +378,7 @@ export function FloatingChatBubble() {
               {showShortcuts ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-foreground">
-                      键盘快捷键
-                    </span>
+                    <span className="text-sm font-medium text-foreground">键盘快捷键</span>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -421,13 +395,8 @@ export function FloatingChatBubble() {
                       { keys: ['Shift', 'Enter'], desc: '换行' },
                       { keys: ['Esc'], desc: '关闭面板' },
                     ].map((shortcut) => (
-                      <div
-                        key={shortcut.desc}
-                        className="flex items-center justify-between py-1"
-                      >
-                        <span className="text-muted-foreground">
-                          {shortcut.desc}
-                        </span>
+                      <div key={shortcut.desc} className="flex items-center justify-between py-1">
+                        <span className="text-muted-foreground">{shortcut.desc}</span>
                         <div className="flex items-center gap-1">
                           {shortcut.keys.map((key) => (
                             <kbd
@@ -448,9 +417,7 @@ export function FloatingChatBubble() {
                     <div className="flex items-center justify-between pb-2 border-b border-border/50">
                       <div className="flex items-center gap-2">
                         <Badge
-                          variant={
-                            sessionType === 'testcase' ? 'teal' : 'success'
-                          }
+                          variant={sessionType === 'testcase' ? 'teal' : 'success'}
                           size="sm"
                           className="gap-1"
                         >

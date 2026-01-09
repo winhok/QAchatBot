@@ -76,10 +76,7 @@ const featureTips = [
 /**
  * 随机选择索引，确保不与上次重复
  */
-export function getRandomIndex(
-  length: number,
-  lastIndex: number | null,
-): number {
+export function getRandomIndex(length: number, lastIndex: number | null): number {
   if (length <= 1) return 0
   let nextIndex: number
   do {
@@ -108,10 +105,7 @@ export function WelcomeScreen() {
       welcomeMessages.length,
       lastWelcome ? parseInt(lastWelcome) : null,
     )
-    const nextTip = getRandomIndex(
-      featureTips.length,
-      lastTip ? parseInt(lastTip) : null,
-    )
+    const nextTip = getRandomIndex(featureTips.length, lastTip ? parseInt(lastTip) : null)
 
     startTransition(() => {
       setIsMounted(true)
@@ -344,9 +338,7 @@ export function WelcomeScreen() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-500/20 text-teal-400 font-semibold text-sm mb-3">
                   {item.step}
                 </div>
-                <h4 className="font-medium text-foreground text-sm mb-1">
-                  {item.title}
-                </h4>
+                <h4 className="font-medium text-foreground text-sm mb-1">{item.title}</h4>
                 <p className="text-xs text-muted-foreground">{item.desc}</p>
                 {index < testcaseSteps.length - 1 && (
                   <ArrowRight className="absolute -right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-500/50 hidden md:block" />
@@ -580,12 +572,8 @@ export function WelcomeScreen() {
                 <div className="mb-3 inline-flex rounded-xl bg-background/50 p-2.5 backdrop-blur">
                   <feature.icon className={`h-5 w-5 ${feature.iconColor}`} />
                 </div>
-                <h3 className="font-semibold text-foreground mb-1">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {feature.description}
-                </p>
+                <h3 className="font-semibold text-foreground mb-1">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground line-clamp-2">{feature.description}</p>
                 {feature.implemented && (
                   <ArrowRight className="absolute bottom-0 right-0 h-4 w-4 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 group-hover:-translate-x-1" />
                 )}
@@ -607,18 +595,12 @@ export function WelcomeScreen() {
           <button
             key={feature.label}
             disabled={!feature.implemented}
-            aria-label={
-              !feature.implemented
-                ? `${feature.label}（暂不可用）`
-                : feature.label
-            }
+            aria-label={!feature.implemented ? `${feature.label}（暂不可用）` : feature.label}
             className={`inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-card/50 px-4 py-2 text-sm text-muted-foreground transition-all hover:border-emerald-500/30 hover:bg-card hover:text-foreground ${!feature.implemented && 'opacity-60 cursor-not-allowed'}`}
           >
             <feature.icon className={`h-4 w-4 ${feature.color}`} />
             {feature.label}
-            {!feature.implemented && (
-              <Construction className="h-3 w-3 text-amber-400 ml-1" />
-            )}
+            {!feature.implemented && <Construction className="h-3 w-3 text-amber-400 ml-1" />}
           </button>
         ))}
       </motion.div>

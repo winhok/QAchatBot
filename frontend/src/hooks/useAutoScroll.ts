@@ -22,9 +22,7 @@ interface UseAutoScrollReturn {
   setShouldAutoScroll: (value: boolean) => void
 }
 
-export function useAutoScroll(
-  options: UseAutoScrollOptions = {},
-): UseAutoScrollReturn {
+export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScrollReturn {
   const { threshold = 100, smooth = true, dependencies = [] } = options
 
   const containerRef = useRef<HTMLDivElement>(null)

@@ -13,9 +13,7 @@ import { useLayoutEffect, useRef } from 'react'
  * })
  * ```
  */
-export const useEventCallback = <T extends (...args: unknown[]) => unknown>(
-  fn: T,
-): T => {
+export const useEventCallback = <T extends (...args: unknown[]) => unknown>(fn: T): T => {
   const ref = useRef<T>(fn)
 
   useLayoutEffect(() => {

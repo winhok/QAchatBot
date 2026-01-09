@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule as NestConfigModule } from '@nestjs/config';
-import appConfig from './app.config';
-import databaseConfig from './database.config';
-import llmConfig from './llm.config';
+import { Module } from '@nestjs/common'
+import { ConfigModule as NestConfigModule } from '@nestjs/config'
+import appConfig from './app.config'
+import databaseConfig from './database.config'
+import llmConfig from './llm.config'
 
 @Module({
   imports: [

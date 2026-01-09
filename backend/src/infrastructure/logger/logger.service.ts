@@ -1,8 +1,8 @@
-import { RequestContextService } from '@/common/context/request-context.service';
-import { Inject, Injectable } from '@nestjs/common';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { RequestContextService } from '@/common/context/request-context.service'
+import { Inject, Injectable } from '@nestjs/common'
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino'
 
-type LogMetadata = Record<string, unknown>;
+type LogMetadata = Record<string, unknown>
 
 @Injectable()
 export class LoggerService {
@@ -25,31 +25,27 @@ export class LoggerService {
         ...meta,
       },
       message,
-    ];
+    ]
   }
 
   debug(context: string, message: string, meta?: LogMetadata): void {
-    this.logger.debug(...this.buildLogObject(context, message, meta));
+    this.logger.debug(...this.buildLogObject(context, message, meta))
   }
 
   info(context: string, message: string, meta?: LogMetadata): void {
-    this.logger.info(...this.buildLogObject(context, message, meta));
+    this.logger.info(...this.buildLogObject(context, message, meta))
   }
 
   warn(context: string, message: string, meta?: LogMetadata): void {
-    this.logger.warn(...this.buildLogObject(context, message, meta));
+    this.logger.warn(...this.buildLogObject(context, message, meta))
   }
 
   error(context: string, message: string, meta?: LogMetadata): void {
-    this.logger.error(...this.buildLogObject(context, message, meta));
+    this.logger.error(...this.buildLogObject(context, message, meta))
   }
 
-  logQueryResult<T>(
-    context: string,
-    method: string,
-    result: T[] | T | null,
-  ): void {
-    const count = Array.isArray(result) ? result.length : result ? 1 : 0;
-    this.debug(context, 'Query completed', { method, resultCount: count });
+  logQueryResult<T>(context: string, method: string, result: T[] | T | null): void {
+    const count = Array.isArray(result) ? result.length : result ? 1 : 0
+    this.debug(context, 'Query completed', { method, resultCount: count })
   }
 }

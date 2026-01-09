@@ -5,9 +5,9 @@
 // 3. 支持批量导出
 // 4. 生成下载文件
 
-import { Controller, Post, Body, Res, HttpStatus } from '@nestjs/common';
-import type { Response } from 'express';
-import { ExportService, type ExportRequest } from './export.service';
+import { Controller, Post, Body, Res, HttpStatus } from '@nestjs/common'
+import type { Response } from 'express'
+import { ExportService, type ExportRequest } from './export.service'
 
 @Controller('api/export')
 export class ExportController {
@@ -17,19 +17,14 @@ export class ExportController {
   export(@Body() dto: ExportRequest, @Res() res: Response) {
     // TODO: 实现导出逻辑
     try {
-      const result = this.exportService.export(dto);
+      const result = this.exportService.export(dto)
 
-      res.setHeader('Content-Type', result.contentType);
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="${result.filename}"`,
-      );
+      res.setHeader('Content-Type', result.contentType)
+      res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`)
 
-      return res.status(HttpStatus.OK).send(result.content);
+      return res.status(HttpStatus.OK).send(result.content)
     } catch {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: 'Export failed' });
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Export failed' })
     }
   }
 }

@@ -31,25 +31,23 @@ export function MessageList() {
             <MessageBubble key={message.id} message={message} />
           ))}
 
-          {isLoading &&
-            messages.length > 0 &&
-            messages[messages.length - 1].role === 'user' && (
-              <motion.div
-                key="loading-indicator"
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="flex gap-3"
-              >
-                <Avatar className="h-8 w-8 shrink-0 bg-linear-to-br from-emerald-500 to-teal-600">
-                  <AvatarFallback className="bg-transparent">
-                    <Bot className="h-4 w-4 text-white" />
-                  </AvatarFallback>
-                </Avatar>
-                <LoadingIndicator />
-              </motion.div>
-            )}
+          {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
+            <motion.div
+              key="loading-indicator"
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="flex gap-3"
+            >
+              <Avatar className="h-8 w-8 shrink-0 bg-linear-to-br from-emerald-500 to-teal-600">
+                <AvatarFallback className="bg-transparent">
+                  <Bot className="h-4 w-4 text-white" />
+                </AvatarFallback>
+              </Avatar>
+              <LoadingIndicator />
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {isLoading && (
@@ -59,10 +57,7 @@ export function MessageList() {
             exit={{ opacity: 0 }}
             className="flex justify-center py-2"
           >
-            <StopGenerationButton
-              onStop={abortCurrent}
-              isGenerating={isLoading}
-            />
+            <StopGenerationButton onStop={abortCurrent} isGenerating={isLoading} />
           </motion.div>
         )}
 

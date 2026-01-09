@@ -3,11 +3,7 @@ import { Bot, User } from 'lucide-react'
 import type { Message } from '@/schemas'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
-import {
-  userMessageVariants,
-  assistantMessageVariants,
-  typingCursorVariants,
-} from '@/lib/motion'
+import { userMessageVariants, assistantMessageVariants, typingCursorVariants } from '@/lib/motion'
 import { ApiResultBlock } from '@/components/ApiResultBlock'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 import { MessageActions } from '@/components/MessageActions'
@@ -31,10 +27,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const mediaUrls = extractMediaUrls(message.content)
   const documentUrls = extractDocumentUrls(message.content)
   const hasContent =
-    textContent ||
-    imageUrls.length > 0 ||
-    mediaUrls.length > 0 ||
-    documentUrls.length > 0
+    textContent || imageUrls.length > 0 || mediaUrls.length > 0 || documentUrls.length > 0
 
   const messageVariants = isUser ? userMessageVariants : assistantMessageVariants
 
@@ -43,10 +36,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       variants={messageVariants}
       initial="hidden"
       animate="visible"
-      className={cn(
-        'group flex gap-3',
-        isUser ? 'flex-row-reverse' : 'flex-row',
-      )}
+      className={cn('group flex gap-3', isUser ? 'flex-row-reverse' : 'flex-row')}
     >
       <Avatar
         className={cn(
@@ -62,20 +52,13 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           )}
         </AvatarFallback>
       </Avatar>
-      <div
-        className={cn(
-          'max-w-[85%] space-y-3',
-          isUser && 'flex flex-col items-end',
-        )}
-      >
+      <div className={cn('max-w-[85%] space-y-3', isUser && 'flex flex-col items-end')}>
         {hasContent && (
           <div className="relative">
             <div
               className={cn(
                 'rounded-2xl px-4 py-3',
-                isUser
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-foreground',
+                isUser ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground',
               )}
             >
               {/* 渲染图片 */}
@@ -123,9 +106,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-sm text-blue-500 hover:underline"
                     >
-                      📄{' '}
-                      {doc.mimeType === 'application/pdf' ? 'PDF 文档' : '文档'}{' '}
-                      {idx + 1}
+                      📄 {doc.mimeType === 'application/pdf' ? 'PDF 文档' : '文档'} {idx + 1}
                     </a>
                   ))}
                 </div>
@@ -146,27 +127,20 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             </div>
             {/* 消息操作按钮 */}
             {!message.isStreaming && (
-              <div
-                className={cn(
-                  'absolute -bottom-6',
-                  isUser ? 'right-0' : 'left-0',
-                )}
-              >
+              <div className={cn('absolute -bottom-6', isUser ? 'right-0' : 'left-0')}>
                 <MessageActions message={message} />
               </div>
             )}
           </div>
         )}
 
-        {message.role === 'assistant' &&
-          message.toolCalls &&
-          message.toolCalls.length > 0 && (
-            <div className="space-y-2 w-full">
-              {message.toolCalls.map((tool) => (
-                <ToolCallBlock key={tool.id} data={tool} />
-              ))}
-            </div>
-          )}
+        {message.role === 'assistant' && message.toolCalls && message.toolCalls.length > 0 && (
+          <div className="space-y-2 w-full">
+            {message.toolCalls.map((tool) => (
+              <ToolCallBlock key={tool.id} data={tool} />
+            ))}
+          </div>
+        )}
 
         {message.role === 'assistant' && message.apiResult && (
           <ApiResultBlock data={message.apiResult} />

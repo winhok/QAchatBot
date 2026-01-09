@@ -88,8 +88,7 @@ export const getHotkeyDisplayText = (hotkeyId: HotkeyId): string => {
 
   // 检测是否为 Mac 平台
   const isMac =
-    typeof navigator !== 'undefined' &&
-    navigator.platform?.toLowerCase().includes('mac')
+    typeof navigator !== 'undefined' && navigator.platform?.toLowerCase().includes('mac')
 
   return def.keys
     .replace('mod', isMac ? '⌘' : 'Ctrl')

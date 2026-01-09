@@ -2,26 +2,26 @@ import { ModelSelector } from '@/components/ModelSelector'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
 import {
-    ArrowUp,
-    Bug,
-    FileCode,
-    MessageSquare,
-    Paperclip,
-    Plus,
-    Sparkles,
-    TestTube2,
-    X,
+  ArrowUp,
+  Bug,
+  FileCode,
+  MessageSquare,
+  Paperclip,
+  Plus,
+  Sparkles,
+  TestTube2,
+  X,
 } from 'lucide-react'
 import type React from 'react'
 import { useRef, useState } from 'react'
@@ -84,11 +84,7 @@ const SESSION_THEME = {
   },
 }
 
-export function ChatInput({
-  onSend,
-  disabled = false,
-  placeholder,
-}: ChatInputProps) {
+export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputProps) {
   const sessionType = useSession((s) => s.sessionType)
   const modelId = useSession((s) => s.modelId)
   const setModelId = useSession((s) => s.setModelId)
@@ -96,11 +92,7 @@ export function ChatInput({
   const theme = SESSION_THEME[sessionType] || SESSION_THEME.normal
   const ThemeIcon = theme.icon
 
-  const {
-    draftMessage: message,
-    setDraftMessage: setMessage,
-    clearDraftMessage,
-  } = useChatStore()
+  const { draftMessage: message, setDraftMessage: setMessage, clearDraftMessage } = useChatStore()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -109,9 +101,7 @@ export function ChatInput({
 
   const handleToolToggle = (toolId: string) => {
     setSelectedTools((prev) =>
-      prev.includes(toolId)
-        ? prev.filter((id) => id !== toolId)
-        : [...prev, toolId],
+      prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId],
     )
   }
 
@@ -129,8 +119,7 @@ export function ChatInput({
 
   const adjustHeight = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto'
-    textarea.style.height =
-      Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT) + 'px'
+    textarea.style.height = Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT) + 'px'
   }
 
   const handleSend = () => {
@@ -209,10 +198,7 @@ export function ChatInput({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
                 {quickActions.map((action) => (
-                  <DropdownMenuItem
-                    key={action.label}
-                    onClick={() => setMessage(action.prompt)}
-                  >
+                  <DropdownMenuItem key={action.label} onClick={() => setMessage(action.prompt)}>
                     <action.icon className={cn('mr-2 h-4 w-4', theme.accentColor)} />
                     {action.label}
                   </DropdownMenuItem>

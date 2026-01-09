@@ -11,9 +11,7 @@ interface ThemeState {
 
 function getSystemTheme(): 'light' | 'dark' {
   if (typeof window === 'undefined') return 'dark'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light'
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 function applyTheme(resolvedTheme: 'light' | 'dark') {
@@ -39,8 +37,7 @@ export const useTheme = create<ThemeState>()(
       onRehydrateStorage: () => (state) => {
         // 恢复时应用主题
         if (state) {
-          const resolvedTheme =
-            state.theme === 'system' ? getSystemTheme() : state.theme
+          const resolvedTheme = state.theme === 'system' ? getSystemTheme() : state.theme
           applyTheme(resolvedTheme)
           state.resolvedTheme = resolvedTheme
         }

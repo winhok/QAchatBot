@@ -11,10 +11,7 @@ const ANIMATION_DURATIONS = {
 
 export function AIOrb() {
   return (
-    <div
-      className="relative flex items-center justify-center"
-      aria-hidden="true"
-    >
+    <div className="relative flex items-center justify-center" aria-hidden="true">
       {/* Outer glow rings */}
       <div className="absolute h-40 w-40 animate-pulse rounded-full bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 blur-2xl" />
       <div
@@ -28,13 +25,7 @@ export function AIOrb() {
         style={{ animationDuration: ANIMATION_DURATIONS.OUTER_RING }}
       >
         <defs>
-          <linearGradient
-            id="ring-gradient-1"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id="ring-gradient-1" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#10b981" stopOpacity="0" />
             <stop offset="50%" stopColor="#10b981" stopOpacity="0.6" />
             <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
@@ -61,13 +52,7 @@ export function AIOrb() {
         }}
       >
         <defs>
-          <linearGradient
-            id="ring-gradient-2"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id="ring-gradient-2" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#06b6d4" stopOpacity="0" />
             <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.8" />
             <stop offset="100%" stopColor="#10b981" stopOpacity="0" />

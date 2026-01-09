@@ -6,10 +6,7 @@ interface StopGenerationButtonProps {
   isGenerating: boolean
 }
 
-export function StopGenerationButton({
-  onStop,
-  isGenerating,
-}: StopGenerationButtonProps) {
+export function StopGenerationButton({ onStop, isGenerating }: StopGenerationButtonProps) {
   if (!isGenerating) return null
 
   return (

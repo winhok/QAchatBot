@@ -19,21 +19,15 @@ function Drawer({
   )
 }
 
-function DrawerTrigger({
-  ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
+function DrawerTrigger({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
   return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />
 }
 
-function DrawerPortal({
-  ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
+function DrawerPortal({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
   return <DrawerPrimitive.Portal data-slot="drawer-portal" {...props} />
 }
 
-function DrawerClose({
-  ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Close>) {
+function DrawerClose({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
   return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />
 }
 
@@ -50,26 +44,19 @@ function DrawerOverlay({
   )
 }
 
-const drawerContentVariants = cva(
-  'fixed z-50 flex flex-col bg-background border shadow-lg',
-  {
-    variants: {
-      direction: {
-        bottom:
-          'inset-x-0 bottom-0 mt-24 rounded-t-2xl border-t max-h-[96vh]',
-        top:
-          'inset-x-0 top-0 mb-24 rounded-b-2xl border-b max-h-[96vh]',
-        left:
-          'inset-y-0 left-0 mr-24 rounded-r-2xl border-r w-[85vw] max-w-sm h-full',
-        right:
-          'inset-y-0 right-0 ml-24 rounded-l-2xl border-l w-[85vw] max-w-sm h-full',
-      },
-    },
-    defaultVariants: {
-      direction: 'bottom',
+const drawerContentVariants = cva('fixed z-50 flex flex-col bg-background border shadow-lg', {
+  variants: {
+    direction: {
+      bottom: 'inset-x-0 bottom-0 mt-24 rounded-t-2xl border-t max-h-[96vh]',
+      top: 'inset-x-0 top-0 mb-24 rounded-b-2xl border-b max-h-[96vh]',
+      left: 'inset-y-0 left-0 mr-24 rounded-r-2xl border-r w-[85vw] max-w-sm h-full',
+      right: 'inset-y-0 right-0 ml-24 rounded-l-2xl border-l w-[85vw] max-w-sm h-full',
     },
   },
-)
+  defaultVariants: {
+    direction: 'bottom',
+  },
+})
 
 function DrawerContent({
   className,
@@ -123,10 +110,7 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
-function DrawerTitle({
-  className,
-  ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Title>) {
+function DrawerTitle({ className, ...props }: React.ComponentProps<typeof DrawerPrimitive.Title>) {
   return (
     <DrawerPrimitive.Title
       data-slot="drawer-title"

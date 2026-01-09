@@ -4,13 +4,13 @@
 
 ## 技术栈
 
-| 类别 | 技术 |
-|------|------|
-| 框架 | NestJS v11+ |
+| 类别     | 技术                  |
+| -------- | --------------------- |
+| 框架     | NestJS v11+           |
 | AI Agent | LangGraph + LangChain |
-| 数据库 | PostgreSQL + Prisma |
-| 验证 | Zod |
-| 日志 | Pino |
+| 数据库   | PostgreSQL + Prisma   |
+| 验证     | Zod                   |
+| 日志     | Pino                  |
 
 ## 项目架构
 
@@ -97,31 +97,31 @@ START → chatbot → [tools] → chatbot → END
 init → test_points → test_cases → review → completed
 ```
 
-| 阶段 | 说明 |
-|------|------|
-| init | 接收 PRD 文档 |
-| test_points | 分析测试点 |
-| test_cases | 生成 CSV 用例 |
-| review | 评审优化 |
-| completed | 完成 |
+| 阶段        | 说明          |
+| ----------- | ------------- |
+| init        | 接收 PRD 文档 |
+| test_points | 分析测试点    |
+| test_cases  | 生成 CSV 用例 |
+| review      | 评审优化      |
+| completed   | 完成          |
 
 ## API 端点
 
 ### 聊天
 
-| 方法 | 路径 | 说明 | 状态 |
-|------|------|------|------|
-| POST | `/api/chat` | 流式聊天 (SSE) | ✅ 使用中 |
-| GET | `/api/chat?session_id=` | 获取聊天历史 | ✅ 使用中 |
+| 方法 | 路径                    | 说明           | 状态      |
+| ---- | ----------------------- | -------------- | --------- |
+| POST | `/api/chat`             | 流式聊天 (SSE) | ✅ 使用中 |
+| GET  | `/api/chat?session_id=` | 获取聊天历史   | ✅ 使用中 |
 
 ### 会话
 
-| 方法 | 路径 | 说明 | 状态 |
-|------|------|------|------|
-| GET | `/api/sessions` | 会话列表 | ✅ 使用中 |
-| POST | `/api/sessions` | 创建会话 | ✅ 使用中 |
-| GET | `/api/sessions/:id` | 会话详情 | ⚪ 未使用 |
-| PATCH | `/api/sessions/:id` | 更新会话 | ✅ 使用中 |
+| 方法   | 路径                | 说明     | 状态      |
+| ------ | ------------------- | -------- | --------- |
+| GET    | `/api/sessions`     | 会话列表 | ✅ 使用中 |
+| POST   | `/api/sessions`     | 创建会话 | ✅ 使用中 |
+| GET    | `/api/sessions/:id` | 会话详情 | ⚪ 未使用 |
+| PATCH  | `/api/sessions/:id` | 更新会话 | ✅ 使用中 |
 | DELETE | `/api/sessions/:id` | 删除会话 | ✅ 使用中 |
 
 ## 环境配置
@@ -170,8 +170,8 @@ pnpm run build
 
 ```typescript
 // my-tool.tool.ts
-import { z } from 'zod';
-import type { ToolDefinition } from '../tools.registry';
+import { z } from 'zod'
+import type { ToolDefinition } from '../tools.registry'
 
 export const myTool: ToolDefinition = {
   name: 'my_tool',
@@ -180,15 +180,15 @@ export const myTool: ToolDefinition = {
     param: z.string().describe('参数说明'),
   }),
   handler: async ({ param }) => {
-    return `结果: ${param}`;
+    return `结果: ${param}`
   },
-};
+}
 ```
 
 在 `tools.registry.ts` 注册：
 
 ```typescript
-this.register(myTool);
+this.register(myTool)
 ```
 
 ### 添加新 Agent 工作流

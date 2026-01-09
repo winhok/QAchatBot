@@ -1,1 +1,1 @@
-export * from './agent.interface';
+export * from './agent.interface'

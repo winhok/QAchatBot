@@ -1,12 +1,12 @@
-import { z } from 'zod';
-import type { ToolDefinition } from '../types';
+import { z } from 'zod'
+import type { ToolDefinition } from '../types'
 
 export const currentTimeTool: ToolDefinition = {
   name: 'current_time',
   description: 'Get the current time',
   schema: z.object({}),
   handler: () => {
-    const date = new Date();
+    const date = new Date()
     return date.toLocaleString('zh-CN', {
       year: 'numeric',
       month: 'long',
@@ -18,6 +18,6 @@ export const currentTimeTool: ToolDefinition = {
       hour12: false,
       timeZone: 'Asia/Shanghai',
       timeZoneName: 'short',
-    });
+    })
   },
-};
+}

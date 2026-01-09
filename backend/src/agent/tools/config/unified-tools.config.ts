@@ -1,5 +1,5 @@
-import { calculatorTool, currentTimeTool, readFileTool } from '../builtin';
-import type { UnifiedToolConfig } from '../types';
+import { calculatorTool, currentTimeTool, readFileTool } from '../builtin'
+import type { UnifiedToolConfig } from '../types'
 
 /**
  * 统一工具配置
@@ -80,47 +80,41 @@ export const unifiedToolsConfig: UnifiedToolConfig[] = [
       transport: 'stdio',
     },
   },
-];
+]
 
 /**
  * 获取所有启用的工具配置
  */
 export function getEnabledToolConfigs(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter((tool) => tool.enabled);
+  return unifiedToolsConfig.filter((tool) => tool.enabled)
 }
 
 /**
  * 获取自定义工具配置
  */
 export function getCustomToolConfigs(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter(
-    (tool) => tool.type === 'custom' && tool.enabled,
-  );
+  return unifiedToolsConfig.filter((tool) => tool.type === 'custom' && tool.enabled)
 }
 
 /**
  * 获取 LangChain 工具配置
  */
 export function getLangChainToolConfigs(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter(
-    (tool) => tool.type === 'langchain' && tool.enabled,
-  );
+  return unifiedToolsConfig.filter((tool) => tool.type === 'langchain' && tool.enabled)
 }
 
 /**
  * 获取 MCP 工具配置
  */
 export function getMCPToolConfigs(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter(
-    (tool) => tool.type === 'mcp' && tool.enabled,
-  );
+  return unifiedToolsConfig.filter((tool) => tool.type === 'mcp' && tool.enabled)
 }
 
 /**
  * 根据 ID 获取工具配置
  */
 export function getToolConfigById(id: string): UnifiedToolConfig | undefined {
-  return unifiedToolsConfig.find((tool) => tool.id === id);
+  return unifiedToolsConfig.find((tool) => tool.id === id)
 }
 
 /**
@@ -130,11 +124,8 @@ export function getMCPServersConfig(): Record<
   string,
   { command: string; args: string[]; transport: 'stdio' | 'sse' }
 > {
-  const mcpTools = getMCPToolConfigs();
-  const config: Record<
-    string,
-    { command: string; args: string[]; transport: 'stdio' | 'sse' }
-  > = {};
+  const mcpTools = getMCPToolConfigs()
+  const config: Record<string, { command: string; args: string[]; transport: 'stdio' | 'sse' }> = {}
 
   for (const tool of mcpTools) {
     if (tool.mcpConfig) {
@@ -142,11 +133,11 @@ export function getMCPServersConfig(): Record<
         command: tool.mcpConfig.command,
         args: tool.mcpConfig.args,
         transport: tool.mcpConfig.transport,
-      };
+      }
     }
   }
 
-  return config;
+  return config
 }
 
 /**
@@ -156,7 +147,7 @@ export const environmentDefaults = {
   development: ['calculator', 'current_time', 'read_file'],
   production: ['calculator', 'current_time'],
   test: ['calculator', 'current_time'],
-};
+}
 
 /**
  * 获取当前环境的默认工具列表
@@ -165,7 +156,6 @@ export function getDefaultToolsForEnv(
   env: string = process.env.NODE_ENV || 'development',
 ): string[] {
   return (
-    environmentDefaults[env as keyof typeof environmentDefaults] ||
-    environmentDefaults.development
-  );
+    environmentDefaults[env as keyof typeof environmentDefaults] || environmentDefaults.development
+  )
 }

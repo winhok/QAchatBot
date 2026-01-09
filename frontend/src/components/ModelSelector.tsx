@@ -38,9 +38,7 @@ export function ModelSelector({
           className="h-8 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/50"
         >
           <Cpu className="h-3.5 w-3.5" />
-          <span className="max-w-[120px] truncate">
-            {currentModel?.name || '选择模型'}
-          </span>
+          <span className="max-w-[120px] truncate">{currentModel?.name || '选择模型'}</span>
           <ChevronDown className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
@@ -54,13 +52,9 @@ export function ModelSelector({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">{model.name}</span>
-                {model.id === currentModelId && (
-                  <Check className="h-3.5 w-3.5 text-emerald-500" />
-                )}
+                {model.id === currentModelId && <Check className="h-3.5 w-3.5 text-emerald-500" />}
               </div>
-              <p className="text-xs text-muted-foreground truncate">
-                {model.description}
-              </p>
+              <p className="text-xs text-muted-foreground truncate">{model.description}</p>
             </div>
           </DropdownMenuItem>
         ))}

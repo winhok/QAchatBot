@@ -5,8 +5,8 @@
 // 3. 存储到数据库或发送到分析服务
 // 4. 可选：收集详细的负面反馈原因
 
-import { Controller, Post, Get, Body, Query } from '@nestjs/common';
-import { FeedbackService, type FeedbackPayload } from './feedback.service';
+import { Controller, Post, Get, Body, Query } from '@nestjs/common'
+import { FeedbackService, type FeedbackPayload } from './feedback.service'
 
 @Controller('api/feedback')
 export class FeedbackController {
@@ -18,12 +18,12 @@ export class FeedbackController {
     // - 验证参数
     // - 存储反馈数据
     // - 返回结果
-    return this.feedbackService.submit(dto);
+    return this.feedbackService.submit(dto)
   }
 
   @Get()
   get(@Query('messageId') messageId?: string) {
     // TODO: 获取反馈状态（可选）
-    return this.feedbackService.get(messageId);
+    return this.feedbackService.get(messageId)
   }
 }

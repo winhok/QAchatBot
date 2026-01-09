@@ -10,17 +10,10 @@ import { useState } from 'react'
 
 interface FeedbackButtonsProps {
   messageId: string
-  onFeedback: (
-    messageId: string,
-    type: 'positive' | 'negative',
-    reason?: string,
-  ) => void
+  onFeedback: (messageId: string, type: 'positive' | 'negative', reason?: string) => void
 }
 
-export function FeedbackButtons({
-  messageId,
-  onFeedback,
-}: FeedbackButtonsProps) {
+export function FeedbackButtons({ messageId, onFeedback }: FeedbackButtonsProps) {
   const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null)
 
   const handleFeedback = (type: 'positive' | 'negative') => {

@@ -1,12 +1,7 @@
 import { Check, Copy } from 'lucide-react'
 import type { Message } from '@/schemas'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { extractTextContent } from '@/utils/message'
 
 interface MessageActionsProps {

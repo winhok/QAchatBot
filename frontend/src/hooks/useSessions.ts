@@ -23,11 +23,7 @@ async function deleteSession(id: string): Promise<void> {
   })
 }
 
-async function renameSession(
-  id: string,
-  name: string,
-  type?: SessionType,
-): Promise<void> {
+async function renameSession(id: string, name: string, type?: SessionType): Promise<void> {
   await fetch(`/api/sessions/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -72,15 +68,8 @@ export function useRenameSession() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
-      id,
-      name,
-      type,
-    }: {
-      id: string
-      name: string
-      type?: SessionType
-    }) => renameSession(id, name, type),
+    mutationFn: ({ id, name, type }: { id: string; name: string; type?: SessionType }) =>
+      renameSession(id, name, type),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sessionsQueryKey })
     },

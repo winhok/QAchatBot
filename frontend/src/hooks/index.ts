@@ -20,10 +20,10 @@ export { useIsDark } from './useIsDark'
 
 /** 消息/工具调用操作状态 */
 export {
-    useMessageOperationState,
-    useToolOperationState,
-    type MessageOperationState,
-    type ToolOperationState
+  useMessageOperationState,
+  useToolOperationState,
+  type MessageOperationState,
+  type ToolOperationState,
 } from './useOperationState'
 
 // ============================================================
@@ -31,9 +31,14 @@ export {
 // ============================================================
 
 export {
-    useHotkeyById, useNewSessionHotkey, useRegisterChatHotkeys,
-    useRegisterGlobalHotkeys, useSearchHotkey, useStopGenerationHotkey, useToggleSidebarHotkey,
-    useToggleThemeHotkey
+  useHotkeyById,
+  useNewSessionHotkey,
+  useRegisterChatHotkeys,
+  useRegisterGlobalHotkeys,
+  useSearchHotkey,
+  useStopGenerationHotkey,
+  useToggleSidebarHotkey,
+  useToggleThemeHotkey,
 } from './useHotkeys'
 
 // ============================================================
@@ -62,16 +67,28 @@ export { useTokenCount } from './useTokenCount'
 export { useArtifactParsing } from './useArtifactParsing'
 
 // ============================================================
+// 媒体操作 Hooks
+// ============================================================
+
+/** 截图功能 */
+export { useScreenshot, type UseScreenshotReturn } from './useScreenshot'
+
+/** 分享功能 */
+export { useShare, type ShareData, type UseShareReturn } from './useShare'
+
+/** 图片下载 */
+export { useDownloadImage, type UseDownloadImageReturn } from './useDownloadImage'
+
+// ============================================================
 // 会话管理 Hooks
 // ============================================================
 
 export {
-    sessionsQueryKey,
-    useCreateSession,
-    useDeleteSession,
-    useInvalidateSessions,
-    useRenameSession,
-    useSessions,
-    useUpdateSessionName
+  sessionsQueryKey,
+  useCreateSession,
+  useDeleteSession,
+  useInvalidateSessions,
+  useRenameSession,
+  useSessions,
+  useUpdateSessionName,
 } from './useSessions'
-

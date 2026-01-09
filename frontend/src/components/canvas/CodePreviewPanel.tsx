@@ -1,23 +1,23 @@
 /**
  * Code Preview Panel 组件
- * 
+ *
  * 负责在 iframe 沙箱中执行 React 代码
  * 使用 Babel Standalone 转译 JSX
  */
 
-import type { CanvasArtifact, CanvasStatus } from '@/types/canvas';
-import { AlertCircle } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import type { CanvasArtifact, CanvasStatus } from '@/types/canvas'
+import { AlertCircle } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 interface CodePreviewPanelProps {
-  code: string;
-  artifact: CanvasArtifact;
-  activeTab: 'preview' | 'console' | 'error';
-  consoleOutput: string[];
-  executionError: string;
-  onStatusChange: (status: CanvasStatus) => void;
-  onConsoleOutput: (logs: string[]) => void;
-  onError: (error: string) => void;
+  code: string
+  artifact: CanvasArtifact
+  activeTab: 'preview' | 'console' | 'error'
+  consoleOutput: string[]
+  executionError: string
+  onStatusChange: (status: CanvasStatus) => void
+  onConsoleOutput: (logs: string[]) => void
+  onError: (error: string) => void
 }
 
 /**
@@ -35,7 +35,8 @@ function generateIframeHTML(code: string, icons: string[] = []): string {
     ChevronDown: 'M6 9l6 6 6-6',
     ChevronUp: 'M18 15l-6-6-6 6',
     Search: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
-    Settings: 'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z',
+    Settings:
+      'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z',
     Trash: 'M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2',
     Edit: 'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z',
     Copy: 'M8 17.929H6c-1.105 0-2-.912-2-2.036V5.036C4 3.91 4.895 3 6 3h8c1.105 0 2 .911 2 2.036v1.866m-6 .17h8c1.105 0 2 .91 2 2.035v10.857C20 21.09 19.105 22 18 22h-8c-1.105 0-2-.911-2-2.036V9.107c0-1.124.895-2.036 2-2.036z',
@@ -48,14 +49,17 @@ function generateIframeHTML(code: string, icons: string[] = []): string {
     Mail: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6',
     Home: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z',
     File: 'M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z',
-  };
+  }
 
   // 创建 lucide 图标的 React 组件代码
-  const iconComponents = icons.length > 0 ? `
+  const iconComponents =
+    icons.length > 0
+      ? `
     // Lucide 图标组件
-    ${icons.map(iconName => {
-      const pathData = iconPaths[iconName] || 'M12 2L2 22h20L12 2z';
-      return `const ${iconName} = ({ size = 24, className = '', strokeWidth = 2, ...props }) => {
+    ${icons
+      .map((iconName) => {
+        const pathData = iconPaths[iconName] || 'M12 2L2 22h20L12 2z'
+        return `const ${iconName} = ({ size = 24, className = '', strokeWidth = 2, ...props }) => {
         return React.createElement('svg', {
           width: size,
           height: size,
@@ -68,9 +72,11 @@ function generateIframeHTML(code: string, icons: string[] = []): string {
           className: 'lucide lucide-${iconName.toLowerCase()} ' + className,
           ...props
         }, React.createElement('path', { d: '${pathData}' }));
-      };`;
-    }).join('\n    ')}
-  ` : '';
+      };`
+      })
+      .join('\n    ')}
+  `
+      : ''
 
   return `<!DOCTYPE html>
 <html>
@@ -128,81 +134,123 @@ function generateIframeHTML(code: string, icons: string[] = []): string {
     }
   </script>
 </body>
-</html>`;
+</html>`
 }
 
 function sanitizeCode(code: string): { sanitized: string; icons: string[] } {
-  const icons: string[] = [];
-  let sanitized = code;
-  
-  const lucideMatch = sanitized.match(/import\s*\{([^}]+)\}\s+from\s+['"]lucide-react['"];?/);
+  const icons: string[] = []
+  let sanitized = code
+
+  const lucideMatch = sanitized.match(/import\s*\{([^}]+)\}\s+from\s+['"]lucide-react['"];?/)
   if (lucideMatch) {
-    icons.push(...lucideMatch[1].split(',').map(s => s.trim()).filter(Boolean));
+    icons.push(
+      ...lucideMatch[1]
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
   }
-  
-  sanitized = sanitized.replace(/import\s+React.*?from\s+['"]react['"];?/g, '')
-                       .replace(/import\s*\{[^}]*\}\s+from\s+['"]lucide-react['"];?/g, '');
-  return { sanitized, icons };
+
+  sanitized = sanitized
+    .replace(/import\s+React.*?from\s+['"]react['"];?/g, '')
+    .replace(/import\s*\{[^}]*\}\s+from\s+['"]lucide-react['"];?/g, '')
+  return { sanitized, icons }
 }
 
-export function CodePreviewPanel({ code, artifact, activeTab, consoleOutput, executionError, onStatusChange, onConsoleOutput, onError }: CodePreviewPanelProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [key, setKey] = useState(0);
+export function CodePreviewPanel({
+  code,
+  artifact,
+  activeTab,
+  consoleOutput,
+  executionError,
+  onStatusChange,
+  onConsoleOutput,
+  onError,
+}: CodePreviewPanelProps) {
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [isReady, setIsReady] = useState(false)
+  const [key, setKey] = useState(0)
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      const data = event.data;
-      if (data.type === 'canvas:ready') { setIsReady(true); onStatusChange('ready'); }
-      else if (data.type === 'canvas:console') { onConsoleOutput([...consoleOutput, `[${data.level}] ${data.message}`].slice(-50)); }
-      else if (data.type === 'canvas:error') { onStatusChange('error'); onError(data.error); }
-    };
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [consoleOutput, onStatusChange, onConsoleOutput, onError]);
+      const data = event.data
+      if (data.type === 'canvas:ready') {
+        setIsReady(true)
+        onStatusChange('ready')
+      } else if (data.type === 'canvas:console') {
+        onConsoleOutput([...consoleOutput, `[${data.level}] ${data.message}`].slice(-50))
+      } else if (data.type === 'canvas:error') {
+        onStatusChange('error')
+        onError(data.error)
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [consoleOutput, onStatusChange, onConsoleOutput, onError])
 
   useEffect(() => {
     if (artifact.isStreaming || !code.includes('export default')) {
-      onStatusChange('streaming');
-      return;
+      onStatusChange('streaming')
+      return
     }
-    
-    setIsReady(false);
-    onStatusChange('executing');
-    
-    const { sanitized, icons } = sanitizeCode(code);
+
+    setIsReady(false)
+    onStatusChange('executing')
+
+    const { sanitized, icons } = sanitizeCode(code)
     if (iframeRef.current) {
-        iframeRef.current.srcdoc = generateIframeHTML(sanitized, icons);
+      iframeRef.current.srcdoc = generateIframeHTML(sanitized, icons)
     }
-  }, [code, key, artifact.isStreaming]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [code, key, artifact.isStreaming]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (activeTab === 'console') {
     return (
       <div className="flex-1 bg-background p-4 overflow-auto font-mono text-xs">
-        {consoleOutput.length === 0 ? <div className="text-muted-foreground text-center">No logs</div> : consoleOutput.map((l, i) => <div key={i}>{l}</div>)}
+        {consoleOutput.length === 0 ? (
+          <div className="text-muted-foreground text-center">No logs</div>
+        ) : (
+          consoleOutput.map((l, i) => <div key={i}>{l}</div>)
+        )}
       </div>
-    );
+    )
   }
 
   if (activeTab === 'error') {
     return (
       <div className="flex-1 bg-destructive/10 p-4 overflow-auto">
         <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-destructive" />
-            <div>
-                <h3 className="font-semibold text-destructive">Execution Error</h3>
-                <pre className="text-xs text-destructive mt-2 whitespace-pre-wrap">{executionError}</pre>
-                <button onClick={() => setKey(k => k + 1)} className="mt-4 text-xs bg-destructive text-destructive-foreground px-3 py-1 rounded">Retry</button>
-            </div>
+          <AlertCircle className="w-5 h-5 text-destructive" />
+          <div>
+            <h3 className="font-semibold text-destructive">Execution Error</h3>
+            <pre className="text-xs text-destructive mt-2 whitespace-pre-wrap">
+              {executionError}
+            </pre>
+            <button
+              onClick={() => setKey((k) => k + 1)}
+              className="mt-4 text-xs bg-destructive text-destructive-foreground px-3 py-1 rounded"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="flex-1 relative bg-background h-full">
-      <iframe key={key} ref={iframeRef} sandbox="allow-scripts allow-same-origin allow-modals" className="w-full h-full border-0 block" title="Preview" />
-      {!isReady && <div className="absolute inset-0 flex items-center justify-center bg-background/80"><span className="animate-pulse">Loading preview...</span></div>}
+      <iframe
+        key={key}
+        ref={iframeRef}
+        sandbox="allow-scripts allow-same-origin allow-modals"
+        className="w-full h-full border-0 block"
+        title="Preview"
+      />
+      {!isReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+          <span className="animate-pulse">Loading preview...</span>
+        </div>
+      )}
     </div>
-  );
+  )
 }

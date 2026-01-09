@@ -6,9 +6,7 @@ interface UseCopyToClipboardReturn {
   reset: () => void
 }
 
-export function useCopyToClipboard(
-  resetDelay = 2000,
-): UseCopyToClipboardReturn {
+export function useCopyToClipboard(resetDelay = 2000): UseCopyToClipboardReturn {
   const [copied, setCopied] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 

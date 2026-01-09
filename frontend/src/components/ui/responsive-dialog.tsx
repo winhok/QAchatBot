@@ -29,11 +29,7 @@ interface ResponsiveDialogProps {
   children: React.ReactNode
 }
 
-function ResponsiveDialog({
-  open,
-  onOpenChange,
-  children,
-}: ResponsiveDialogProps) {
+function ResponsiveDialog({ open, onOpenChange, children }: ResponsiveDialogProps) {
   const isMobile = useIsMobile()
 
   if (isMobile) {
@@ -83,12 +79,7 @@ function ResponsiveDialogContent({
     return (
       <DrawerPrimitive.Portal>
         <AnimatePresence>
-          <motion.div
-            variants={overlayVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
+          <motion.div variants={overlayVariants} initial="hidden" animate="visible" exit="exit">
             <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" />
           </motion.div>
         </AnimatePresence>
@@ -108,12 +99,7 @@ function ResponsiveDialogContent({
   return (
     <DialogPrimitive.Portal>
       <AnimatePresence>
-        <motion.div
-          variants={overlayVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
+        <motion.div variants={overlayVariants} initial="hidden" animate="visible" exit="exit">
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" />
         </motion.div>
       </AnimatePresence>
@@ -141,60 +127,35 @@ function ResponsiveDialogContent({
   )
 }
 
-function ResponsiveDialogHeader({
-  className,
-  ...props
-}: React.ComponentProps<'div'>) {
+function ResponsiveDialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div className={cn('flex flex-col gap-2 text-center sm:text-left', className)} {...props} />
+  )
+}
+
+function ResponsiveDialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
+      className={cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end', className)}
       {...props}
     />
   )
 }
 
-function ResponsiveDialogFooter({
-  className,
-  ...props
-}: React.ComponentProps<'div'>) {
-  return (
-    <div
-      className={cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
-        className,
-      )}
-      {...props}
-    />
-  )
-}
-
-function ResponsiveDialogTitle({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<'h2'>) {
+function ResponsiveDialogTitle({ className, children, ...props }: React.ComponentProps<'h2'>) {
   const isMobile = useIsMobile()
   const Comp = isMobile ? DrawerPrimitive.Title : DialogPrimitive.Title
 
   return (
-    <Comp
-      className={cn('text-lg font-semibold leading-none', className)}
-      {...props}
-    >
+    <Comp className={cn('text-lg font-semibold leading-none', className)} {...props}>
       {children}
     </Comp>
   )
 }
 
-function ResponsiveDialogDescription({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<'p'>) {
+function ResponsiveDialogDescription({ className, children, ...props }: React.ComponentProps<'p'>) {
   const isMobile = useIsMobile()
-  const Comp = isMobile
-    ? DrawerPrimitive.Description
-    : DialogPrimitive.Description
+  const Comp = isMobile ? DrawerPrimitive.Description : DialogPrimitive.Description
 
   return (
     <Comp className={cn('text-sm text-muted-foreground', className)} {...props}>

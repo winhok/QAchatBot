@@ -1,22 +1,18 @@
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe'
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    HttpStatus,
-    Param,
-    Post,
-    Query,
-} from '@nestjs/common';
-import type { AddDocumentDto, AddDocumentsDto, RagQueryDto } from './dto';
-import {
-    AddDocumentSchema,
-    AddDocumentsSchema,
-    RagQuerySchema,
-} from './dto';
-import { DocumentService, RagQueryResult, RagService } from './services';
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common'
+import type { AddDocumentDto, AddDocumentsDto, RagQueryDto } from './dto'
+import { AddDocumentSchema, AddDocumentsSchema, RagQuerySchema } from './dto'
+import { DocumentService, RagQueryResult, RagService } from './services'
 
 /**
  * RAG API 控制器
@@ -36,12 +32,8 @@ export class RagController {
   async addDocument(
     @Body(new ZodValidationPipe(AddDocumentSchema)) dto: AddDocumentDto,
   ): Promise<{ id: string }> {
-    const id = await this.documentService.addDocument(
-      dto.content,
-      dto.metadata,
-      dto.collection,
-    );
-    return { id };
+    const id = await this.documentService.addDocument(dto.content, dto.metadata, dto.collection)
+    return { id }
   }
 
   /**
@@ -51,11 +43,8 @@ export class RagController {
   async addDocuments(
     @Body(new ZodValidationPipe(AddDocumentsSchema)) dto: AddDocumentsDto,
   ): Promise<{ ids: string[] }> {
-    const ids = await this.documentService.addDocuments(
-      dto.documents,
-      dto.collection,
-    );
-    return { ids };
+    const ids = await this.documentService.addDocuments(dto.documents, dto.collection)
+    return { ids }
   }
 
   /**
@@ -64,7 +53,7 @@ export class RagController {
   @Delete('documents/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteDocument(@Param('id') id: string): Promise<void> {
-    await this.documentService.deleteDocument(id);
+    await this.documentService.deleteDocument(id)
   }
 
   /**
@@ -72,7 +61,7 @@ export class RagController {
    */
   @Get('documents/:id')
   async getDocument(@Param('id') id: string) {
-    return this.documentService.getDocument(id);
+    return this.documentService.getDocument(id)
   }
 
   /**
@@ -80,7 +69,7 @@ export class RagController {
    */
   @Get('documents')
   async listDocuments(@Query('collection') collection?: string) {
-    return this.documentService.listDocuments(collection);
+    return this.documentService.listDocuments(collection)
   }
 
   /**
@@ -88,7 +77,7 @@ export class RagController {
    */
   @Get('stats')
   async getStats() {
-    return this.documentService.getStats();
+    return this.documentService.getStats()
   }
 
   /**
@@ -102,6 +91,6 @@ export class RagController {
       collection: dto.collection,
       topK: dto.topK,
       relevanceThreshold: dto.relevanceThreshold,
-    });
+    })
   }
 }

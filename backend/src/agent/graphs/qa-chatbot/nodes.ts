@@ -1,38 +1,34 @@
 /**
  * QA Chatbot Agent 节点定义
  */
-import {
-  AIMessage,
-  HumanMessage,
-  SystemMessage,
-} from '@langchain/core/messages';
-import type { ChatOpenAI } from '@langchain/openai';
+import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages'
+import type { ChatOpenAI } from '@langchain/openai'
 import {
   QA_TEST_POINTS_PROMPT,
   QA_TEST_CASES_PROMPT,
   QA_REVIEW_PROMPT,
   QA_STAGE_HEADERS,
   QA_STAGE_FOOTERS,
-} from '@/agent/prompts';
-import type { QAChatbotStateType } from './state';
-import type { UserIntent } from './types';
+} from '@/agent/prompts'
+import type { QAChatbotStateType } from './state'
+import type { UserIntent } from './types'
 
 /**
  * 获取最后一条用户消息
  */
 function getLastUserMessage(state: QAChatbotStateType): string {
-  const lastMessage = state.messages[state.messages.length - 1];
+  const lastMessage = state.messages[state.messages.length - 1]
   if (lastMessage instanceof HumanMessage) {
-    return typeof lastMessage.content === 'string' ? lastMessage.content : '';
+    return typeof lastMessage.content === 'string' ? lastMessage.content : ''
   }
-  return '';
+  return ''
 }
 
 /**
  * 检测用户意图
  */
 function detectUserIntent(userMessage: string): UserIntent {
-  const msg = userMessage.toLowerCase().trim();
+  const msg = userMessage.toLowerCase().trim()
 
   const continuePatterns = [
     '继续',
@@ -55,24 +51,20 @@ function detectUserIntent(userMessage: string): UserIntent {
     '嗯',
     '是',
     '对',
-  ];
+  ]
 
   for (const pattern of continuePatterns) {
-    if (
-      msg === pattern ||
-      msg.startsWith(pattern + '，') ||
-      msg.startsWith(pattern + ',')
-    ) {
-      return 'continue';
+    if (msg === pattern || msg.startsWith(pattern + '，') || msg.startsWith(pattern + ',')) {
+      return 'continue'
     }
   }
 
   // 超过一定长度认为是修改意见
   if (msg.length > 5) {
-    return 'revise';
+    return 'revise'
   }
 
-  return 'other';
+  return 'other'
 }
 
 /**
@@ -80,13 +72,13 @@ function detectUserIntent(userMessage: string): UserIntent {
  */
 export function createRouterNode() {
   return (state: QAChatbotStateType) => {
-    const userMessage = getLastUserMessage(state);
-    const intent = detectUserIntent(userMessage);
+    const userMessage = getLastUserMessage(state)
+    const intent = detectUserIntent(userMessage)
 
-    console.log('[QA Router] Stage:', state.stage, 'Intent:', intent);
+    console.log('[QA Router] Stage:', state.stage, 'Intent:', intent)
 
-    return { userIntent: intent };
-  };
+    return { userIntent: intent }
+  }
 }
 
 /**
@@ -94,13 +86,12 @@ export function createRouterNode() {
  */
 export function createGenTestPointsNode(model: ChatOpenAI) {
   return async (state: QAChatbotStateType) => {
-    const userMessage = getLastUserMessage(state);
-    const isRevise =
-      state.stage === 'test_points' && state.userIntent === 'revise';
+    const userMessage = getLastUserMessage(state)
+    const isRevise = state.stage === 'test_points' && state.userIntent === 'revise'
 
-    console.log('[QA GenTestPoints] isRevise:', isRevise);
+    console.log('[QA GenTestPoints] isRevise:', isRevise)
 
-    let systemPrompt: SystemMessage;
+    let systemPrompt: SystemMessage
 
     if (isRevise) {
       // 修改模式
@@ -121,7 +112,7 @@ ${state.testPoints}
 1. 在输出开头加上：${QA_STAGE_HEADERS.test_points}
 2. 在输出结尾加上：${QA_STAGE_FOOTERS.test_points}
 3. 根据用户意见调整后，输出完整的测试点分析（不是只输出修改部分）。`,
-      );
+      )
     } else {
       // 初始生成模式
       systemPrompt = new SystemMessage(
@@ -133,24 +124,23 @@ ${QA_TEST_POINTS_PROMPT}
 1. 在输出开头加上：${QA_STAGE_HEADERS.test_points}
 2. 在输出结尾加上：${QA_STAGE_FOOTERS.test_points}
 3. 直接开始分析，不要有多余的开场白。`,
-      );
+      )
     }
 
     const humanMessage = isRevise
       ? new HumanMessage(`用户修改意见：${userMessage}`)
-      : new HumanMessage(userMessage);
+      : new HumanMessage(userMessage)
 
-    const response = await model.invoke([systemPrompt, humanMessage]);
-    const content =
-      typeof response.content === 'string' ? response.content : '';
+    const response = await model.invoke([systemPrompt, humanMessage])
+    const content = typeof response.content === 'string' ? response.content : ''
 
     return {
       messages: [new AIMessage(content)],
       stage: 'test_points' as const,
       prdContent: isRevise ? state.prdContent : userMessage,
       testPoints: content,
-    };
-  };
+    }
+  }
 }
 
 /**
@@ -158,13 +148,12 @@ ${QA_TEST_POINTS_PROMPT}
  */
 export function createGenTestCasesNode(model: ChatOpenAI) {
   return async (state: QAChatbotStateType) => {
-    const userMessage = getLastUserMessage(state);
-    const isRevise =
-      state.stage === 'test_cases' && state.userIntent === 'revise';
+    const userMessage = getLastUserMessage(state)
+    const isRevise = state.stage === 'test_cases' && state.userIntent === 'revise'
 
-    console.log('[QA GenTestCases] isRevise:', isRevise);
+    console.log('[QA GenTestCases] isRevise:', isRevise)
 
-    let systemPrompt: SystemMessage;
+    let systemPrompt: SystemMessage
 
     if (isRevise) {
       systemPrompt = new SystemMessage(
@@ -184,7 +173,7 @@ ${state.testCases}
 1. 在输出开头加上：${QA_STAGE_HEADERS.test_cases}
 2. 在输出结尾加上：${QA_STAGE_FOOTERS.test_cases}
 3. 根据用户意见调整后，输出完整的测试用例（不是只输出修改部分）。`,
-      );
+      )
     } else {
       systemPrompt = new SystemMessage(
         `你是一个专业的QA测试专家。根据以下测试点生成测试用例。
@@ -199,23 +188,22 @@ ${QA_TEST_CASES_PROMPT}
 ## 测试点
 
 ${state.testPoints}`,
-      );
+      )
     }
 
     const humanMessage = isRevise
       ? new HumanMessage(`用户修改意见：${userMessage}`)
-      : new HumanMessage('请根据上述测试点生成测试用例');
+      : new HumanMessage('请根据上述测试点生成测试用例')
 
-    const response = await model.invoke([systemPrompt, humanMessage]);
-    const content =
-      typeof response.content === 'string' ? response.content : '';
+    const response = await model.invoke([systemPrompt, humanMessage])
+    const content = typeof response.content === 'string' ? response.content : ''
 
     return {
       messages: [new AIMessage(content)],
       stage: 'test_cases' as const,
       testCases: content,
-    };
-  };
+    }
+  }
 }
 
 /**
@@ -223,7 +211,7 @@ ${state.testPoints}`,
  */
 export function createGenReviewNode(model: ChatOpenAI) {
   return async (state: QAChatbotStateType) => {
-    console.log('[QA GenReview] Starting review...');
+    console.log('[QA GenReview] Starting review...')
 
     const systemPrompt = new SystemMessage(
       `你是一个专业的QA测试专家。请对测试用例进行评审和优化。
@@ -246,21 +234,20 @@ ${state.testPoints}
 ## 待评审用例
 
 ${state.testCases}`,
-    );
+    )
 
     const response = await model.invoke([
       systemPrompt,
       new HumanMessage('请对上述测试用例进行评审和优化'),
-    ]);
-    const content =
-      typeof response.content === 'string' ? response.content : '';
+    ])
+    const content = typeof response.content === 'string' ? response.content : ''
 
     return {
       messages: [new AIMessage(content)],
       stage: 'completed' as const,
       testCases: content,
-    };
-  };
+    }
+  }
 }
 
 /**
@@ -268,9 +255,9 @@ ${state.testCases}`,
  */
 export function createHandleCompletedReviseNode(model: ChatOpenAI) {
   return async (state: QAChatbotStateType) => {
-    const userMessage = getLastUserMessage(state);
+    const userMessage = getLastUserMessage(state)
 
-    console.log('[QA HandleCompletedRevise] Processing revision...');
+    console.log('[QA HandleCompletedRevise] Processing revision...')
 
     const systemPrompt = new SystemMessage(
       `你是一个专业的QA测试专家。用户对最终测试用例有调整意见，请根据意见修改。
@@ -293,20 +280,19 @@ ${state.testCases}
 1. 在输出开头加上：📝 **调整测试用例**\n\n
 2. 在输出结尾加上：\n\n---\n已根据您的意见调整，如需继续修改请告诉我。
 3. 根据用户意见调整后，输出完整的测试用例。`,
-    );
+    )
 
     const response = await model.invoke([
       systemPrompt,
       new HumanMessage(`用户修改意见：${userMessage}`),
-    ]);
-    const content =
-      typeof response.content === 'string' ? response.content : '';
+    ])
+    const content = typeof response.content === 'string' ? response.content : ''
 
     return {
       messages: [new AIMessage(content)],
       testCases: content,
-    };
-  };
+    }
+  }
 }
 
 /**
@@ -314,8 +300,8 @@ ${state.testCases}
  */
 export function createHandleOtherNode(model: ChatOpenAI) {
   return async (state: QAChatbotStateType) => {
-    const userMessage = getLastUserMessage(state);
-    const stage = state.stage;
+    const userMessage = getLastUserMessage(state)
+    const stage = state.stage
 
     const stageInfo =
       stage === 'test_points'
@@ -324,9 +310,9 @@ export function createHandleOtherNode(model: ChatOpenAI) {
           ? '当前在用例生成阶段'
           : stage === 'review'
             ? '当前在用例评审阶段'
-            : '测试用例已完成';
+            : '测试用例已完成'
 
-    console.log('[QA HandleOther] Stage:', stage);
+    console.log('[QA HandleOther] Stage:', stage)
 
     const systemPrompt = new SystemMessage(
       `你是一个专业的QA测试专家。${stageInfo}。
@@ -337,17 +323,13 @@ export function createHandleOtherNode(model: ChatOpenAI) {
 如果用户是在问其他问题，正常回答即可。
 
 回答后，提醒用户可以回复"继续"进入下一阶段，或者提供修改建议。`,
-    );
+    )
 
-    const response = await model.invoke([
-      systemPrompt,
-      new HumanMessage(userMessage),
-    ]);
-    const content =
-      typeof response.content === 'string' ? response.content : '';
+    const response = await model.invoke([systemPrompt, new HumanMessage(userMessage)])
+    const content = typeof response.content === 'string' ? response.content : ''
 
     return {
       messages: [new AIMessage(content)],
-    };
-  };
+    }
+  }
 }

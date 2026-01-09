@@ -63,10 +63,7 @@ export function calculateScaledDimensions(
 /**
  * 压缩图片
  */
-export function compressImage(
-  file: File,
-  options: CompressOptions = {},
-): Promise<Blob> {
+export function compressImage(file: File, options: CompressOptions = {}): Promise<Blob> {
   const { maxWidth = 1920, quality = 0.8, outputType = 'image/jpeg' } = options
 
   return new Promise((resolve, reject) => {
@@ -123,10 +120,7 @@ export function compressImage(
 /**
  * 创建图片缩略图
  */
-export function createThumbnail(
-  file: File,
-  maxSize: number = 200,
-): Promise<string> {
+export function createThumbnail(file: File, maxSize: number = 200): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)

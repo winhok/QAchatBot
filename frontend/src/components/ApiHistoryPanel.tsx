@@ -12,14 +12,7 @@ import { useState } from 'react'
 // 8. 导出历史记录
 // 9. 参考 Postman/Insomnia 的历史记录功能
 
-type HttpMethod =
-  | 'GET'
-  | 'POST'
-  | 'PUT'
-  | 'PATCH'
-  | 'DELETE'
-  | 'HEAD'
-  | 'OPTIONS'
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
 interface ApiRequestRecord {
   id: string
@@ -67,10 +60,7 @@ export function ApiHistoryPanel({ sessionId, onReplay }: ApiHistoryPanelProps) {
       return false
     }
     // 搜索筛选
-    if (
-      filter.search &&
-      !record.url.toLowerCase().includes(filter.search.toLowerCase())
-    ) {
+    if (filter.search && !record.url.toLowerCase().includes(filter.search.toLowerCase())) {
       return false
     }
     return true
@@ -182,11 +172,7 @@ export function ApiHistoryPanel({ sessionId, onReplay }: ApiHistoryPanelProps) {
           filteredRecords.map((record) => (
             <div key={record.id} className="history-item">
               {/* TODO: 摘要行（点击展开） */}
-              <div
-                onClick={() =>
-                  setExpandedId(expandedId === record.id ? null : record.id)
-                }
-              >
+              <div onClick={() => setExpandedId(expandedId === record.id ? null : record.id)}>
                 {/* TODO: 方法标签（带颜色） */}
                 {/* TODO: URL（截断显示） */}
                 {/* TODO: 状态码（带颜色） */}

@@ -27,13 +27,7 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "exec",
-        "jest",
-        "--runInBand",
-        "--no-cache",
-        "${relativeFile}"
-      ],
+      "runtimeArgs": ["exec", "jest", "--runInBand", "--no-cache", "${relativeFile}"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "sourceMaps": true,

@@ -14,8 +14,7 @@ const cardVariants = cva(
         outline: 'border-2',
         ghost: 'border-transparent shadow-none bg-transparent',
         glass: 'bg-card/80 backdrop-blur-xl border-border/50',
-        interactive:
-          'shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer',
+        interactive: 'shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer',
       },
       padding: {
         default: 'p-6',
@@ -83,23 +82,14 @@ function CardAction({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-action"
-      className={cn(
-        'col-start-2 row-span-2 row-start-1 self-start justify-self-end',
-        className,
-      )}
+      className={cn('col-start-2 row-span-2 row-start-1 self-start justify-self-end', className)}
       {...props}
     />
   )
 }
 
 function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
-  return (
-    <div
-      data-slot="card-content"
-      className={cn('px-6', className)}
-      {...props}
-    />
-  )
+  return <div data-slot="card-content" className={cn('px-6', className)} {...props} />
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {

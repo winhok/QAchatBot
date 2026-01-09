@@ -1,19 +1,10 @@
-import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
-import { ChatRequestSchema, type ChatRequest } from '@/shared/schemas/requests';
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    Get,
-    Post,
-    Query,
-    Req,
-    Res,
-} from '@nestjs/common';
-import { createId } from '@paralleldrive/cuid2';
-import type { Request, Response } from 'express';
-import { SessionsService } from '../sessions/sessions.service';
-import { ChatService } from './chat.service';
+import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe'
+import { ChatRequestSchema, type ChatRequest } from '@/shared/schemas/requests'
+import { BadRequestException, Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common'
+import { createId } from '@paralleldrive/cuid2'
+import type { Request, Response } from 'express'
+import { SessionsService } from '../sessions/sessions.service'
+import { ChatService } from './chat.service'
 
 @Controller('api/chat')
 export class ChatController {
@@ -23,10 +14,7 @@ export class ChatController {
   ) {}
 
   @Get()
-  async getHistory(
-    @Query('session_id') sessionId?: string,
-    @Query('model_id') modelId?: string,
-  ) {
+  async getHistory(@Query('session_id') sessionId?: string, @Query('model_id') modelId?: string) {
     if (!sessionId) {
       return {
         message: 'LangGraph chat api is running',
@@ -35,17 +23,17 @@ export class ChatController {
           chat: 'POST /api/chat - Stream chat messages',
           history: 'GET /api/chat?session_id=xxx - Get chat history',
         },
-      };
+      }
     }
 
     // Validate session exists
-    const session = await this.sessionsService.findOne(sessionId);
+    const session = await this.sessionsService.findOne(sessionId)
     if (!session) {
-      throw new BadRequestException('Session not found');
+      throw new BadRequestException('Session not found')
     }
 
-    const history = await this.chatService.getHistory(sessionId, modelId);
-    return { session_id: sessionId, history };
+    const history = await this.chatService.getHistory(sessionId, modelId)
+    return { session_id: sessionId, history }
   }
 
   @Post()
@@ -54,24 +42,24 @@ export class ChatController {
     @Res() res: Response,
     @Req() req: Request,
   ): Promise<void> {
-    const sessionId = dto.session_id || createId();
-    const modelId = dto.model_id || 'gpt-4o';
-    const sessionType = dto.session_type || 'normal';
-    const tools = dto.tools;
+    const sessionId = dto.session_id || createId()
+    const modelId = dto.model_id || 'gpt-4o'
+    const sessionType = dto.session_type || 'normal'
+    const tools = dto.tools
 
     // Set streaming response headers
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Transfer-Encoding', 'chunked');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+    res.setHeader('Transfer-Encoding', 'chunked')
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('Connection', 'keep-alive')
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
 
     // Listen for client disconnect
-    let aborted = false;
+    let aborted = false
     req.on('close', () => {
-      aborted = true;
-      console.log('[Chat API] Client disconnected');
-    });
+      aborted = true
+      console.log('[Chat API] Client disconnected')
+    })
 
     try {
       await this.chatService.streamChat({
@@ -82,20 +70,20 @@ export class ChatController {
         res,
         isAborted: () => aborted,
         tools,
-      });
+      })
     } catch (error) {
-      console.error('[Chat API] Error:', error);
+      console.error('[Chat API] Error:', error)
       if (!aborted) {
         const errorData =
           JSON.stringify({
             type: 'error',
             status: 'internal error',
             message: 'Sorry, Something went wrong. Please try again later.',
-          }) + '\n';
-        res.write(errorData);
+          }) + '\n'
+        res.write(errorData)
       }
     } finally {
-      res.end();
+      res.end()
     }
   }
 }

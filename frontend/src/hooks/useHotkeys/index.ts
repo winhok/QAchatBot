@@ -17,11 +17,10 @@
  */
 export { useRegisterChatHotkeys, useStopGenerationHotkey } from './chatScope'
 export {
-    useNewSessionHotkey,
-    useRegisterGlobalHotkeys,
-    useSearchHotkey,
-    useToggleSidebarHotkey,
-    useToggleThemeHotkey
+  useNewSessionHotkey,
+  useRegisterGlobalHotkeys,
+  useSearchHotkey,
+  useToggleSidebarHotkey,
+  useToggleThemeHotkey,
 } from './globalScope'
 export { useHotkeyById } from './useHotkeyById'
-

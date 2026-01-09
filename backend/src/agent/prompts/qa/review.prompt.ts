@@ -50,7 +50,7 @@ export const QA_REVIEW_PROMPT = `你是一个专业的QA测试专家。请对以
 - P0冒烟用例: XX个（占比XX%）
 - P1主要功能: XX个（占比XX%）
 - P2一般功能: XX个（占比XX%）
-- P3边缘功能: XX个（占比XX%）`;
+- P3边缘功能: XX个（占比XX%）`
 
 /**
  * QA 阶段引导语
@@ -61,14 +61,12 @@ export const QA_STAGE_HEADERS = {
   test_cases: '📝 **阶段 2/3：用例生成**\n\n',
   review: '✅ **阶段 3/3：用例评审**\n\n',
   completed: '',
-} as const;
+} as const
 
 export const QA_STAGE_FOOTERS = {
   init: '',
-  test_points:
-    '\n\n---\n以上是分析的测试点，没问题请回复"继续"，需要调整请告诉我修改建议。',
-  test_cases:
-    '\n\n---\n以上是生成的测试用例，没问题请回复"继续"进入评审阶段，需要调整请说明。',
+  test_points: '\n\n---\n以上是分析的测试点，没问题请回复"继续"，需要调整请告诉我修改建议。',
+  test_cases: '\n\n---\n以上是生成的测试用例，没问题请回复"继续"进入评审阶段，需要调整请说明。',
   review: '\n\n---\n测试用例生成完成！如需进一步调整请告诉我。',
   completed: '',
-} as const;
+} as const

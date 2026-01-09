@@ -1,10 +1,10 @@
-import { RequestContextService } from '@/common/context/request-context.service';
-import { Global, Module } from '@nestjs/common';
-import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
-import pretty from 'pino-pretty';
-import { LoggerService } from './logger.service';
+import { RequestContextService } from '@/common/context/request-context.service'
+import { Global, Module } from '@nestjs/common'
+import { LoggerModule as PinoLoggerModule } from 'nestjs-pino'
+import pretty from 'pino-pretty'
+import { LoggerService } from './logger.service'
 
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.env.NODE_ENV !== 'production'
 
 // 开发环境：主线程同步流，保证日志顺序
 const devStream = isDev
@@ -15,7 +15,7 @@ const devStream = isDev
       ignore: 'pid,hostname',
       sync: true,
     })
-  : undefined;
+  : undefined
 
 @Global()
 @Module({

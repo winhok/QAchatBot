@@ -29,10 +29,7 @@ export function ResizablePanel({
   const [resizeState, dispatch] = useActionState(
     (
       prev: { width: number; isResizing: boolean },
-      action:
-        | { type: 'start'; x: number }
-        | { type: 'move'; x: number }
-        | { type: 'end' },
+      action: { type: 'start'; x: number } | { type: 'move'; x: number } | { type: 'end' },
     ) => {
       switch (action.type) {
         case 'start':
@@ -98,10 +95,7 @@ export function ResizablePanel({
   void panelRef
 
   return (
-    <div
-      className={`relative shrink-0 ${className}`}
-      style={{ width: `${width}px` }}
-    >
+    <div className={`relative shrink-0 ${className}`} style={{ width: `${width}px` }}>
       {children}
 
       {showResizeHandle && (

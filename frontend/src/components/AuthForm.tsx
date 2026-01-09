@@ -25,19 +25,14 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
     try {
       const endpoint = isLogin ? '/auth/signin' : '/auth/signup'
-      const body = isLogin
-        ? { email, password }
-        : { email, password, name }
+      const body = isLogin ? { email, password } : { email, password, name }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || ''}${endpoint}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', // Important for cookies
-          body: JSON.stringify(body),
-        },
-      )
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important for cookies
+        body: JSON.stringify(body),
+      })
 
       const data = await response.json()
 
@@ -67,9 +62,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isLogin && (
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1">
-              用户名
-            </label>
+            <label className="block text-sm font-medium text-muted-foreground mb-1">用户名</label>
             <input
               type="text"
               value={name}
@@ -82,9 +75,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-muted-foreground mb-1">
-            邮箱
-          </label>
+          <label className="block text-sm font-medium text-muted-foreground mb-1">邮箱</label>
           <input
             type="email"
             value={email}
@@ -96,9 +87,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-muted-foreground mb-1">
-            密码
-          </label>
+          <label className="block text-sm font-medium text-muted-foreground mb-1">密码</label>
           <input
             type="password"
             value={password}
@@ -111,9 +100,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
         </div>
 
         {error && (
-          <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
-            {error}
-          </p>
+          <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">{error}</p>
         )}
 
         <button

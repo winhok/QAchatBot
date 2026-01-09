@@ -47,9 +47,7 @@ interface UseFileUploadReturn {
  * - 图片 (>= 5MB): 压缩后 Base64
  * - 视频/音频/PDF: 暂不支持（提示用户）
  */
-export function useFileUpload(
-  options: UseFileUploadOptions = {},
-): UseFileUploadReturn {
+export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUploadReturn {
   const {
     base64Threshold = 5 * 1024 * 1024, // 5MB
     imageQuality = 0.8,
@@ -73,10 +71,7 @@ export function useFileUpload(
         let dataUrl: string
 
         // 检查是否需要压缩
-        const needsCompression = await shouldCompressImage(
-          file,
-          base64Threshold,
-        )
+        const needsCompression = await shouldCompressImage(file, base64Threshold)
 
         if (needsCompression) {
           // 压缩图片
@@ -154,9 +149,7 @@ export function useFileUpload(
     }
   }
 
-  const uploadFiles = async (
-    files: Array<File>,
-  ): Promise<Array<UploadResult>> => {
+  const uploadFiles = async (files: Array<File>): Promise<Array<UploadResult>> => {
     setUploading(true)
     setProgress(0)
 

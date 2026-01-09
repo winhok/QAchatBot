@@ -30,11 +30,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn('h-9 w-9 rounded-lg', className)}
-        >
+        <Button variant="ghost" size="icon" className={cn('h-9 w-9 rounded-lg', className)}>
           <CurrentIcon className="h-4 w-4 transition-transform" />
           <span className="sr-only">切换主题</span>
         </Button>
@@ -44,10 +40,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           <DropdownMenuItem
             key={option.value}
             onClick={() => setTheme(option.value)}
-            className={cn(
-              'gap-2 cursor-pointer',
-              theme === option.value && 'bg-accent',
-            )}
+            className={cn('gap-2 cursor-pointer', theme === option.value && 'bg-accent')}
           >
             <option.icon className="h-4 w-4" />
             <span>{option.label}</span>

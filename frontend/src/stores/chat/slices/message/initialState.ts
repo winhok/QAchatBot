@@ -2,15 +2,14 @@ import type { Message } from '@/schemas'
 
 /**
  * Message slice 初始状态
+ * 仅包含消息相关状态，流状态由 stream slice 管理
  */
 export interface ChatMessageState {
   messages: Message[]
-  isLoading: boolean
   draftMessage: string
 }
 
 export const initialMessageState: ChatMessageState = {
   messages: [],
-  isLoading: false,
   draftMessage: '',
 }

@@ -4,14 +4,14 @@
 // 2. 或发送到分析服务（如 PostHog, Mixpanel）
 // 3. 或写入日志文件
 
-import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common'
 
 export interface FeedbackPayload {
-  messageId: string;
-  sessionId: string;
-  type: 'positive' | 'negative';
-  reason?: string; // 负面反馈原因
-  content?: string; // 消息内容（用于分析）
+  messageId: string
+  sessionId: string
+  type: 'positive' | 'negative'
+  reason?: string // 负面反馈原因
+  content?: string // 消息内容（用于分析）
 }
 
 @Injectable()
@@ -23,13 +23,13 @@ export class FeedbackService {
     // - 或发送到分析服务（如 PostHog, Mixpanel）
     // - 或写入日志文件
 
-    return { success: true };
+    return { success: true }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   get(messageId?: string) {
     // TODO: 查询反馈记录
 
-    return { feedback: null };
+    return { feedback: null }
   }
 }

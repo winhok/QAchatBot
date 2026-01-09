@@ -29,8 +29,7 @@ export function ApiResultBlock({ data }: ApiResultBlockProps) {
   }
 
   const getStatusColor = () => {
-    if (data.statusCode >= 200 && data.statusCode < 300)
-      return 'text-emerald-400'
+    if (data.statusCode >= 200 && data.statusCode < 300) return 'text-emerald-400'
     if (data.statusCode >= 400) return 'text-red-400'
     return 'text-amber-400'
   }
@@ -45,20 +44,13 @@ export function ApiResultBlock({ data }: ApiResultBlockProps) {
     <Card className="border-border/50 bg-card/30 overflow-hidden">
       <div className="flex items-center justify-between p-3 border-b border-border/50">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <Badge
-            variant="secondary"
-            className={cn('shrink-0 border-0', getMethodColor())}
-          >
+          <Badge variant="secondary" className={cn('shrink-0 border-0', getMethodColor())}>
             {data.method}
           </Badge>
-          <span className="text-sm text-muted-foreground truncate font-mono">
-            {data.url}
-          </span>
+          <span className="text-sm text-muted-foreground truncate font-mono">{data.url}</span>
         </div>
         <div className="flex items-center gap-3 shrink-0 ml-2">
-          <span
-            className={cn('font-mono text-sm font-medium', getStatusColor())}
-          >
+          <span className={cn('font-mono text-sm font-medium', getStatusColor())}>
             {data.statusCode}
           </span>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">

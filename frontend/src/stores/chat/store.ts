@@ -5,11 +5,13 @@ import type { StateCreator } from 'zustand/vanilla'
 
 import { type ChatStoreState, initialState } from './initialState'
 import { type MessageAction, messageSlice } from './slices/message'
+import { type StreamAction, streamSlice } from './slices/stream'
+import { type ToolCallAction, toolCallSlice } from './slices/toolCall'
 
 /**
  * Chat Store Action 类型
  */
-export interface ChatStoreAction extends MessageAction {}
+export interface ChatStoreAction extends MessageAction, StreamAction, ToolCallAction {}
 
 /**
  * Chat Store 完整类型
@@ -27,10 +29,15 @@ const isDevtoolsEnabled = () => {
 
 /**
  * 创建 Store
+ * - messageSlice: 消息 CRUD 操作
+ * - streamSlice: 流状态管理
+ * - toolCallSlice: 工具调用操作
  */
 const createStore: StateCreator<ChatStore, [['zustand/devtools', never]]> = (...params) => ({
   ...initialState,
   ...messageSlice(...params),
+  ...streamSlice(...params),
+  ...toolCallSlice(...params),
 })
 
 /**

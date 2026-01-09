@@ -222,11 +222,7 @@ export function FileUploadArea({
   const getFileIcon = (file: UploadedFile) => {
     if (file.thumbnailUrl) {
       return (
-        <img
-          src={file.thumbnailUrl}
-          alt={file.name}
-          className="h-10 w-10 rounded object-cover"
-        />
+        <img src={file.thumbnailUrl} alt={file.name} className="h-10 w-10 rounded object-cover" />
       )
     }
 
@@ -270,12 +266,7 @@ export function FileUploadArea({
           disabled && 'cursor-not-allowed opacity-50',
         )}
       >
-        <Upload
-          className={cn(
-            'h-8 w-8',
-            isDragging ? 'text-primary' : 'text-muted-foreground',
-          )}
-        />
+        <Upload className={cn('h-8 w-8', isDragging ? 'text-primary' : 'text-muted-foreground')} />
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
             {isDragging ? '释放以上传文件' : '拖拽文件到此处，或点击选择'}
@@ -294,8 +285,7 @@ export function FileUploadArea({
               key={file.id}
               className={cn(
                 'flex items-center gap-3 rounded-lg border p-2',
-                file.status === 'error' &&
-                  'border-destructive/50 bg-destructive/5',
+                file.status === 'error' && 'border-destructive/50 bg-destructive/5',
               )}
             >
               {/* 文件图标/缩略图 */}

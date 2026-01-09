@@ -1,9 +1,9 @@
 /**
  * QA Chatbot Agent 状态定义
  */
-import { BaseMessage } from '@langchain/core/messages';
-import { Annotation } from '@langchain/langgraph';
-import type { QAWorkflowStage, UserIntent } from './types';
+import { BaseMessage } from '@langchain/core/messages'
+import { Annotation } from '@langchain/langgraph'
+import type { QAWorkflowStage, UserIntent } from './types'
 
 /**
  * QA Chatbot 状态 Annotation
@@ -44,9 +44,9 @@ export const QAChatbotState = Annotation.Root({
     reducer: (_, newValue) => newValue,
     default: () => '',
   }),
-});
+})
 
 /**
  * 状态类型
  */
-export type QAChatbotStateType = typeof QAChatbotState.State;
+export type QAChatbotStateType = typeof QAChatbotState.State

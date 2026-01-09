@@ -34,12 +34,14 @@ export const messageSelectors = {
   /**
    * 获取所有 AI 消息
    */
-  assistantMessages: (state: ChatStoreState): Message[] => state.messages.filter((m) => m.role === 'assistant'),
+  assistantMessages: (state: ChatStoreState): Message[] =>
+    state.messages.filter((m) => m.role === 'assistant'),
 
   /**
    * 获取所有用户消息
    */
-  userMessages: (state: ChatStoreState): Message[] => state.messages.filter((m) => m.role === 'user'),
+  userMessages: (state: ChatStoreState): Message[] =>
+    state.messages.filter((m) => m.role === 'user'),
 
   /**
    * 消息总数

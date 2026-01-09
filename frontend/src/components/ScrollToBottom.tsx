@@ -13,12 +13,7 @@ interface ScrollToBottomProps {
   className?: string
 }
 
-export function ScrollToBottom({
-  onClick,
-  show,
-  unreadCount = 0,
-  className,
-}: ScrollToBottomProps) {
+export function ScrollToBottom({ onClick, show, unreadCount = 0, className }: ScrollToBottomProps) {
   if (!show) return null
 
   return (

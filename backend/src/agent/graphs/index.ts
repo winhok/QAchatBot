@@ -1,2 +1,2 @@
-export { ChatbotService } from './chatbot';
-export { QaChatbotService } from './qa-chatbot';
+export { ChatbotService } from './chatbot'
+export { QaChatbotService } from './qa-chatbot'

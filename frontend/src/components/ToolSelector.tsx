@@ -15,21 +15,14 @@ interface ToolSelectorProps {
   onToolToggle: (toolId: string) => void
 }
 
-export function ToolSelector({
-  tools,
-  selectedTools,
-  onToolToggle,
-}: ToolSelectorProps) {
+export function ToolSelector({ tools, selectedTools, onToolToggle }: ToolSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // 点击外部关闭下拉菜单
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)
       }
     }
@@ -75,9 +68,7 @@ export function ToolSelector({
           {/* 标题 */}
           <div className="px-4 py-3 border-b border-border">
             <h3 className="text-sm font-semibold text-foreground">选择工具</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              点击选择或取消选择工具
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">点击选择或取消选择工具</p>
           </div>
 
           {/* 工具列表 */}
@@ -100,25 +91,17 @@ export function ToolSelector({
                     <div
                       className={cn(
                         'flex-shrink-0 w-5 h-5 mt-0.5 border-2 rounded transition-all duration-200 flex items-center justify-center',
-                        isSelected
-                          ? 'bg-primary border-primary'
-                          : 'border-muted-foreground',
+                        isSelected ? 'bg-primary border-primary' : 'border-muted-foreground',
                       )}
                     >
-                      {isSelected && (
-                        <Check className="w-3.5 h-3.5 text-primary-foreground" />
-                      )}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
                     </div>
 
                     {/* 工具信息 */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        {tool.icon && (
-                          <span className="text-lg">{tool.icon}</span>
-                        )}
-                        <span className="text-sm font-medium text-foreground">
-                          {tool.name}
-                        </span>
+                        {tool.icon && <span className="text-lg">{tool.icon}</span>}
+                        <span className="text-sm font-medium text-foreground">{tool.name}</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                         {tool.description}

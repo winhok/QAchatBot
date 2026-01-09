@@ -242,10 +242,7 @@ export const chatService = {
   /**
    * Update session name (with Zod validation)
    */
-  updateSession: async (
-    sessionId: string,
-    name: string,
-  ): Promise<UpdateSessionResponse> => {
+  updateSession: async (sessionId: string, name: string): Promise<UpdateSessionResponse> => {
     const { data } = await apiPatch<UpdateSessionResponse>(
       `/api/sessions/${sessionId}`,
       { name },
@@ -258,10 +255,9 @@ export const chatService = {
    * Delete a session (with Zod validation)
    */
   deleteSession: async (sessionId: string): Promise<DeleteSessionResponse> => {
-    const { data } = await apiDelete<DeleteSessionResponse>(
-      `/api/sessions/${sessionId}`,
-      { schema: DeleteSessionResponseSchema },
-    )
+    const { data } = await apiDelete<DeleteSessionResponse>(`/api/sessions/${sessionId}`, {
+      schema: DeleteSessionResponseSchema,
+    })
     return data
   },
 }

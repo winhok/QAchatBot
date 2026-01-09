@@ -15,6 +15,7 @@ QA ChatBot - An intelligent Q&A system with AI Agent capabilities for generating
 - Use both prefixes `[frontend][backend]` for changes affecting both
 
 Examples:
+
 ```
 [frontend] Add canvas artifact preview panel
 [backend] Implement RAG document storage service
@@ -22,6 +23,7 @@ Examples:
 ```
 
 When changes span multiple areas within the same workspace, be specific:
+
 ```
 [backend] Add memory persistence and update folder schema
 [frontend] Implement session sidebar with folder organization
@@ -198,15 +200,19 @@ pnpm dlx shadcn@latest add <component-name>
 The backend supports three types of tools:
 
 ### 1. Custom Tools
+
 Built-in tools in `backend/src/agent/tools/builtin/`:
+
 - `current-time.tool.ts` - Returns current time
 - `calculator.tool.ts` - Performs calculations
 - `read-file.tool.ts` - Reads file contents
 
 ### 2. LangChain Tools
+
 Dynamically imported LangChain community tools (e.g., TavilySearch, WikipediaQuery)
 
 ### 3. MCP Tools
+
 Model Context Protocol server tools with 15s connection timeout
 
 Tool configuration is managed via `backend/src/agent/tools/config/unified-tools.config.ts`
@@ -214,6 +220,7 @@ Tool configuration is managed via `backend/src/agent/tools/config/unified-tools.
 ## SSE Event Types
 
 The chat streaming protocol uses these event types:
+
 - `chunk` - Text content fragment
 - `tool_start` - Tool invocation started (includes tool_call_id, name, input)
 - `tool_end` - Tool completed (includes output, duration)
@@ -224,22 +231,25 @@ The chat streaming protocol uses these event types:
 ## API Endpoints
 
 ### Chat
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/chat` | Stream chat (SSE) |
-| GET | `/api/chat?session_id=` | Get chat history |
+
+| Method | Path                    | Description       |
+| ------ | ----------------------- | ----------------- |
+| POST   | `/api/chat`             | Stream chat (SSE) |
+| GET    | `/api/chat?session_id=` | Get chat history  |
 
 ### Sessions
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/sessions` | List sessions |
-| POST | `/api/sessions` | Create session |
-| PATCH | `/api/sessions/:id` | Update session |
+
+| Method | Path                | Description    |
+| ------ | ------------------- | -------------- |
+| GET    | `/api/sessions`     | List sessions  |
+| POST   | `/api/sessions`     | Create session |
+| PATCH  | `/api/sessions/:id` | Update session |
 | DELETE | `/api/sessions/:id` | Delete session |
 
 ## Environment Variables
 
 Backend `.env`:
+
 ```env
 # Server
 PORT=3000
@@ -277,8 +287,8 @@ Create a tool definition in `backend/src/agent/tools/builtin/`:
 
 ```typescript
 // my-tool.tool.ts
-import { z } from 'zod';
-import type { ToolDefinition } from '../tools.registry';
+import { z } from 'zod'
+import type { ToolDefinition } from '../tools.registry'
 
 export const myTool: ToolDefinition = {
   name: 'my_tool',
@@ -287,12 +297,13 @@ export const myTool: ToolDefinition = {
     param: z.string().describe('Parameter description'),
   }),
   handler: async ({ param }) => {
-    return `Result: ${param}`;
+    return `Result: ${param}`
   },
-};
+}
 ```
 
 Register in `backend/src/agent/tools/config/unified-tools.config.ts`:
+
 ```typescript
 {
   id: 'my_tool',
@@ -305,6 +316,7 @@ Register in `backend/src/agent/tools/config/unified-tools.config.ts`:
 ### LangChain Tools
 
 Add to `unified-tools.config.ts`:
+
 ```typescript
 {
   id: 'tavily_search',
@@ -320,6 +332,7 @@ Add to `unified-tools.config.ts`:
 ### MCP Tools
 
 Configure MCP server in `unified-tools.config.ts`:
+
 ```typescript
 {
   serverName: 'filesystem',

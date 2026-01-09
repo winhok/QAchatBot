@@ -1,10 +1,10 @@
 /**
  * QA Chatbot Agent 图编译
  */
-import { END, START, StateGraph } from '@langchain/langgraph';
-import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import type { ChatOpenAI } from '@langchain/openai';
-import { routeAfterRouter, ROUTE_TARGETS } from './edges';
+import { END, START, StateGraph } from '@langchain/langgraph'
+import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres'
+import type { ChatOpenAI } from '@langchain/openai'
+import { routeAfterRouter, ROUTE_TARGETS } from './edges'
 import {
   createRouterNode,
   createGenTestPointsNode,
@@ -12,16 +12,13 @@ import {
   createGenReviewNode,
   createHandleCompletedReviseNode,
   createHandleOtherNode,
-} from './nodes';
-import { QAChatbotState } from './state';
+} from './nodes'
+import { QAChatbotState } from './state'
 
 /**
  * 编译 QA Chatbot 工作流
  */
-export function compileQAChatbotGraph(
-  model: ChatOpenAI,
-  checkpointer: PostgresSaver,
-) {
+export function compileQAChatbotGraph(model: ChatOpenAI, checkpointer: PostgresSaver) {
   const workflow = new StateGraph(QAChatbotState)
     // 添加节点
     .addNode('router', createRouterNode())
@@ -42,9 +39,9 @@ export function compileQAChatbotGraph(
     .addEdge('gen_test_cases', END)
     .addEdge('gen_review', END)
     .addEdge('handle_revise', END)
-    .addEdge('handle_other', END);
+    .addEdge('handle_other', END)
 
-  return workflow.compile({ checkpointer });
+  return workflow.compile({ checkpointer })
 }
 
 /**
@@ -66,5 +63,5 @@ graph TD
     gen_review --> END
     handle_revise --> END
     handle_other --> END
-`;
+`
 }

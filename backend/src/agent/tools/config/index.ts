@@ -1,1 +1,1 @@
-export * from './unified-tools.config';
+export * from './unified-tools.config'

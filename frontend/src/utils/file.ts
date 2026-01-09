@@ -135,10 +135,7 @@ export function validateFileSize(file: File, maxSizeBytes: number): boolean {
 /**
  * 验证文件类型
  */
-export function validateFileType(
-  file: File,
-  acceptedTypes: Array<string>,
-): boolean {
+export function validateFileType(file: File, acceptedTypes: Array<string>): boolean {
   // 支持通配符如 'image/*'
   return acceptedTypes.some((type) => {
     if (type.endsWith('/*')) {

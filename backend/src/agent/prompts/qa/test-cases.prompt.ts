@@ -49,4 +49,4 @@ export const QA_TEST_CASES_PROMPT = `你是一个专业的QA测试专家。请�
 - P0冒烟用例: XX个（占比XX%）
 - P1主要功能: XX个（占比XX%）
 - P2一般功能: XX个（占比XX%）
-- P3边缘功能: XX个（占比XX%）`;
+- P3边缘功能: XX个（占比XX%）`

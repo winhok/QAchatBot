@@ -49,28 +49,19 @@ export function ToolCallBlock({ data }: ToolCallBlockProps) {
     switch (data.status) {
       case 'running':
         return (
-          <Badge
-            variant="secondary"
-            className="bg-blue-500/20 text-blue-400 border-0"
-          >
+          <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-0">
             运行中
           </Badge>
         )
       case 'success':
         return (
-          <Badge
-            variant="secondary"
-            className="bg-emerald-500/20 text-emerald-400 border-0"
-          >
+          <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-400 border-0">
             成功
           </Badge>
         )
       case 'error':
         return (
-          <Badge
-            variant="secondary"
-            className="bg-red-500/20 text-red-400 border-0"
-          >
+          <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-0">
             失败
           </Badge>
         )
@@ -89,9 +80,7 @@ export function ToolCallBlock({ data }: ToolCallBlockProps) {
           </div>
           <div className="text-left">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm text-foreground">
-                {data.name}
-              </span>
+              <span className="font-medium text-sm text-foreground">{data.name}</span>
               {getStatusBadge()}
             </div>
             {data.duration && (
@@ -104,10 +93,7 @@ export function ToolCallBlock({ data }: ToolCallBlockProps) {
         </div>
         <div className="flex items-center gap-2">
           {getStatusIcon()}
-          <motion.div
-            animate={{ rotate: expanded ? 90 : 0 }}
-            transition={{ duration: 0.15 }}
-          >
+          <motion.div animate={{ rotate: expanded ? 90 : 0 }} transition={{ duration: 0.15 }}>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </motion.div>
         </div>
@@ -124,9 +110,7 @@ export function ToolCallBlock({ data }: ToolCallBlockProps) {
           >
             {data.input && (
               <div className="p-3 border-b border-border/30">
-                <div className="text-xs font-medium text-muted-foreground mb-2">
-                  输入参数
-                </div>
+                <div className="text-xs font-medium text-muted-foreground mb-2">输入参数</div>
                 <pre className="text-xs text-foreground bg-background/50 rounded p-2 overflow-x-auto">
                   {JSON.stringify(data.input, null, 2)}
                 </pre>
@@ -134,9 +118,7 @@ export function ToolCallBlock({ data }: ToolCallBlockProps) {
             )}
             {data.output && (
               <div className="p-3">
-                <div className="text-xs font-medium text-muted-foreground mb-2">
-                  返回结果
-                </div>
+                <div className="text-xs font-medium text-muted-foreground mb-2">返回结果</div>
                 <pre
                   className={cn(
                     'text-xs rounded p-2 overflow-x-auto',

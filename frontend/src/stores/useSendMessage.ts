@@ -2,8 +2,7 @@ import { useUpdateSessionName } from '@/hooks/useSessions'
 import type { ChatMessageContent, ToolCallData } from '@/schemas'
 import type { SendMessageOptions } from '@/types/stores'
 import { extractTextContent } from '@/utils/message'
-import { useState } from 'react'
-import { getChatStoreState } from './chat'
+import { getChatStoreState, useChatStore } from './chat'
 import { useSession } from './useSession'
 
 // 统一使用 /api/chat 端点
@@ -32,13 +31,11 @@ function inferToolType(toolName: string): ToolCallData['type'] {
 }
 
 export function useSendMessage() {
-  const [currentAbortController, setCurrentAbortController] =
-    useState<AbortController | null>(null)
   const updateSessionNameMutation = useUpdateSessionName()
+  const abortController = useChatStore((state) => state.abortController)
 
   const abortCurrent = () => {
-    currentAbortController?.abort()
-    setCurrentAbortController(null)
+    getChatStoreState().abortStreaming()
   }
 
   const sendMessage = async (
@@ -61,6 +58,7 @@ export function useSendMessage() {
       finishStreaming,
       addErrorMessage,
       setIsLoading,
+      setAbortController,
       addToolCall,
       updateToolCallStatus,
     } = getChatStoreState()
@@ -68,9 +66,12 @@ export function useSendMessage() {
     const isNewSession = !options?.sessionId && !storeSessionId
     const sessionId = options?.sessionId ?? storeSessionId
 
+    // Abort any existing stream
     abortCurrent()
-    const abortController = new AbortController()
-    setCurrentAbortController(abortController)
+
+    // Create new AbortController and store it
+    const controller = new AbortController()
+    setAbortController(controller)
 
     // Construct message content with images if present
     let messageContent: ChatMessageContent = input
@@ -90,10 +91,7 @@ export function useSendMessage() {
           }
         }),
       )
-      messageContent = [
-        { type: 'text', text: input },
-        ...imageBlocks,
-      ]
+      messageContent = [{ type: 'text', text: input }, ...imageBlocks]
     }
 
     addUserMessage(messageContent)
@@ -113,7 +111,7 @@ export function useSendMessage() {
           session_type: sessionType,
           tools,
         }),
-        signal: abortController.signal,
+        signal: controller.signal,
       })
 
       if (!response.ok) {
@@ -218,7 +216,7 @@ export function useSendMessage() {
         addErrorMessage()
       }
     } finally {
-      setCurrentAbortController(null)
+      setAbortController(null)
       setIsLoading(false)
     }
   }
@@ -226,6 +224,6 @@ export function useSendMessage() {
   return {
     sendMessage,
     abortCurrent,
-    isAborting: currentAbortController !== null,
+    isAborting: abortController !== null,
   }
 }

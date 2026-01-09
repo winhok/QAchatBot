@@ -1,16 +1,15 @@
-import type { CanvasArtifact } from '@/types/canvas';
-import { ChevronRight, FileCode, Loader2 } from 'lucide-react';
+import type { CanvasArtifact } from '@/types/canvas'
+import { ChevronRight, FileCode, Loader2 } from 'lucide-react'
 
 interface CanvasTitleCardProps {
-  artifact: CanvasArtifact;
-  onOpen: (artifactId: string) => void;
+  artifact: CanvasArtifact
+  onOpen: (artifactId: string) => void
 }
 
 export function CanvasTitleCard({ artifact, onOpen }: CanvasTitleCardProps) {
   const handleClick = () => {
-    onOpen(artifact.id);
-  };
-
+    onOpen(artifact.id)
+  }
 
   return (
     <div
@@ -26,9 +25,7 @@ export function CanvasTitleCard({ artifact, onOpen }: CanvasTitleCardProps) {
         {/* 标题和版本 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-foreground truncate">
-              {artifact.title}
-            </h3>
+            <h3 className="font-medium text-foreground truncate">{artifact.title}</h3>
             {artifact.currentVersion > 1 && (
               <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">
                 v{artifact.currentVersion}
@@ -55,5 +52,5 @@ export function CanvasTitleCard({ artifact, onOpen }: CanvasTitleCardProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

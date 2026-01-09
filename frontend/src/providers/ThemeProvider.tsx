@@ -7,10 +7,7 @@ interface ThemeProviderProps {
   defaultTheme?: 'light' | 'dark' | 'system'
 }
 
-export function ThemeProvider({
-  children,
-  defaultTheme = 'dark',
-}: ThemeProviderProps) {
+export function ThemeProvider({ children, defaultTheme = 'dark' }: ThemeProviderProps) {
   const theme = useTheme((s) => s.theme)
   const setTheme = useTheme((s) => s.setTheme)
 

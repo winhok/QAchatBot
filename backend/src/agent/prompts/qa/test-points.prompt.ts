@@ -57,4 +57,4 @@ export const QA_TEST_POINTS_PROMPT = `你是一个专业的QA测试专家。请�
 - 测试点总数: XX个
 - 功能验证点: XX个
 - 边界验证点: XX个
-- 异常验证点: XX个`;
+- 异常验证点: XX个`

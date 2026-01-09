@@ -1,27 +1,23 @@
 import { Button } from '@/components/ui/button'
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { UserSection } from '@/components/UserSection'
 import { useQuickAction } from '@/hooks/useQuickAction'
-import {
-    useDeleteSession,
-    useRenameSession,
-    useSessions,
-} from '@/hooks/useSessions'
+import { useDeleteSession, useRenameSession, useSessions } from '@/hooks/useSessions'
 import { listItemVariants, staggerFastContainer } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/stores/useSession'
@@ -30,15 +26,15 @@ import { rankItem } from '@tanstack/match-sorter-utils'
 import { useNavigate } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-    ChevronRight,
-    FlaskConical,
-    MessageSquare,
-    MoreHorizontal,
-    Pencil,
-    Plus,
-    Search,
-    TestTube2,
-    Trash2
+  ChevronRight,
+  FlaskConical,
+  MessageSquare,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  TestTube2,
+  Trash2,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -103,10 +99,7 @@ export default function SessionSidebar() {
 
   const handleRename = (id: string) => {
     if (!renameValue.trim()) return
-    renameMutation.mutate(
-      { id, name: renameValue.trim() },
-      { onSuccess: closeRenameModal },
-    )
+    renameMutation.mutate({ id, name: renameValue.trim() }, { onSuccess: closeRenameModal })
   }
 
   const getTypeIcon = (type?: string) => {
@@ -161,9 +154,7 @@ export default function SessionSidebar() {
 
       <div className="flex-1 px-3 py-2">
         <div className="flex items-center justify-between px-2 mb-2">
-          <span className="text-xs font-medium text-muted-foreground">
-            历史会话
-          </span>
+          <span className="text-xs font-medium text-muted-foreground">历史会话</span>
           <ChevronRight className="h-3 w-3 text-muted-foreground" />
         </div>
         <ScrollArea className="h-[calc(100vh-240px)] scrollbar-thin">
@@ -207,14 +198,11 @@ export default function SessionSidebar() {
                       )}
                     >
                       {getTypeIcon(session.type)}
-                      <span className="truncate flex-1 text-left">
-                        {getSessionTitle(session)}
-                      </span>
+                      <span className="truncate flex-1 text-left">{getSessionTitle(session)}</span>
                     </motion.button>
 
                     <AnimatePresence>
-                      {(hoveredId === session.id ||
-                        openMenuId === session.id) && (
+                      {(hoveredId === session.id || openMenuId === session.id) && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -224,9 +212,7 @@ export default function SessionSidebar() {
                         >
                           <DropdownMenu
                             open={openMenuId === session.id}
-                            onOpenChange={(open) =>
-                              setOpenMenuId(open ? session.id : null)
-                            }
+                            onOpenChange={(open) => setOpenMenuId(open ? session.id : null)}
                           >
                             <DropdownMenuTrigger asChild>
                               <button className="rounded p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground transition-colors">
@@ -236,10 +222,7 @@ export default function SessionSidebar() {
                             <DropdownMenuContent align="end" className="w-32">
                               <DropdownMenuItem
                                 onClick={() =>
-                                  openRenameModal(
-                                    session.id,
-                                    getSessionTitle(session),
-                                  )
+                                  openRenameModal(session.id, getSessionTitle(session))
                                 }
                               >
                                 <Pencil className="mr-2 h-4 w-4" />
@@ -280,9 +263,7 @@ export default function SessionSidebar() {
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
             placeholder="请输入新名称"
-            onKeyDown={(e) =>
-              e.key === 'Enter' && renameId && handleRename(renameId)
-            }
+            onKeyDown={(e) => e.key === 'Enter' && renameId && handleRename(renameId)}
             autoFocus
           />
           <DialogFooter>

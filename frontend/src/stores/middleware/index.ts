@@ -1,2 +1,1 @@
-export { createDevtools } from './createDevtools';
-
+export { createDevtools } from './createDevtools'

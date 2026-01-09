@@ -3,11 +3,11 @@
  */
 
 export interface PersonaConfig {
-  name: string;
-  role: string;
-  personality: string;
-  language: string;
-  specialties: string[];
+  name: string
+  role: string
+  personality: string
+  language: string
+  specialties: string[]
 }
 
 export const DEFAULT_PERSONA: PersonaConfig = {
@@ -16,7 +16,7 @@ export const DEFAULT_PERSONA: PersonaConfig = {
   personality: '友好、专业、简洁',
   language: '中文',
   specialties: ['软件开发', '测试', '问题解答'],
-};
+}
 
 /**
  * 预设人格模板
@@ -47,6 +47,6 @@ export const PERSONA_TEMPLATES = {
     language: '中文',
     specialties: ['概念解释', '代码示例', '学习路径规划', '答疑解惑'],
   },
-} as const;
+} as const
 
-export type PersonaTemplate = keyof typeof PERSONA_TEMPLATES;
+export type PersonaTemplate = keyof typeof PERSONA_TEMPLATES

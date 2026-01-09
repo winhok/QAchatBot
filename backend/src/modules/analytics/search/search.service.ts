@@ -6,22 +6,22 @@
 // 4. 生成高亮片段
 // 5. 分页处理
 
-import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common'
 
 export interface SearchResult {
-  type: 'session' | 'message';
-  sessionId: string;
-  sessionName: string;
-  messageId?: string;
-  content: string;
-  highlight: string; // 带高亮标记的匹配片段
-  score: number; // 相关性评分
+  type: 'session' | 'message'
+  sessionId: string
+  sessionName: string
+  messageId?: string
+  content: string
+  highlight: string // 带高亮标记的匹配片段
+  score: number // 相关性评分
 }
 
 export interface SearchResponse {
-  results: SearchResult[];
-  total: number;
-  query: string;
+  results: SearchResult[]
+  total: number
+  query: string
 }
 
 @Injectable()
@@ -35,12 +35,12 @@ export class SearchService {
     // 4. 生成高亮片段
     // 5. 分页处理
 
-    const results: SearchResult[] = [];
+    const results: SearchResult[] = []
 
     return {
       results,
       total: results.length,
       query,
-    };
+    }
   }
 }

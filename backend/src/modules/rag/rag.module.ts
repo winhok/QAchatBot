@@ -1,12 +1,7 @@
-import { PrismaModule } from '@/infrastructure/database/prisma.module';
-import { Module } from '@nestjs/common';
-import { RagController } from './rag.controller';
-import {
-    DocumentService,
-    EmbeddingsService,
-    RagService,
-    VectorStoreService,
-} from './services';
+import { PrismaModule } from '@/infrastructure/database/prisma.module'
+import { Module } from '@nestjs/common'
+import { RagController } from './rag.controller'
+import { DocumentService, EmbeddingsService, RagService, VectorStoreService } from './services'
 
 /**
  * RAG 模块
@@ -15,12 +10,7 @@ import {
 @Module({
   imports: [PrismaModule],
   controllers: [RagController],
-  providers: [
-    EmbeddingsService,
-    VectorStoreService,
-    DocumentService,
-    RagService,
-  ],
+  providers: [EmbeddingsService, VectorStoreService, DocumentService, RagService],
   exports: [DocumentService, RagService, VectorStoreService],
 })
 export class RagModule {}

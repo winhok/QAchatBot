@@ -1,6 +1,5 @@
-export * from './builtin';
-export * from './config';
-export { ToolsModule } from './tools.module';
-export { ToolsRegistry, ToolsService } from './tools.registry';
-export * from './types';
-
+export * from './builtin'
+export * from './config'
+export { ToolsModule } from './tools.module'
+export { ToolsRegistry, ToolsService } from './tools.registry'
+export * from './types'

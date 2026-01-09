@@ -1,13 +1,13 @@
 /**
  * 通用 Chatbot 系统指令
  */
-import { DEFAULT_PERSONA, type PersonaConfig } from './persona';
+import { DEFAULT_PERSONA, type PersonaConfig } from './persona'
 
 export function buildChatbotSystemPrompt(
   persona: Partial<PersonaConfig> = {},
   toolNames: string[] = [],
 ): string {
-  const config = { ...DEFAULT_PERSONA, ...persona };
+  const config = { ...DEFAULT_PERSONA, ...persona }
 
   const toolSection =
     toolNames.length > 0
@@ -22,7 +22,7 @@ ${toolNames.map((name) => `- ${name}`).join('\n')}
 2. 使用工具前先告知用户你要做什么
 3. 工具调用失败时，提供替代方案或说明原因
 `
-      : '';
+      : ''
 
   return `# 角色定义
 
@@ -48,5 +48,5 @@ ${toolSection}
 1. 理解用户意图，必要时澄清问题
 2. 分步骤解答复杂问题
 3. 提供可操作的建议
-4. 保持对话连贯性`;
+4. 保持对话连贯性`
 }

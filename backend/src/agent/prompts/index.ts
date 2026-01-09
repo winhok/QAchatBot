@@ -8,10 +8,10 @@ export {
   PERSONA_TEMPLATES,
   type PersonaConfig,
   type PersonaTemplate,
-} from './persona';
+} from './persona'
 
 // Chatbot prompts
-export { buildChatbotSystemPrompt } from './chatbot.prompts';
+export { buildChatbotSystemPrompt } from './chatbot.prompts'
 
 // QA prompts
 export {
@@ -20,4 +20,4 @@ export {
   QA_REVIEW_PROMPT,
   QA_STAGE_HEADERS,
   QA_STAGE_FOOTERS,
-} from './qa';
+} from './qa'

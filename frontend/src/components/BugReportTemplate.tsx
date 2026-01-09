@@ -61,10 +61,7 @@ export function BugReportTemplate({
   const [currentPlatform, setCurrentPlatform] = useState<BugPlatform>(platform)
 
   // TODO: 更新字段
-  const updateField = <TField extends keyof BugReport>(
-    field: TField,
-    value: BugReport[TField],
-  ) => {
+  const updateField = <TField extends keyof BugReport>(field: TField, value: BugReport[TField]) => {
     setReport((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -88,9 +85,7 @@ export function BugReportTemplate({
   const updateStep = (index: number, value: string) => {
     setReport((prev) => ({
       ...prev,
-      stepsToReproduce: prev.stepsToReproduce.map((step, i) =>
-        i === index ? value : step,
-      ),
+      stepsToReproduce: prev.stepsToReproduce.map((step, i) => (i === index ? value : step)),
     }))
   }
 
@@ -164,19 +159,14 @@ export function BugReportTemplate({
   return (
     <div className="bug-report-template">
       {/* TODO: 平台选择 */}
-      <div className="platform-selector">
-        {/* TODO: Jira / 禅道 / GitLab / GitHub / 自定义 */}
-      </div>
+      <div className="platform-selector">{/* TODO: Jira / 禅道 / GitLab / GitHub / 自定义 */}</div>
 
       {/* TODO: 表单 */}
       <form className="report-form">
         {/* TODO: 标题 */}
         <div className="field">
           <label>标题 *</label>
-          <input
-            value={report.title}
-            onChange={(e) => updateField('title', e.target.value)}
-          />
+          <input value={report.title} onChange={(e) => updateField('title', e.target.value)} />
         </div>
 
         {/* TODO: 描述 */}

@@ -24,8 +24,7 @@ export const useToggleThemeHotkey = () => {
   const { theme, setTheme } = useTheme()
   return useHotkeyById('toggleTheme', () => {
     // system -> light -> dark -> system
-    const nextTheme =
-      theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system'
+    const nextTheme = theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system'
     setTheme(nextTheme)
   })
 }
@@ -33,9 +32,7 @@ export const useToggleThemeHotkey = () => {
 /**
  * 切换侧边栏热键 (Cmd/Ctrl + B)
  */
-export const useToggleSidebarHotkey = (
-  onToggle: (() => void) | undefined,
-) => {
+export const useToggleSidebarHotkey = (onToggle: (() => void) | undefined) => {
   // 使用空函数作为占位符，通过 enabled 控制是否启用
   return useHotkeyById('toggleSidebar', onToggle ?? (() => {}), {
     enabled: !!onToggle,
@@ -73,4 +70,3 @@ export const useRegisterGlobalHotkeys = (props: GlobalHotkeyProps) => {
   useToggleThemeHotkey()
   useToggleSidebarHotkey(props.onToggleSidebar)
 }
-

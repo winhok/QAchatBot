@@ -77,10 +77,7 @@ export function ChatHeader() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {TOOLS.map((tool) => (
-              <DropdownMenuItem
-                key={tool.id}
-                className="flex items-center justify-between py-2.5"
-              >
+              <DropdownMenuItem key={tool.id} className="flex items-center justify-between py-2.5">
                 <div className="flex items-center gap-2.5">
                   <div
                     className={`rounded-lg p-1.5 ${tool.enabled ? 'bg-emerald-500/10' : 'bg-muted'}`}

@@ -5,17 +5,12 @@
 /**
  * 工作流阶段
  */
-export type QAWorkflowStage =
-  | 'init'
-  | 'test_points'
-  | 'test_cases'
-  | 'review'
-  | 'completed';
+export type QAWorkflowStage = 'init' | 'test_points' | 'test_cases' | 'review' | 'completed'
 
 /**
  * 用户意图
  */
-export type UserIntent = 'continue' | 'revise' | 'other';
+export type UserIntent = 'continue' | 'revise' | 'other'
 
 /**
  * 节点名称
@@ -26,9 +21,9 @@ export type QANodeName =
   | 'gen_test_cases'
   | 'gen_review'
   | 'handle_revise'
-  | 'handle_other';
+  | 'handle_other'
 
 /**
  * 路由目标
  */
-export type RouteTarget = QANodeName | '__end__';
+export type RouteTarget = QANodeName | '__end__'

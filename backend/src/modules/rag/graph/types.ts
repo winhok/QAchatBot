@@ -1,29 +1,29 @@
-import { Document } from '@langchain/core/documents';
+import { Document } from '@langchain/core/documents'
 
 /**
  * RAG 工作流状态
  */
 export interface RagGraphState {
   /** 原始用户查询 */
-  query: string;
+  query: string
   /** 重写后的查询（用于检索） */
-  rewrittenQuery?: string;
+  rewrittenQuery?: string
   /** 检索到的文档 */
-  documents: Document[];
+  documents: Document[]
   /** 文档相关性分数 */
-  relevanceScores: number[];
+  relevanceScores: number[]
   /** 是否需要重新检索 */
-  needsReretrieval: boolean;
+  needsReretrieval: boolean
   /** 生成的答案 */
-  answer?: string;
+  answer?: string
   /** 答案质量分数 */
-  answerQuality?: number;
+  answerQuality?: number
   /** 检索轮次 */
-  retrievalRound: number;
+  retrievalRound: number
   /** Collection 名称 */
-  collection: string;
+  collection: string
   /** 最大检索数量 */
-  topK: number;
+  topK: number
 }
 
 /**
@@ -36,9 +36,9 @@ export const RAG_NODE = {
   INCREMENT_ROUND: 'incrementRound',
   GENERATE_ANSWER: 'generateAnswer',
   EVALUATE_ANSWER: 'evaluateAnswer',
-} as const;
+} as const
 
 /**
  * 检索后的路由决策
  */
-export type RetrievalDecision = 'incrementRound' | 'generateAnswer';
+export type RetrievalDecision = 'incrementRound' | 'generateAnswer'

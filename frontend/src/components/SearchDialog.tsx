@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Clock, MessageSquare, Search, X } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSessions } from '@/hooks/useSessions'
@@ -166,10 +161,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
             autoFocus
           />
           {query && (
-            <button
-              onClick={() => setQuery('')}
-              className="p-1 hover:bg-muted rounded"
-            >
+            <button onClick={() => setQuery('')} className="p-1 hover:bg-muted rounded">
               <X className="h-4 w-4 text-muted-foreground" />
             </button>
           )}
@@ -180,9 +172,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
           {results.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Search className="h-12 w-12 mb-3 opacity-20" />
-              <p className="text-sm">
-                {query ? '未找到匹配的会话' : '暂无会话记录'}
-              </p>
+              <p className="text-sm">{query ? '未找到匹配的会话' : '暂无会话记录'}</p>
             </div>
           ) : (
             <div className="p-2">
@@ -208,13 +198,9 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                     <MessageSquare className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {highlightMatch(result.title, query)}
-                    </p>
+                    <p className="font-medium truncate">{highlightMatch(result.title, query)}</p>
                     {result.subtitle && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {result.subtitle}
-                      </p>
+                      <p className="text-xs text-muted-foreground truncate">{result.subtitle}</p>
                     )}
                   </div>
                   {result.timestamp && (
@@ -233,22 +219,13 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
         <div className="flex items-center justify-between px-4 py-2 border-t bg-muted/30 text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
             <span>
-              <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">
-                ↑↓
-              </kbd>{' '}
-              导航
+              <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">↑↓</kbd> 导航
             </span>
             <span>
-              <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">
-                Enter
-              </kbd>{' '}
-              选择
+              <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">Enter</kbd> 选择
             </span>
             <span>
-              <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">
-                Esc
-              </kbd>{' '}
-              关闭
+              <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">Esc</kbd> 关闭
             </span>
           </div>
           <span>{results.length} 个结果</span>

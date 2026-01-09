@@ -11,8 +11,7 @@ export function extractTextContent(content: Message['content']): string {
   if (Array.isArray(content)) {
     return content
       .filter(
-        (block): block is Extract<MessageContentBlock, { type: 'text' }> =>
-          block.type === 'text',
+        (block): block is Extract<MessageContentBlock, { type: 'text' }> => block.type === 'text',
       )
       .map((block) => block.text)
       .join('\n')
@@ -50,8 +49,7 @@ export function extractMediaUrls(
   if (Array.isArray(content)) {
     return content
       .filter(
-        (block): block is Extract<MessageContentBlock, { type: 'media' }> =>
-          block.type === 'media',
+        (block): block is Extract<MessageContentBlock, { type: 'media' }> => block.type === 'media',
       )
       .map((block) => ({
         url: block.media.url,

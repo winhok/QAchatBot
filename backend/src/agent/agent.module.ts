@@ -1,8 +1,8 @@
-import { Global, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { ChatbotService, QaChatbotService } from './graphs';
-import { ToolsRegistry } from './tools';
-import { ModelFactory } from './utils';
+import { Global, Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { ChatbotService, QaChatbotService } from './graphs'
+import { ToolsRegistry } from './tools'
+import { ModelFactory } from './utils'
 
 @Global()
 @Module({

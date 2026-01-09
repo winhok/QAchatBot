@@ -1,12 +1,12 @@
-import { z } from 'zod';
+import { z } from 'zod'
 import {
   ToolTypeSchema,
   ToolStatusSchema,
   HttpMethodSchema,
   MessageRoleSchema,
   SessionTypeSchema,
-} from './enums';
-import { MessageContentBlockSchema } from './content-blocks';
+} from './enums'
+import { MessageContentBlockSchema } from './content-blocks'
 
 export const ToolCallDataSchema = z.object({
   id: z.string(),
@@ -16,7 +16,7 @@ export const ToolCallDataSchema = z.object({
   duration: z.number().optional(),
   input: z.record(z.string(), z.unknown()).optional(),
   output: z.record(z.string(), z.unknown()).optional(),
-});
+})
 
 export const ApiResultDataSchema = z.object({
   method: HttpMethodSchema,
@@ -25,7 +25,7 @@ export const ApiResultDataSchema = z.object({
   duration: z.number(),
   responseBody: z.unknown(),
   headers: z.record(z.string(), z.string()).optional(),
-});
+})
 
 export const MessageSchema = z.object({
   id: z.string(),
@@ -42,16 +42,16 @@ export const MessageSchema = z.object({
       total_tokens: z.number(),
     })
     .optional(),
-});
+})
 
 export const SessionSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: SessionTypeSchema,
   created_at: z.string(),
-});
+})
 
-export type ToolCallData = z.infer<typeof ToolCallDataSchema>;
-export type ApiResultData = z.infer<typeof ApiResultDataSchema>;
-export type Message = z.infer<typeof MessageSchema>;
-export type Session = z.infer<typeof SessionSchema>;
+export type ToolCallData = z.infer<typeof ToolCallDataSchema>
+export type ApiResultData = z.infer<typeof ApiResultDataSchema>
+export type Message = z.infer<typeof MessageSchema>
+export type Session = z.infer<typeof SessionSchema>

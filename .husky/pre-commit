@@ -1,0 +1,10 @@
+# 前端类型检查
+cd frontend && pnpm exec tsgo
+cd ..
+
+# 后端类型检查  
+cd backend && pnpm exec tsgo
+cd ..
+
+# 格式化暂存文件
+pnpm exec lint-staged

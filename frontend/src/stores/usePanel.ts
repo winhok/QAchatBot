@@ -17,8 +17,7 @@ export const usePanel = create<PanelState>()(
 
       setSidebarWidth: (width) => set({ sidebarWidth: width }),
 
-      toggleSidebar: () =>
-        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
 
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
     }),

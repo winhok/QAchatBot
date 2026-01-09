@@ -16,10 +16,9 @@ export function useAuth() {
 
   const fetchUser = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || ''}/auth/me`,
-        { credentials: 'include' },
-      )
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/auth/me`, {
+        credentials: 'include',
+      })
       const data = await response.json()
 
       if (data.success && data.user) {

@@ -103,10 +103,7 @@ class OSSClient {
   /**
    * TODO: 分片上传（大文件）
    */
-  async multipartUpload(
-    file: File,
-    options: UploadOptions = {},
-  ): Promise<UploadResult> {
+  async multipartUpload(file: File, options: UploadOptions = {}): Promise<UploadResult> {
     // TODO: 实现分片上传
     // 1. 初始化分片上传
     // 2. 切分文件
@@ -175,10 +172,7 @@ export function createOSSClient(config?: Partial<OSSConfig>): OSSClient {
 /**
  * 快捷上传函数
  */
-export async function uploadToOSS(
-  file: File,
-  options?: UploadOptions,
-): Promise<UploadResult> {
+export async function uploadToOSS(file: File, options?: UploadOptions): Promise<UploadResult> {
   const client = createOSSClient()
   return client.upload(file, options)
 }

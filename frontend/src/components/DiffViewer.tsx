@@ -42,9 +42,7 @@ export function DiffViewer({
   collapsible = true,
 }: DiffViewerProps) {
   const [currentMode, setCurrentMode] = useState<DiffMode>(mode)
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(
-    new Set(),
-  )
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set())
 
   // TODO: 计算 Diff
   const diffLines = ((): Array<DiffLine> => {
@@ -70,9 +68,7 @@ export function DiffViewer({
 
   // TODO: 切换显示模式
   const toggleMode = () => {
-    setCurrentMode((prev) =>
-      prev === 'side-by-side' ? 'inline' : 'side-by-side',
-    )
+    setCurrentMode((prev) => (prev === 'side-by-side' ? 'inline' : 'side-by-side'))
   }
 
   // TODO: 展开/折叠未修改部分
@@ -127,11 +123,7 @@ export function DiffViewer({
           // TODO: 内联视图
           <div className="inline">
             {diffLines.map((line, index) => (
-              <DiffLineComponent
-                key={index}
-                line={line}
-                showLineNumber={showLineNumbers}
-              />
+              <DiffLineComponent key={index} line={line} showLineNumber={showLineNumbers} />
             ))}
           </div>
         )}

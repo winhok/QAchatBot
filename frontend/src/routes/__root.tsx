@@ -49,16 +49,16 @@ function RootComponent() {
     <div className="flex h-screen bg-background">
       {/* 侧边栏 - 支持折叠 */}
       {!sidebarCollapsed && <SessionSidebar />}
-      
+
       <main className="flex-1 flex flex-col overflow-hidden">
         <Outlet />
       </main>
-      
+
       <CanvasSidebar />
-      
+
       {/* 搜索对话框 */}
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
-      
+
       {import.meta.env.DEV && (
         <TanStackDevtools
           config={{ position: 'bottom-right' }}
@@ -71,4 +71,3 @@ function RootComponent() {
     </div>
   )
 }
-

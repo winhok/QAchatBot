@@ -79,13 +79,7 @@ async function fetchHistory(sessionId: string): Promise<Array<Message>> {
  * })
  * ```
  */
-export function useChatHistory({
-  threadId,
-  enabled,
-}: {
-  threadId: string
-  enabled: boolean
-}) {
+export function useChatHistory({ threadId, enabled }: { threadId: string; enabled: boolean }) {
   const loadMessages = useChatStore((s) => s.loadMessages)
   const resetHasUserMessage = useSession((s) => s.resetHasUserMessage)
   const hasLoadedRef = useRef(false)

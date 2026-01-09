@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { ExportService } from './export.service';
-import { ExportController } from './export.controller';
+import { Module } from '@nestjs/common'
+import { ExportService } from './export.service'
+import { ExportController } from './export.controller'
 
 @Module({
   controllers: [ExportController],

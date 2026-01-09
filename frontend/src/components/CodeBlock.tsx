@@ -21,9 +21,7 @@ export function CodeBlock({ code, language, className = '' }: CodeBlockProps) {
     <div className="relative group rounded-lg overflow-hidden bg-[#0d1117] border border-border/30">
       {/* 头部：语言标签 + 复制按钮 */}
       <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-border/30">
-        <span className="text-xs text-muted-foreground font-mono">
-          {displayLanguage || 'code'}
-        </span>
+        <span className="text-xs text-muted-foreground font-mono">{displayLanguage || 'code'}</span>
         <button
           onClick={handleCopy}
           className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"

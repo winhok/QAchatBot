@@ -1,5 +1,5 @@
-import { Document } from '@langchain/core/documents';
-import { Annotation } from '@langchain/langgraph';
+import { Document } from '@langchain/core/documents'
+import { Annotation } from '@langchain/langgraph'
 
 /**
  * RAG 工作流状态定义
@@ -34,6 +34,6 @@ export const RagState = Annotation.Root({
     reducer: (_, update) => update,
     default: () => 5,
   }),
-});
+})
 
-export type RagStateType = typeof RagState.State;
+export type RagStateType = typeof RagState.State

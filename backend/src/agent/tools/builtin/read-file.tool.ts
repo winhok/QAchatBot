@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { z } from 'zod';
-import type { ToolDefinition } from '../types';
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { z } from 'zod'
+import type { ToolDefinition } from '../types'
 
 export const readFileTool: ToolDefinition = {
   name: 'read_file',
@@ -14,12 +14,12 @@ export const readFileTool: ToolDefinition = {
     try {
       const resolvedPath = path.isAbsolute(filePath)
         ? filePath
-        : path.resolve(process.cwd(), filePath);
-      const content = await fs.readFile(resolvedPath, 'utf-8');
-      return `文件: ${filePath}\n内容:\n${content}`;
+        : path.resolve(process.cwd(), filePath)
+      const content = await fs.readFile(resolvedPath, 'utf-8')
+      return `文件: ${filePath}\n内容:\n${content}`
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return `读取文件失败: ${message}`;
+      const message = error instanceof Error ? error.message : String(error)
+      return `读取文件失败: ${message}`
     }
   },
-};
+}

@@ -6,8 +6,8 @@
 // 4. 高亮匹配片段
 // 5. 分页支持
 
-import { Controller, Get, Query } from '@nestjs/common';
-import { SearchService } from './search.service';
+import { Controller, Get, Query } from '@nestjs/common'
+import { SearchService } from './search.service'
 
 @Controller('api/search')
 export class SearchController {
@@ -19,14 +19,14 @@ export class SearchController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
-    const q = query || '';
-    const limitNum = parseInt(limit || '20');
-    const offsetNum = parseInt(offset || '0');
+    const q = query || ''
+    const limitNum = parseInt(limit || '20')
+    const offsetNum = parseInt(offset || '0')
 
     if (!q.trim()) {
-      return { results: [], total: 0, query: '' };
+      return { results: [], total: 0, query: '' }
     }
 
-    return this.searchService.search(q, limitNum, offsetNum);
+    return this.searchService.search(q, limitNum, offsetNum)
   }
 }

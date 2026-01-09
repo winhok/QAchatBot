@@ -14,9 +14,7 @@ export function UserSection() {
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">
-          {user.email}
-        </p>
+        <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
       </div>
       <Button
         variant="ghost"

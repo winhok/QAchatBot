@@ -10,13 +10,7 @@ export const ToolStatusSchema = z.enum(['running', 'success', 'error'])
 
 export const ToolTypeSchema = z.enum(['api', 'database', 'script'])
 
-export const HttpMethodSchema = z.enum([
-  'GET',
-  'POST',
-  'PUT',
-  'DELETE',
-  'PATCH',
-])
+export const HttpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 
 export const MessageRoleSchema = z.enum(['user', 'assistant'])
 
@@ -174,9 +168,7 @@ export type MediaContentBlock = z.infer<typeof MediaContentBlockSchema>
 export type DocumentContentBlock = z.infer<typeof DocumentContentBlockSchema>
 export type ToolCallContentBlock = z.infer<typeof ToolCallContentBlockSchema>
 export type MessageContentBlock = z.infer<typeof MessageContentBlockSchema>
-export type ChatMessageContentBlock = z.infer<
-  typeof ChatMessageContentBlockSchema
->
+export type ChatMessageContentBlock = z.infer<typeof ChatMessageContentBlockSchema>
 export type ChatMessageContent = z.infer<typeof ChatMessageContentSchema>
 
 export type ToolCallData = z.infer<typeof ToolCallDataSchema>

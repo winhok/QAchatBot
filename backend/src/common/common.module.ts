@@ -1,7 +1,7 @@
-import { RequestContextService } from '@/common/context/request-context.service';
-import { LoggingMiddleware } from '@/common/middleware/logging.middleware';
-import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { RequestContextService } from '@/common/context/request-context.service'
+import { LoggingMiddleware } from '@/common/middleware/logging.middleware'
+import { PrismaService } from '@/infrastructure/database/prisma.service'
+import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 
 @Global()
 @Module({
@@ -10,6 +10,6 @@ import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 })
 export class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggingMiddleware).forRoutes('*');
+    consumer.apply(LoggingMiddleware).forRoutes('*')
   }
 }

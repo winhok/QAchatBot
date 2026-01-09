@@ -51,9 +51,7 @@ const DEFAULT_TOOL_STATE: ToolOperationState = {
  * if (isStreaming) return <LoadingSpinner />
  * ```
  */
-export const useMessageOperationState = (
-  messageId: string,
-): MessageOperationState => {
+export const useMessageOperationState = (messageId: string): MessageOperationState => {
   const { messages, isLoading } = useChatStore(
     useShallow((s) => ({
       messages: s.messages,
@@ -67,9 +65,7 @@ export const useMessageOperationState = (
   }
 
   // 检查消息内容是否包含错误标记
-  const hasError =
-    typeof message.content === 'string' &&
-    message.content.includes('[错误]')
+  const hasError = typeof message.content === 'string' && message.content.includes('[错误]')
 
   return {
     isStreaming: message.isStreaming ?? false,

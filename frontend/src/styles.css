@@ -33,8 +33,7 @@ code,
 pre,
 .font-mono {
   font-family:
-    'Geist Mono Variable', source-code-pro, Menlo, Monaco, Consolas,
-    'Courier New', monospace;
+    'Geist Mono Variable', source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 :root {
