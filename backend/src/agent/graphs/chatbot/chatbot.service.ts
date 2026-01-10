@@ -1,4 +1,10 @@
-import { buildChatbotSystemPrompt, DEFAULT_PERSONA, type PersonaConfig } from '@/agent/prompts'
+import {
+  buildChatbotSystemPrompt,
+  DEFAULT_PERSONA,
+  generateArtifactId,
+  getCanvasSystemPrompt,
+  type PersonaConfig,
+} from '@/agent/prompts'
 import { ToolsService } from '@/agent/tools'
 import { ModelFactory } from '@/agent/utils'
 import { HistoryOptimizerService } from '@/infrastructure/memory/history-optimizer.service'
@@ -101,6 +107,10 @@ export class ChatbotService implements OnModuleInit {
       parts.push('\n## 领域知识')
       parts.push(JSON.stringify(memory.knowledge, null, 2))
     }
+
+    // 添加 Canvas 系统提示
+    const artifactId = generateArtifactId()
+    parts.push(getCanvasSystemPrompt(artifactId))
 
     return parts.join('\n')
   }

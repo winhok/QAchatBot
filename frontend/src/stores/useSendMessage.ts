@@ -1,8 +1,10 @@
 import { useUpdateSessionName } from '@/hooks/useSessions'
 import type { ChatMessageContent, ToolCallData } from '@/schemas'
 import type { SendMessageOptions } from '@/types/stores'
+import { CanvasArtifactParser, type CanvasArtifactMetadata } from '@/utils/CanvasArtifactParser'
 import { extractTextContent } from '@/utils/message'
 import { getChatStoreState, useChatStore } from './chat'
+import { useCanvasArtifacts } from './useCanvasArtifacts'
 import { useSession } from './useSession'
 
 // 统一使用 /api/chat 端点
@@ -101,6 +103,36 @@ export function useSendMessage() {
     let assistantMessageId = ''
 
     try {
+      // 创建 Canvas 解析器
+      const canvasStore = useCanvasArtifacts.getState()
+      const canvasParser = new CanvasArtifactParser({
+        onArtifactStart: (metadata: CanvasArtifactMetadata) => {
+          canvasStore.createArtifact(metadata.messageId, {
+            id: metadata.id,
+            type: metadata.type as 'react' | 'component',
+            title: metadata.title,
+            sessionId: sessionId || '',
+          })
+          canvasStore.setActiveArtifactId(metadata.id)
+          canvasStore.setIsCanvasVisible(true, 'preview')
+        },
+        onCodeStart: (messageId: string, artifactId: string, language: string) => {
+          canvasStore.startCode(messageId, artifactId, language as 'jsx')
+        },
+        onCodeChunk: (messageId: string, artifactId: string, chunk: string) => {
+          canvasStore.appendCodeChunk(messageId, artifactId, chunk)
+        },
+        onCodeEnd: (messageId: string, artifactId: string, fullContent: string) => {
+          canvasStore.endCode(messageId, artifactId, fullContent)
+        },
+        onArtifactEnd: (messageId: string, artifactId: string) => {
+          canvasStore.updateArtifact(messageId, artifactId, {
+            status: 'ready',
+            isStreaming: false,
+          })
+        },
+      })
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -143,6 +175,8 @@ export function useSendMessage() {
                 case 'chunk':
                   if (data.content) {
                     updateMessageContent(assistantMessage.id, data.content)
+                    // Canvas 解析
+                    canvasParser.parse(assistantMessage.id, data.content)
                   }
                   break
                 case 'tool_start': {
