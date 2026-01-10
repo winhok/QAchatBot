@@ -8,7 +8,7 @@ export const toolCallSelectors = {
   /**
    * 获取所有正在运行的工具调用
    */
-  pendingToolCalls: (state: ChatStoreState): ToolCallData[] =>
+  pendingToolCalls: (state: ChatStoreState): Array<ToolCallData> =>
     state.messages.flatMap((m) => m.toolCalls?.filter((tc) => tc.status === 'running') || []),
 
   /**
@@ -16,7 +16,7 @@ export const toolCallSelectors = {
    */
   getToolCallsByMessageId:
     (messageId: string) =>
-    (state: ChatStoreState): ToolCallData[] =>
+    (state: ChatStoreState): Array<ToolCallData> =>
       state.messages.find((m) => m.id === messageId)?.toolCalls || [],
 
   /**

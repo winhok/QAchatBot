@@ -73,7 +73,7 @@ class OSSClient {
   /**
    * TODO: 获取 STS 临时凭证
    */
-  async getSTSCredentials(): Promise<STSCredentials> {
+  getSTSCredentials(): Promise<STSCredentials> {
     // TODO: 从后端 API 获取临时凭证
     // const response = await fetch(this.config.stsEndpoint)
     // return response.json()
@@ -83,7 +83,7 @@ class OSSClient {
   /**
    * TODO: 上传文件
    */
-  async upload(file: File, options: UploadOptions = {}): Promise<UploadResult> {
+  upload(file: File, options: UploadOptions = {}): UploadResult {
     // TODO: 实现文件上传
     // 1. 获取 STS 凭证（如果需要）
     // 2. 生成文件名
@@ -103,7 +103,7 @@ class OSSClient {
   /**
    * TODO: 分片上传（大文件）
    */
-  async multipartUpload(file: File, options: UploadOptions = {}): Promise<UploadResult> {
+  multipartUpload(file: File, options: UploadOptions = {}): UploadResult {
     // TODO: 实现分片上传
     // 1. 初始化分片上传
     // 2. 切分文件
@@ -172,10 +172,10 @@ export function createOSSClient(config?: Partial<OSSConfig>): OSSClient {
 /**
  * 快捷上传函数
  */
-export async function uploadToOSS(file: File, options?: UploadOptions): Promise<UploadResult> {
+export function uploadToOSS(file: File, options?: UploadOptions): UploadResult {
   const client = createOSSClient()
   return client.upload(file, options)
 }
 
 // 导出类型
-export type { OSSConfig, UploadOptions, UploadResult, STSCredentials }
+export type { OSSConfig, STSCredentials, UploadOptions, UploadResult }

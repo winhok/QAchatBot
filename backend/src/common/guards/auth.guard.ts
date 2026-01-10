@@ -1,22 +1,46 @@
+import { IS_PUBLIC_KEY } from '@/common/decorators/public.decorator'
+import { AuthService } from '@/modules/auth/auth.service'
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
+import type { User } from '@supabase/supabase-js'
+import type { Request } from 'express'
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino'
-import { AuthService } from './auth.service'
 
 /**
- * Supabase Auth Guard
+ * Extended Express Request with auth properties
+ */
+interface AuthenticatedRequest extends Request {
+  user?: User
+  token?: string
+}
+
+/**
+ * Supabase Auth Guard (Global)
  *
- * 验证请求中的 Bearer Token，将用户信息附加到 request.user
+ * 全局验证请求中的 Bearer Token，将用户信息附加到 request.user
+ * 使用 @Public() 装饰器可跳过验证
  */
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly authService: AuthService,
+    private readonly reflector: Reflector,
     @InjectPinoLogger(AuthGuard.name)
     private readonly logger: PinoLogger,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest()
+    // 检查是否标记为公开路由
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ])
+
+    if (isPublic) {
+      return true
+    }
+
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
     const authHeader = request.headers.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

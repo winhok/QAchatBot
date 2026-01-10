@@ -1,3 +1,5 @@
+import { AnimatePresence, motion } from 'framer-motion'
+import { Bot } from 'lucide-react'
 import { LoadingIndicator } from '@/components/LoadingIndicator'
 import { MessageBubble } from '@/components/MessageBubble'
 import { StopGenerationButton } from '@/components/StopGenerationButton'
@@ -6,8 +8,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { fadeInUp, staggerContainer } from '@/lib/motion'
 import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
-import { AnimatePresence, motion } from 'framer-motion'
-import { Bot } from 'lucide-react'
 
 export function MessageList() {
   const messages = useChatStore((state) => state.messages)

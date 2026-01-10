@@ -1,12 +1,15 @@
-import { CodeBlock } from '@/components/CodeBlock'
-import { CanvasTitleCard } from '@/components/canvas/CanvasTitleCard'
-import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts'
 import 'highlight.js/styles/github-dark.css'
-import type { Components } from 'react-markdown'
+
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
+
+import type { Components } from 'react-markdown'
+
+import { CanvasTitleCard } from '@/components/canvas/CanvasTitleCard'
+import { CodeBlock } from '@/components/CodeBlock'
+import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts'
 
 interface MarkdownRendererProps {
   content: string
@@ -24,7 +27,7 @@ export function MarkdownRenderer({ content, className = '', messageId }: Markdow
 
   const components: Components = {
     // Custom handling for canvasartifact tag
-    // @ts-ignore
+    // @ts-ignore -- canvasartifact is a custom HTML element parsed by rehype-raw, not a standard React component
     canvasartifact: ({ node, ...props }: any) => {
       const artifactId = props.id
       // Try to get fully parsed artifact from store first

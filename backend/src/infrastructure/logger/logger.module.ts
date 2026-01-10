@@ -1,4 +1,4 @@
-import { RequestContextService } from '@/common/context/request-context.service'
+import { RequestContextService } from '@/infrastructure/context/request-context.service'
 import { Global, Module } from '@nestjs/common'
 import { LoggerModule as PinoLoggerModule } from 'nestjs-pino'
 import pretty from 'pino-pretty'

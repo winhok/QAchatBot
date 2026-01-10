@@ -15,7 +15,7 @@ interface ExportButtonProps {
 type ExportFormat = 'excel' | 'csv' | 'json' | 'markdown'
 
 export function ExportButton({ data, type, sessionId }: ExportButtonProps) {
-  const handleExport = async (format: ExportFormat) => {
+  const handleExport = (format: ExportFormat) => {
     // TODO: 实现导出逻辑
     // - Excel: 使用 xlsx 库
     // - CSV: 手动生成 CSV 字符串

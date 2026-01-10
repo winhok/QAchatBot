@@ -1,4 +1,7 @@
-import { RequestContext, RequestContextService } from '@/common/context/request-context.service'
+import {
+  RequestContext,
+  RequestContextService,
+} from '@/infrastructure/context/request-context.service'
 import { Injectable, NestMiddleware } from '@nestjs/common'
 import { NextFunction, Request, Response } from 'express'
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino'

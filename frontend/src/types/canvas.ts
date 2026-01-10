@@ -61,7 +61,7 @@ export interface CanvasArtifact {
   executionResult?: {
     output: unknown
     error: string
-    console: string[]
+    console: Array<string>
   }
 }
 

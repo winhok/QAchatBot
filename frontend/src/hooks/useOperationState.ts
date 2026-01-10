@@ -1,5 +1,5 @@
-import { useChatStore } from '@/stores/chat'
 import { useShallow } from 'zustand/react/shallow'
+import { useChatStore } from '@/stores/chat'
 
 /**
  * 消息操作状态

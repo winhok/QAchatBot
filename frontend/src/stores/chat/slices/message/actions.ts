@@ -1,7 +1,7 @@
+import { messagesReducer } from './reducer'
 import type { ChatMessageContent, Message } from '@/schemas'
 import type { StateCreator } from 'zustand'
 import type { ChatStore } from '../../store'
-import { messagesReducer } from './reducer'
 
 /**
  * Message slice actions 接口
@@ -15,7 +15,7 @@ export interface MessageAction {
   finishStreaming: (messageId: string) => void
   addErrorMessage: () => void
   clearMessages: () => void
-  loadMessages: (historyMessages: Message[]) => void
+  loadMessages: (historyMessages: Array<Message>) => void
 
   // 草稿消息
   setDraftMessage: (message: string) => void

@@ -1,16 +1,17 @@
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowRight, FileCode, Paperclip, TestTube2, X, Zap } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { ToolSelector } from './ToolSelector'
+import type React from 'react'
+import type { Tool } from './ToolSelector'
 import { ModelSelector } from '@/components/ModelSelector'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
-import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, FileCode, Paperclip, TestTube2, X, Zap } from 'lucide-react'
-import type React from 'react'
-import { useRef, useState } from 'react'
-import { ToolSelector, type Tool } from './ToolSelector'
 
-const AVAILABLE_TOOLS: Tool[] = [
+const AVAILABLE_TOOLS: Array<Tool> = [
   {
     id: 'tavily-search',
     name: 'Search',
@@ -26,7 +27,7 @@ const AVAILABLE_TOOLS: Tool[] = [
 ]
 
 interface ChatInputProps {
-  onSend: (message: string, tools?: string[], files?: File[]) => void
+  onSend: (message: string, tools?: Array<string>, files?: Array<File>) => void
   disabled?: boolean
   placeholder?: string
 }
@@ -49,8 +50,8 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [selectedTools, setSelectedTools] = useState<string[]>([])
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [selectedTools, setSelectedTools] = useState<Array<string>>([])
+  const [selectedFiles, setSelectedFiles] = useState<Array<File>>([])
   const [isFocused, setIsFocused] = useState(false)
 
   const handleToolToggle = (toolId: string) => {

@@ -1,8 +1,3 @@
-import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
-import { toolCallExpandVariants } from '@/lib/motion'
-import { cn } from '@/lib/utils'
-import type { ToolCallData } from '@/schemas'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   CheckCircle,
@@ -15,6 +10,11 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useState } from 'react'
+import type { ToolCallData } from '@/schemas'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { toolCallExpandVariants } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 interface ToolCallBlockProps {
   data: ToolCallData

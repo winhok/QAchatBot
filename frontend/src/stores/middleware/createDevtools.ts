@@ -19,7 +19,6 @@ export const createDevtools = (name: string) => {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (initializer: any) =>
     devtools(initializer, {
       name: `QABot_${name}`,

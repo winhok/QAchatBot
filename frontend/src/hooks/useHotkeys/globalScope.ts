@@ -1,6 +1,6 @@
+import { useHotkeyById } from './useHotkeyById'
 import { useQuickAction } from '@/hooks/useQuickAction'
 import { useTheme } from '@/stores/useTheme'
-import { useHotkeyById } from './useHotkeyById'
 
 /**
  * 新建会话热键 (Cmd/Ctrl + N)

@@ -1,6 +1,6 @@
+import { useEffect } from 'react'
 import { useChatStore } from '@/stores/chat'
 import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts'
-import { useEffect } from 'react'
 
 export function useArtifactParsing() {
   const messages = useChatStore((state) => state.messages)

@@ -1,5 +1,5 @@
-import { dotPulseVariants } from '@/lib/motion'
 import { motion } from 'framer-motion'
+import { dotPulseVariants } from '@/lib/motion'
 
 export function LoadingIndicator() {
   return (

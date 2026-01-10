@@ -1,3 +1,4 @@
+import { createFileRoute } from '@tanstack/react-router'
 import { ChatHeader } from '@/components/ChatHeader'
 import { ChatInput } from '@/components/ChatInput'
 import { FloatingChatBubble } from '@/components/FloatingChatBubble'
@@ -5,7 +6,6 @@ import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { useInvalidateSessions, useRegisterChatHotkeys } from '@/hooks'
 import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
-import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -20,7 +20,7 @@ function HomePage() {
   // 注册聊天热键（如 Escape 停止生成）
   useRegisterChatHotkeys()
 
-  const handleSend = (input: string, tools?: string[], files?: File[]) => {
+  const handleSend = (input: string, tools?: Array<string>, files?: Array<File>) => {
     // 首页发送第一条消息时，逻辑统一交给 useSendMessage 处理
     // 它会识别到没有 sessionId 并进行初始化
     sendMessage(input, tools, files, {

@@ -1,5 +1,5 @@
-import { useSendMessage } from '@/stores/useSendMessage'
 import { useHotkeyById } from './useHotkeyById'
+import { useSendMessage } from '@/stores/useSendMessage'
 
 /**
  * 停止生成热键 (Escape)

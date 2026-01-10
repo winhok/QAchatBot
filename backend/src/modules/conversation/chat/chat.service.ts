@@ -18,6 +18,25 @@ interface StreamChatParams {
   tools?: string[]
 }
 
+/**
+ * LangGraph stream event types
+ */
+interface StreamEvent {
+  event: string
+  name?: string
+  run_id?: string
+  data?: {
+    chunk?: {
+      content?: string
+      usage_metadata?: unknown
+      tool_call_chunks?: unknown[]
+    }
+    input?: unknown
+    output?: unknown
+    error?: unknown
+  }
+}
+
 @Injectable()
 export class ChatService {
   constructor(
@@ -101,10 +120,9 @@ export class ChatService {
 
     let accumulatedContent = ''
 
-    const eventStream = app.streamEvents(
-      { messages: [userMessage] },
-      { version: 'v2', ...threadConfig },
-    )
+    const eventStream = (
+      app as { streamEvents: (input: unknown, config: unknown) => AsyncIterable<StreamEvent> }
+    ).streamEvents({ messages: [userMessage] }, { version: 'v2', ...threadConfig })
 
     for await (const event of eventStream) {
       if (isAborted()) {
@@ -114,13 +132,7 @@ export class ChatService {
 
       // Handle model streaming output
       if (event.event === 'on_chat_model_stream') {
-        const chunk = event.data?.chunk as
-          | {
-              content?: string
-              usage_metadata?: unknown
-              tool_call_chunks?: unknown[]
-            }
-          | undefined
+        const chunk = event.data?.chunk
 
         if (chunk) {
           const dataObj: Record<string, unknown> = {
@@ -147,9 +159,9 @@ export class ChatService {
 
       // Handle tool call start
       if (event.event === 'on_tool_start') {
-        const toolName = event.name || 'unknown_tool'
-        const runId = event.run_id
-        const inputData = (event.data as { input?: unknown })?.input ?? {}
+        const toolName = event.name ?? 'unknown_tool'
+        const runId = event.run_id ?? ''
+        const inputData = event.data?.input ?? {}
 
         // Create tool call in database
         const toolCall = await this.messages.createToolCall({
@@ -180,10 +192,10 @@ export class ChatService {
 
       // Handle tool call end
       if (event.event === 'on_tool_end') {
-        const runId = event.run_id
+        const runId = event.run_id ?? ''
         const toolInfo = toolCallsMap.get(runId)
         const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
-        const outputData = (event.data as { output?: unknown })?.output
+        const outputData = event.data?.output
 
         // Update tool call in database
         if (toolInfo?.dbId) {
@@ -209,8 +221,8 @@ export class ChatService {
 
       // Handle tool call error
       if (event.event === 'on_tool_error') {
-        const runId = event.run_id
-        const error = (event.data as { error?: unknown })?.error
+        const runId = event.run_id ?? ''
+        const error = event.data?.error
         const toolInfo = toolCallsMap.get(runId)
         const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
 

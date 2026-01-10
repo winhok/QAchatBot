@@ -1,23 +1,14 @@
+import {
+  MemoryCategory,
+  MemoryEntry,
+  MemoryScope,
+  MergedMemory,
+} from '@/shared/schemas/memory.types'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../database/prisma.service'
 
-export type MemoryScope = 'global' | 'folder'
-export type MemoryCategory = 'prefs' | 'rules' | 'knowledge' | 'context'
-
-export interface MemoryEntry<T = unknown> {
-  key: string
-  value: T
-  scope: MemoryScope
-  category: MemoryCategory
-  priority?: number
-}
-
-export interface MergedMemory {
-  prefs: Record<string, unknown>
-  rules: string[]
-  knowledge: Record<string, unknown>
-  context: Record<string, unknown>
-}
+// Re-export types for backward compatibility
+export type { MemoryCategory, MemoryEntry, MemoryScope, MergedMemory }
 
 @Injectable()
 export class MemoryStoreService {

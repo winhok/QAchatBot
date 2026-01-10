@@ -1,5 +1,5 @@
-import type { CanvasArtifact, CanvasLanguage, CanvasState } from '@/types/canvas'
 import { create } from 'zustand'
+import type { CanvasArtifact, CanvasLanguage, CanvasState } from '@/types/canvas'
 
 // 辅助函数：深度克隆 Map
 const cloneArtifactsMap = (original: Map<string, Map<string, CanvasArtifact>>) => {
@@ -123,7 +123,7 @@ export const useCanvasArtifacts = create<CanvasState>((set, get) => ({
       // 提取代码内容和语言
       const codeMatch =
         /<canvasCode[^>]*language=["']?(\w+)["']?[^>]*>([\s\S]*?)<\/canvasCode>/.exec(innerContent)
-      const language = (codeMatch?.[1] as CanvasLanguage) || 'jsx'
+      const language: CanvasLanguage = (codeMatch?.[1] as CanvasLanguage | undefined) ?? 'jsx'
       // 如果没有 canvasCode 标签，可能内容就在 artifact 标签内（简化情况）
       const codeContent = codeMatch?.[2] || innerContent
 

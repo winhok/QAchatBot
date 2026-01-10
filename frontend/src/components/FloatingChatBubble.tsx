@@ -1,10 +1,3 @@
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { useQuickAction } from '@/hooks/useQuickAction'
-import { cn } from '@/lib/utils'
-import { useChatStore } from '@/stores/chat'
-import { useSession } from '@/stores/useSession'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowUp,
@@ -18,6 +11,13 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { useQuickAction } from '@/hooks/useQuickAction'
+import { cn } from '@/lib/utils'
+import { useChatStore } from '@/stores/chat'
+import { useSession } from '@/stores/useSession'
 
 type DockSide = 'none' | 'left' | 'right' | 'top' | 'bottom'
 
@@ -78,7 +78,7 @@ export function FloatingChatBubble() {
   } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const config = SESSION_CONFIG[sessionType] || SESSION_CONFIG.normal
+  const config = SESSION_CONFIG[sessionType]
   const ModeIcon = config.icon
 
   const calculateDockSide = (x: number, y: number): DockSide => {

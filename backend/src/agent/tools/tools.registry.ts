@@ -111,15 +111,22 @@ export class ToolsRegistry implements OnModuleInit {
         console.log(`[ToolsRegistry]   Loading: ${config.name} from ${importPath}`)
 
         // 动态导入模块
-        const module = await import(/* webpackIgnore: true */ importPath)
+        const module = (await import(/* webpackIgnore: true */ importPath)) as Record<
+          string,
+          unknown
+        >
 
         // 获取工具类
-        let ToolClass: any
-        if (className) {
-          ToolClass = module[className]
+        type ToolConstructor = new (options?: unknown) => StructuredToolInterface
+        let ToolClass: ToolConstructor | undefined
+        if (className && className in module) {
+          ToolClass = module[className] as ToolConstructor
         } else {
-          ToolClass =
-            module.default || Object.values(module).find((v: any) => typeof v === 'function')
+          const defaultExport = module.default
+          const values = Object.values(module)
+          ToolClass = (defaultExport ?? values.find((v) => typeof v === 'function')) as
+            | ToolConstructor
+            | undefined
         }
 
         if (!ToolClass) {
@@ -171,7 +178,8 @@ export class ToolsRegistry implements OnModuleInit {
       }
 
       const mcpClient = new MultiServerMCPClient({
-        mcpServers: serversForClient as any,
+        // @ts-expect-error -- MCP servers config type is complex union, our simplified config works at runtime
+        mcpServers: serversForClient,
       })
 
       // 设置超时

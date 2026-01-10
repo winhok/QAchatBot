@@ -1,3 +1,8 @@
+import { TanStackDevtools } from '@tanstack/react-devtools'
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import { useState } from 'react'
+import type { QueryClient } from '@tanstack/react-query'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { SearchDialog } from '@/components/SearchDialog'
 import SessionSidebar from '@/components/SessionSidebar'
@@ -5,11 +10,6 @@ import { CanvasSidebar } from '@/components/canvas/CanvasSidebar'
 import { useRegisterGlobalHotkeys } from '@/hooks'
 import { useArtifactParsing } from '@/hooks/useArtifactParsing'
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-import type { QueryClient } from '@tanstack/react-query'
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { useState } from 'react'
 
 interface RouterContext {
   queryClient: QueryClient

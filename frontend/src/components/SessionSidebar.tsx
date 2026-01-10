@@ -1,3 +1,19 @@
+import { rankItem } from '@tanstack/match-sorter-utils'
+import { useNavigate } from '@tanstack/react-router'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  ChevronRight,
+  FlaskConical,
+  MessageSquare,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  TestTube2,
+  Trash2,
+} from 'lucide-react'
+import { useState } from 'react'
+import type { Session } from '@/types/stores'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -21,22 +37,6 @@ import { useDeleteSession, useRenameSession, useSessions } from '@/hooks/useSess
 import { listItemVariants, staggerFastContainer } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/stores/useSession'
-import type { Session } from '@/types/stores'
-import { rankItem } from '@tanstack/match-sorter-utils'
-import { useNavigate } from '@tanstack/react-router'
-import { AnimatePresence, motion } from 'framer-motion'
-import {
-  ChevronRight,
-  FlaskConical,
-  MessageSquare,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Search,
-  TestTube2,
-  Trash2,
-} from 'lucide-react'
-import { useState } from 'react'
 
 function getSessionTitle(session: Session) {
   return session.name || `会话::${session.id.slice(0, 8).toUpperCase()}`

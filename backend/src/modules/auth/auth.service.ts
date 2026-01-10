@@ -28,6 +28,7 @@ export class AuthService implements OnModuleInit {
       throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables')
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.supabase = createClient(supabaseUrl, supabaseAnonKey)
     this.logger.info({ event: 'supabase', status: 'initialized' })
   }
@@ -112,6 +113,7 @@ export class AuthService implements OnModuleInit {
     const supabaseUrl = this.config.get<string>('SUPABASE_URL')!
     const supabaseAnonKey = this.config.get<string>('SUPABASE_ANON_KEY')!
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return createClient(supabaseUrl, supabaseAnonKey, {
       global: {
         headers: {

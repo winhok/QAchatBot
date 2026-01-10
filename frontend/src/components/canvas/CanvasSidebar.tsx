@@ -1,7 +1,7 @@
-import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts'
 import { Code2, Copy, Eye, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { CodePreviewPanel } from './CodePreviewPanel'
+import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts'
 
 export function CanvasSidebar() {
   const {
@@ -25,7 +25,7 @@ export function CanvasSidebar() {
 
   const [code, setCode] = useState('')
   const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('preview')
-  const [consoleOutput, setConsoleOutput] = useState<string[]>([])
+  const [consoleOutput, setConsoleOutput] = useState<Array<string>>([])
   const [executionError, setExecutionError] = useState('')
 
   // Sync state

@@ -1,6 +1,6 @@
-import { cn } from '@/lib/utils'
 import { Check, Wrench } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { cn } from '@/lib/utils'
 
 export interface Tool {
   id: string
@@ -10,8 +10,8 @@ export interface Tool {
 }
 
 interface ToolSelectorProps {
-  tools: Tool[]
-  selectedTools: string[]
+  tools: Array<Tool>
+  selectedTools: Array<string>
   onToolToggle: (toolId: string) => void
 }
 

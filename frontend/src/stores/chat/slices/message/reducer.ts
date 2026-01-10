@@ -1,5 +1,5 @@
-import type { Message } from '@/schemas'
 import { produce } from 'immer'
+import type { Message } from '@/schemas'
 
 // Action 类型定义
 interface AddMessage {
@@ -29,7 +29,7 @@ interface ClearMessages {
 
 interface LoadMessages {
   type: 'loadMessages'
-  messages: Message[]
+  messages: Array<Message>
 }
 
 export type MessageDispatch =
@@ -44,7 +44,7 @@ export type MessageDispatch =
  * 消息状态 reducer
  * 使用 immer 进行不可变更新
  */
-export const messagesReducer = (state: Message[], action: MessageDispatch): Message[] => {
+export const messagesReducer = (state: Array<Message>, action: MessageDispatch): Array<Message> => {
   switch (action.type) {
     case 'addMessage':
       return produce(state, (draft) => {

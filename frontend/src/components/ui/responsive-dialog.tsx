@@ -1,12 +1,12 @@
 'use client'
 
-import { dialogVariants, overlayVariants } from '@/lib/motion'
-import { cn } from '@/lib/utils'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { AnimatePresence, motion } from 'framer-motion'
 import { XIcon } from 'lucide-react'
 import * as React from 'react'
 import { Drawer as DrawerPrimitive } from 'vaul'
+import { cn } from '@/lib/utils'
+import { dialogVariants, overlayVariants } from '@/lib/motion'
 
 const MOBILE_BREAKPOINT = 768
 

@@ -1,3 +1,6 @@
+import { isCuid } from '@paralleldrive/cuid2'
+import { createFileRoute, notFound, useParams } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { ChatHeader } from '@/components/ChatHeader'
 import { ChatInput } from '@/components/ChatInput'
 import { FloatingChatBubble } from '@/components/FloatingChatBubble'
@@ -7,9 +10,6 @@ import { useInvalidateSessions, useSessions } from '@/hooks/useSessions'
 import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 import { useSession } from '@/stores/useSession'
-import { isCuid } from '@paralleldrive/cuid2'
-import { createFileRoute, notFound, useParams } from '@tanstack/react-router'
-import { useEffect } from 'react'
 
 export const Route = createFileRoute('/$threadId')({
   component: ThreadPage,
@@ -52,7 +52,7 @@ function ThreadPage() {
   // 注册聊天热键（如 Escape 停止生成）
   useRegisterChatHotkeys()
 
-  const handleSend = (input: string, tools?: string[], files?: File[]) => {
+  const handleSend = (input: string, tools?: Array<string>, files?: Array<File>) => {
     sendMessage(input, tools, files, {
       sessionId: threadId,
       onSessionCreated: invalidateSessions,

@@ -1,9 +1,9 @@
-import { RequestContextService } from '@/common/context/request-context.service'
+import { RequestContextService } from '@/infrastructure/context/request-context.service'
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@prisma/client'
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino'
 import { Pool } from 'pg'
-import { PrismaClient } from '@prisma/client'
 
 const isDev = process.env.NODE_ENV !== 'production'
 

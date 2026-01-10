@@ -5,25 +5,25 @@
  * 使用 Babel Standalone 转译 JSX
  */
 
-import type { CanvasArtifact, CanvasStatus } from '@/types/canvas'
 import { AlertCircle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import type { CanvasArtifact, CanvasStatus } from '@/types/canvas'
 
 interface CodePreviewPanelProps {
   code: string
   artifact: CanvasArtifact
   activeTab: 'preview' | 'console' | 'error'
-  consoleOutput: string[]
+  consoleOutput: Array<string>
   executionError: string
   onStatusChange: (status: CanvasStatus) => void
-  onConsoleOutput: (logs: string[]) => void
+  onConsoleOutput: (logs: Array<string>) => void
   onError: (error: string) => void
 }
 
 /**
  * 生成 iframe HTML 模板
  */
-function generateIframeHTML(code: string, icons: string[] = []): string {
+function generateIframeHTML(code: string, icons: Array<string> = []): string {
   // 常用 lucide 图标的 SVG 路径数据
   const iconPaths: Record<string, string> = {
     Plus: 'M5 12h14M12 5v14',
@@ -137,8 +137,8 @@ function generateIframeHTML(code: string, icons: string[] = []): string {
 </html>`
 }
 
-function sanitizeCode(code: string): { sanitized: string; icons: string[] } {
-  const icons: string[] = []
+function sanitizeCode(code: string): { sanitized: string; icons: Array<string> } {
+  const icons: Array<string> = []
   let sanitized = code
 
   const lucideMatch = sanitized.match(/import\s*\{([^}]+)\}\s+from\s+['"]lucide-react['"];?/)
@@ -201,7 +201,7 @@ export function CodePreviewPanel({
     if (iframeRef.current) {
       iframeRef.current.srcdoc = generateIframeHTML(sanitized, icons)
     }
-  }, [code, key, artifact.isStreaming]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [code, key, artifact.isStreaming, onStatusChange])
 
   if (activeTab === 'console') {
     return (

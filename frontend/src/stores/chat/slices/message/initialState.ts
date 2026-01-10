@@ -5,7 +5,7 @@ import type { Message } from '@/schemas'
  * 仅包含消息相关状态，流状态由 stream slice 管理
  */
 export interface ChatMessageState {
-  messages: Message[]
+  messages: Array<Message>
   draftMessage: string
 }
 

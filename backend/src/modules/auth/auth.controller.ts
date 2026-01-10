@@ -1,3 +1,4 @@
+import { Public } from '@/common/decorators/public.decorator'
 import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common'
 import type { Request, Response } from 'express'
 import { AuthService } from './auth.service'
@@ -9,6 +10,14 @@ const COOKIE_OPTIONS = {
   sameSite: 'lax' as const,
   path: '/',
   maxAge: 60 * 60 * 24 * 7 * 1000, // 7 days in ms
+}
+
+/**
+ * Safely get a typed cookie value from request
+ */
+function getCookie(req: Request, name: string): string | undefined {
+  const cookies = req.cookies as Record<string, string | undefined> | undefined
+  return cookies?.[name]
 }
 
 interface SignInDto {
@@ -30,6 +39,7 @@ export class AuthController {
    * 用户登录
    * POST /auth/signin
    */
+  @Public()
   @Post('signin')
   async signIn(@Body() dto: SignInDto, @Res({ passthrough: true }) res: Response) {
     const { email, password } = dto
@@ -47,12 +57,13 @@ export class AuthController {
     // Set httpOnly cookie
     res.cookie(COOKIE_NAME, result.session.access_token, COOKIE_OPTIONS)
 
+    const userName = (result.user.user_metadata as Record<string, unknown> | undefined)?.name
     return {
       success: true,
       user: {
         id: result.user.id,
         email: result.user.email,
-        name: result.user.user_metadata?.name || result.user.email,
+        name: typeof userName === 'string' ? userName : result.user.email,
       },
     }
   }
@@ -61,6 +72,7 @@ export class AuthController {
    * 用户注册
    * POST /auth/signup
    */
+  @Public()
   @Post('signup')
   async signUp(@Body() dto: SignUpDto, @Res({ passthrough: true }) res: Response) {
     const { email, password, name } = dto
@@ -93,12 +105,13 @@ export class AuthController {
       res.cookie(COOKIE_NAME, result.session.access_token, COOKIE_OPTIONS)
     }
 
+    const userName = (result.user!.user_metadata as Record<string, unknown> | undefined)?.name
     return {
       success: true,
       user: {
         id: result.user!.id,
         email: result.user!.email,
-        name: result.user!.user_metadata?.name || name,
+        name: typeof userName === 'string' ? userName : name,
       },
       requiresConfirmation: false,
     }
@@ -108,9 +121,10 @@ export class AuthController {
    * 用户登出
    * POST /auth/signout
    */
+  @Public()
   @Post('signout')
   async signOut(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const token = req.cookies?.[COOKIE_NAME]
+    const token = getCookie(req, COOKIE_NAME)
 
     if (token) {
       await this.authService.signOut(token)
@@ -124,9 +138,10 @@ export class AuthController {
    * 获取当前用户信息
    * GET /auth/me
    */
+  @Public()
   @Get('me')
   async getMe(@Req() req: Request) {
-    const token = req.cookies?.[COOKIE_NAME]
+    const token = getCookie(req, COOKIE_NAME)
 
     if (!token) {
       return { success: false, user: null }
@@ -138,12 +153,13 @@ export class AuthController {
       return { success: false, user: null }
     }
 
+    const userName = (user.user_metadata as Record<string, unknown> | undefined)?.name
     return {
       success: true,
       user: {
         id: user.id,
         email: user.email,
-        name: user.user_metadata?.name || user.email,
+        name: typeof userName === 'string' ? userName : user.email,
       },
     }
   }

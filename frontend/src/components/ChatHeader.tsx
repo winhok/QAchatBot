@@ -1,4 +1,5 @@
 import { Bell, MessageSquare, Settings, TestTube2, Wrench } from 'lucide-react'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -9,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ThemeToggle } from '@/components/ThemeToggle'
 import { TOOLS } from '@/lib/constants'
 import { useSession } from '@/stores/useSession'
 
@@ -31,7 +31,7 @@ export function ChatHeader() {
   const sessionId = useSession((s) => s.sessionId)
   const enabledToolsCount = TOOLS.filter((t) => t.enabled).length
 
-  const config = SESSION_TYPE_CONFIG[sessionType] || SESSION_TYPE_CONFIG.normal
+  const config = SESSION_TYPE_CONFIG[sessionType]
   const TypeIcon = config.icon
 
   const handleNotifications = () => {

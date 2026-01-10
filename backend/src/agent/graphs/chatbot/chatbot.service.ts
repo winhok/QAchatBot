@@ -93,7 +93,7 @@ export class ChatbotService implements OnModuleInit {
     // Behavior rules
     if (memory.rules.length > 0) {
       parts.push('\n## 行为规则')
-      parts.push(...memory.rules.map((r) => `- ${r}`))
+      parts.push(...memory.rules.map((r: string) => `- ${r}`))
     }
 
     // Project context
@@ -236,7 +236,7 @@ export class ChatbotService implements OnModuleInit {
     if (!this.appCache.has(cacheKey)) {
       // FIFO 淘汰策略
       if (this.appCache.size >= this.MAX_CACHE_SIZE) {
-        const firstKey = this.appCache.keys().next().value
+        const firstKey = this.appCache.keys().next().value as string | undefined
         if (firstKey) {
           this.appCache.delete(firstKey)
           console.log(`[ChatbotService] Cache evicted: ${firstKey}`)

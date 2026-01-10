@@ -1,6 +1,6 @@
+import { LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
-import { LogOut } from 'lucide-react'
 
 /**
  * 用户信息区域组件

@@ -1,7 +1,7 @@
 import { AppController } from '@/app.controller'
 import { AppService } from '@/app.service'
 import { CommonModule } from '@/common/common.module'
-import { RequestContextService } from '@/common/context/request-context.service'
+import { RequestContextService } from '@/infrastructure/context/request-context.service'
 import { PrismaModule } from '@/infrastructure/database/prisma.module'
 import { PrismaService } from '@/infrastructure/database/prisma.service'
 import { LoggerModule } from '@/infrastructure/logger/logger.module'

@@ -1,15 +1,18 @@
-import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
+import axios from 'axios'
 import { toast } from 'sonner'
+import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import type { z } from 'zod'
+import type {
+  CreateSessionResponse,
+  DeleteSessionResponse,
+  GetSessionsResponse,
+  Session,
+  UpdateSessionResponse,
+} from '@/schemas'
 import {
-  type CreateSessionResponse,
   CreateSessionResponseSchema,
-  type DeleteSessionResponse,
   DeleteSessionResponseSchema,
-  type GetSessionsResponse,
   GetSessionsResponseSchema,
-  type Session,
-  type UpdateSessionResponse,
   UpdateSessionResponseSchema,
 } from '@/schemas'
 
@@ -133,7 +136,7 @@ function validateResponse<T>(
 export class ApiValidationError extends Error {
   constructor(
     message: string,
-    public issues: z.ZodIssue[],
+    public issues: Array<z.ZodIssue>,
     public response: AxiosResponse<unknown>,
   ) {
     super(message)
@@ -217,7 +220,7 @@ export const chatService = {
   /**
    * Get all sessions (with Zod validation)
    */
-  getSessions: async (): Promise<Session[]> => {
+  getSessions: async (): Promise<Array<Session>> => {
     const { data } = await apiGet<GetSessionsResponse>('/api/sessions', {
       schema: GetSessionsResponseSchema,
     })

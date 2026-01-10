@@ -67,7 +67,7 @@ export class VectorStoreService implements OnModuleInit, OnModuleDestroy {
       try {
         await store.end()
         this.logger.debug({ event: 'vector_store_closed', collection: name })
-      } catch (error) {
+      } catch (error: unknown) {
         this.logger.error({ event: 'vector_store_close_error', error })
       }
     }

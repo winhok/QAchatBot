@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, Bug, FileCode, MessageSquare, TestTube2 } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
 import type { SessionType } from '@/types/stores'
+import { cn } from '@/lib/utils'
 
 export interface FeatureItem {
   icon: typeof MessageSquare
@@ -13,7 +13,7 @@ export interface FeatureItem {
   implemented: boolean
 }
 
-const primaryFeatures: FeatureItem[] = [
+const primaryFeatures: Array<FeatureItem> = [
   {
     icon: MessageSquare,
     title: '自由对话',

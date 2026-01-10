@@ -1,5 +1,5 @@
-import type { CanvasArtifact } from '@/types/canvas'
 import { ChevronRight, FileCode, Loader2 } from 'lucide-react'
+import type { CanvasArtifact } from '@/types/canvas'
 
 interface CanvasTitleCardProps {
   artifact: CanvasArtifact

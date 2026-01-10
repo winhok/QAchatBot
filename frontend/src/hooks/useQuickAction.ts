@@ -1,7 +1,7 @@
+import { useNavigate } from '@tanstack/react-router'
+import type { SessionType } from '@/types/stores'
 import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
-import type { SessionType } from '@/types/stores'
-import { useNavigate } from '@tanstack/react-router'
 
 /**
  * 快速创建新会话并跳转的 hook

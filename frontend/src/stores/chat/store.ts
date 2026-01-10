@@ -1,12 +1,16 @@
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { shallow } from 'zustand/shallow'
 import { createWithEqualityFn } from 'zustand/traditional'
-import type { StateCreator } from 'zustand/vanilla'
 
-import { type ChatStoreState, initialState } from './initialState'
-import { type MessageAction, messageSlice } from './slices/message'
-import { type StreamAction, streamSlice } from './slices/stream'
-import { type ToolCallAction, toolCallSlice } from './slices/toolCall'
+import { initialState } from './initialState'
+import { messageSlice } from './slices/message'
+import { streamSlice } from './slices/stream'
+import { toolCallSlice } from './slices/toolCall'
+import type { ChatStoreState } from './initialState'
+import type { MessageAction } from './slices/message'
+import type { StreamAction } from './slices/stream'
+import type { ToolCallAction } from './slices/toolCall'
+import type { StateCreator } from 'zustand/vanilla'
 
 /**
  * Chat Store Action 类型

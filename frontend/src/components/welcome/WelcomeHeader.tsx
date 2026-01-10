@@ -1,7 +1,7 @@
-import { AIOrb } from '@/components/AIOrb'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Terminal } from 'lucide-react'
 import { welcomeMessages } from './constants'
+import { AIOrb } from '@/components/AIOrb'
 
 interface WelcomeHeaderProps {
   welcomeIndex: number
