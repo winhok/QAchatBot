@@ -1,44 +1,26 @@
 import { ModelSelector } from '@/components/ModelSelector'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
-import {
-  ArrowUp,
-  Bug,
-  FileCode,
-  MessageSquare,
-  Paperclip,
-  Plus,
-  Sparkles,
-  TestTube2,
-  X,
-} from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowRight, FileCode, Paperclip, TestTube2, X, Zap } from 'lucide-react'
 import type React from 'react'
 import { useRef, useState } from 'react'
 import { ToolSelector, type Tool } from './ToolSelector'
 
-// TODO: Move this to a shared config or fetch from API
 const AVAILABLE_TOOLS: Tool[] = [
   {
     id: 'tavily-search',
-    name: '联网搜索',
-    description: '使用 Tavily 搜索互联网获取最新信息',
-    icon: '🔍',
+    name: 'Search',
+    description: 'Internet Access',
+    icon: '🌐',
   },
   {
     id: 'calculator',
-    name: '计算器',
-    description: '执行数学计算',
+    name: 'Calc',
+    description: 'Math Operations',
     icon: '🧮',
   },
 ]
@@ -49,48 +31,19 @@ interface ChatInputProps {
   placeholder?: string
 }
 
-const quickActions = [
-  { icon: FileCode, label: '测试接口', prompt: '帮我测试以下接口：' },
-  {
-    icon: TestTube2,
-    label: '生成测试用例',
-    prompt: '帮我生成以下功能的测试用例：',
-  },
-  { icon: Bug, label: '分析 Bug', prompt: '帮我分析以下错误日志：' },
+// "System Suggestion Chips"
+const QUICK_COMMANDS = [
+  { id: 'api', label: '/测试API', icon: FileCode },
+  { id: 'case', label: '/生成用例', icon: TestTube2 },
+  { id: 'bug', label: '/分析BUG', icon: Zap },
 ]
 
-const MAX_TEXTAREA_HEIGHT = 128
-
-const SESSION_THEME = {
-  normal: {
-    label: '普通聊天',
-    icon: MessageSquare,
-    glowClass: 'from-emerald-500/20 to-teal-500/20',
-    buttonClass:
-      'bg-linear-to-br from-emerald-500 to-teal-600 shadow-emerald-500/25 hover:shadow-emerald-500/40',
-    accentColor: 'text-emerald-400',
-    badgeVariant: 'success' as const,
-    hint: '支持自然语言对话，AI 将为您提供专业解答',
-  },
-  testcase: {
-    label: '测试设计',
-    icon: TestTube2,
-    glowClass: 'from-teal-500/30 to-cyan-500/30',
-    buttonClass:
-      'bg-linear-to-br from-teal-500 to-cyan-600 shadow-teal-500/25 hover:shadow-teal-500/40',
-    accentColor: 'text-teal-400',
-    badgeVariant: 'teal' as const,
-    hint: '支持 Human-in-the-Loop 模式，每个阶段可审核修改',
-  },
-}
+const MAX_TEXTAREA_HEIGHT = 160
 
 export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputProps) {
   const sessionType = useSession((s) => s.sessionType)
   const modelId = useSession((s) => s.modelId)
   const setModelId = useSession((s) => s.setModelId)
-
-  const theme = SESSION_THEME[sessionType] || SESSION_THEME.normal
-  const ThemeIcon = theme.icon
 
   const { draftMessage: message, setDraftMessage: setMessage, clearDraftMessage } = useChatStore()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -98,6 +51,7 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
 
   const [selectedTools, setSelectedTools] = useState<string[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [isFocused, setIsFocused] = useState(false)
 
   const handleToolToggle = (toolId: string) => {
     setSelectedTools((prev) =>
@@ -108,7 +62,6 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files)
-      // Limit to 4 images
       setSelectedFiles((prev) => [...prev, ...newFiles].slice(0, 4))
     }
   }
@@ -145,136 +98,169 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
     adjustHeight(e.target)
   }
 
-  const handleFileUpload = () => {
-    fileInputRef.current?.click()
-  }
-
   return (
-    <div className="border-t border-border/50 bg-linear-to-t from-background to-background/80 p-4 backdrop-blur-xl">
-      <div className="mx-auto max-w-3xl">
-        <div className="relative group">
-          {/* Glow Effect - 根据模式变化 */}
-          <div
-            className={cn(
-              'absolute -inset-0.5 rounded-2xl bg-linear-to-r opacity-0 blur transition-opacity duration-300 group-focus-within:opacity-100',
-              theme.glowClass,
-            )}
-          />
+    <div className="w-full max-w-4xl mx-auto pb-6 px-4">
+      {/* 1. Suggestion Chips (Visible when empty) */}
+      <AnimatePresence>
+        {!message && selectedFiles.length === 0 && !isFocused && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            className="flex gap-2 justify-center mb-4"
+          >
+            {QUICK_COMMANDS.map((cmd) => (
+              <button
+                key={cmd.id}
+                onClick={() => {
+                  setMessage(cmd.label + ' ')
+                  textareaRef.current?.focus()
+                }}
+                className="group flex items-center gap-1.5 px-3 py-1.5 bg-background/50 border border-border/50 hover:border-primary/50 text-xs font-mono text-muted-foreground transition-all hover:text-primary rounded-sm"
+              >
+                <cmd.icon className="h-3 w-3" />
+                {cmd.label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          {/* Image Previews */}
-          {selectedFiles.length > 0 && (
-            <div className="absolute bottom-full left-0 mb-2 w-full flex gap-2 overflow-x-auto px-1 py-2">
-              {selectedFiles.map((file, index) => (
-                <div key={index} className="relative group/preview shrink-0">
-                  <div className="w-16 h-16 rounded-lg border border-border overflow-hidden bg-muted">
+      <div
+        className={cn(
+          'relative transition-all duration-300 ease-out',
+          isFocused ? 'scale-[1.01]' : 'scale-100',
+        )}
+      >
+        {/* Glow effect */}
+        <div
+          className={cn(
+            'absolute -inset-[1px] bg-gradient-to-r from-primary/0 via-primary/30 to-primary/0 rounded-lg opacity-0 transition-opacity duration-500',
+            isFocused && 'opacity-100',
+          )}
+        />
+
+        {/* HUD Container */}
+        <div className="relative bg-black/80 backdrop-blur-xl border border-border/50 rounded-lg shadow-2xl overflow-hidden flex flex-col">
+          {/* File Preview Strip (Horizontal) */}
+          <AnimatePresence>
+            {selectedFiles.length > 0 && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="flex gap-3 p-3 overflow-x-auto bg-muted/20 border-b border-border/30"
+              >
+                {selectedFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    className="relative group shrink-0 w-16 h-16 rounded-sm border border-border overflow-hidden bg-background"
+                  >
                     <img
                       src={URL.createObjectURL(file)}
-                      alt={`Preview ${index}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
                     />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="text-white hover:text-red-400"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => removeFile(index)}
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover/preview:opacity-100 transition-opacity shadow-sm"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Input Container */}
-          <div className="relative flex items-end gap-2 rounded-2xl border border-border/50 bg-card/80 p-2 shadow-lg backdrop-blur">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent h-10 w-10"
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                {quickActions.map((action) => (
-                  <DropdownMenuItem key={action.label} onClick={() => setMessage(action.prompt)}>
-                    <action.icon className={cn('mr-2 h-4 w-4', theme.accentColor)} />
-                    {action.label}
-                  </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleFileUpload}>
-                  <Paperclip className="mr-2 h-4 w-4" />
-                  上传图片
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            {/* Hidden File Input */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              className="hidden"
-              accept="image/*"
-              multiple
-            />
+          {/* Input Area */}
+          <div className="flex items-end gap-2 p-3">
+            {/* Left Actions (Attachment) */}
+            <div className="flex gap-1 pb-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+            </div>
 
             <Textarea
               ref={textareaRef}
               value={message}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               placeholder={
-                placeholder ||
-                (sessionType === 'testcase'
-                  ? '输入 PRD 需求文档，AI 将分阶段生成测试用例...'
-                  : '输入内容，让 AI 助手帮你完成...')
+                placeholder || (sessionType === 'testcase' ? '输入需求文档...' : '输入指令...')
               }
-              className="min-h-[44px] max-h-32 flex-1 resize-none border-0 bg-transparent p-2 text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
+              className="min-h-[24px] max-h-[200px] flex-1 bg-transparent border-0 p-1.5 focus-visible:ring-0 resize-none font-mono text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/40"
               rows={1}
-              style={{ maxHeight: `${MAX_TEXTAREA_HEIGHT}px` }}
             />
 
-            {/* 发送按钮 - 根据模式变化主题色 */}
-            <Button
-              onClick={handleSend}
-              disabled={(!message.trim() && selectedFiles.length === 0) || disabled}
-              size="icon"
-              className={cn(
-                'shrink-0 rounded-xl text-white shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:shadow-none disabled:scale-100 h-10 w-10',
-                theme.buttonClass,
-              )}
-            >
-              <ArrowUp className="h-5 w-5" />
-            </Button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              className="hidden"
+              multiple
+            />
+
+            {/* Send Button */}
+            <div className="pb-0.5">
+              <Button
+                onClick={handleSend}
+                disabled={(!message.trim() && selectedFiles.length === 0) || disabled}
+                size="icon"
+                className={cn(
+                  'h-8 w-8 rounded-sm transition-all',
+                  message.trim() || selectedFiles.length > 0
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_10px_rgba(var(--primary),0.5)]'
+                    : 'bg-muted text-muted-foreground',
+                )}
+              >
+                {disabled ? (
+                  <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Footer hint - 显示当前模式徽章和提示 */}
-        <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <ModelSelector
-              currentModelId={modelId}
-              onModelChange={setModelId}
-              disabled={disabled}
-            />
-            {sessionType === 'normal' && (
-              <ToolSelector
-                tools={AVAILABLE_TOOLS}
-                selectedTools={selectedTools}
-                onToolToggle={handleToolToggle}
+          {/* Footer / Status Bar (Tool Selectors) */}
+          <div className="flex items-center justify-between px-3 py-1.5 bg-muted/20 border-t border-border/30 text-[10px] font-mono text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <ModelSelector
+                currentModelId={modelId}
+                onModelChange={setModelId}
+                disabled={disabled}
               />
-            )}
-            <Badge variant={theme.badgeVariant} size="sm" className="gap-1">
-              <ThemeIcon className="h-3 w-3" />
-              {theme.label}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2">
-            <Sparkles className={cn('h-3 w-3', theme.accentColor)} />
-            <span>{theme.hint}</span>
+
+              <div className="h-3 w-px bg-border/50" />
+
+              {sessionType === 'normal' && (
+                <ToolSelector
+                  tools={AVAILABLE_TOOLS}
+                  selectedTools={selectedTools}
+                  onToolToggle={handleToolToggle}
+                />
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5 opacity-60">
+              <div
+                className={cn(
+                  'h-1.5 w-1.5 rounded-full',
+                  disabled ? 'bg-red-500' : 'bg-emerald-500 animate-pulse',
+                )}
+              />
+              <span>{disabled ? '处理中' : '就绪'}</span>
+            </div>
           </div>
         </div>
       </div>

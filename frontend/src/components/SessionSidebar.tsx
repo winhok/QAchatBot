@@ -39,7 +39,7 @@ import {
 import { useState } from 'react'
 
 function getSessionTitle(session: Session) {
-  return session.name || `会话 ${session.id.slice(0, 8)}`
+  return session.name || `会话::${session.id.slice(0, 8).toUpperCase()}`
 }
 
 export default function SessionSidebar() {
@@ -105,39 +105,40 @@ export default function SessionSidebar() {
   const getTypeIcon = (type?: string) => {
     switch (type) {
       case 'testcase':
-        return <TestTube2 className="h-4 w-4 text-teal-400" />
+        return <TestTube2 className="h-4 w-4 text-primary" />
       case 'normal':
       default:
-        return <MessageSquare className="h-4 w-4 text-emerald-400" />
+        return <MessageSquare className="h-4 w-4 text-primary" />
     }
   }
 
   return (
-    <aside className="w-64 border-r border-border/50 bg-sidebar h-full flex flex-col">
+    <aside className="w-64 border-r border-border/50 bg-sidebar/95 backdrop-blur-md h-full flex flex-col font-mono">
+      {/* Header Area */}
       <div className="flex items-center gap-3 p-4 pb-2">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 blur-lg opacity-50" />
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 shadow-lg">
-            <FlaskConical className="h-5 w-5 text-white" />
+        <div className="relative group">
+          <div className="absolute inset-0 rounded-sm bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-sm bg-primary/10 border border-primary/20 text-primary">
+            <FlaskConical className="h-5 w-5" />
           </div>
         </div>
         <div>
-          <h1 className="text-lg font-bold text-sidebar-foreground">
-            QA<span className="text-emerald-400">Bot</span>
+          <h1 className="text-lg font-bold text-sidebar-foreground tracking-tighter">
+            QA<span className="text-primary">BOT</span>_v1
           </h1>
-          <p className="text-xs text-muted-foreground">智能测试助手</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">系统在线</p>
         </div>
       </div>
 
       <div className="px-3 py-2">
-        <div className="flex items-center gap-2 rounded-lg bg-sidebar-accent/50 px-3 py-2 text-muted-foreground">
+        <div className="flex items-center gap-2 rounded-sm bg-sidebar-accent/50 border border-transparent focus-within:border-primary/50 px-3 py-2 text-muted-foreground transition-colors">
           <Search className="h-4 w-4" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜索会话..."
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            placeholder="搜索记录..."
+            className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground/50 font-mono"
           />
         </div>
       </div>
@@ -145,33 +146,35 @@ export default function SessionSidebar() {
       <div className="px-3 py-2">
         <Button
           onClick={handleNew}
-          className="w-full justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20 transition-all hover:shadow-emerald-500/40 hover:scale-[1.02]"
+          className="w-full justify-center gap-2 rounded-sm bg-primary text-primary-foreground shadow-glow hover:bg-primary/90 transition-all active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
           新建会话
         </Button>
       </div>
 
-      <div className="flex-1 px-3 py-2">
+      <div className="flex-1 px-3 py-2 overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-2 mb-2">
-          <span className="text-xs font-medium text-muted-foreground">历史会话</span>
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            历史索引
+          </span>
           <ChevronRight className="h-3 w-3 text-muted-foreground" />
         </div>
-        <ScrollArea className="h-[calc(100vh-240px)] scrollbar-thin">
+        <ScrollArea className="flex-1 scrollbar-thin">
           <motion.div
             variants={staggerFastContainer}
             initial="hidden"
             animate="visible"
-            className="space-y-1"
+            className="space-y-0.5"
           >
             <AnimatePresence mode="popLayout">
               {filteredSessions.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center py-8 text-muted-foreground text-sm"
+                  className="text-center py-8 text-muted-foreground/40 text-xs"
                 >
-                  {searchQuery ? '未找到匹配的会话' : '暂无会话记录'}
+                  {searchQuery ? '[ 无匹配项 ]' : '[ 空记录 ]'}
                 </motion.div>
               ) : (
                 filteredSessions.map((session) => (
@@ -189,24 +192,26 @@ export default function SessionSidebar() {
                     <motion.button
                       onClick={() => handleSelect(session.id)}
                       whileHover={{ x: 2 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileTap={{ scale: 0.99 }}
                       className={cn(
-                        'flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                        'flex w-full items-center gap-2.5 rounded-sm px-3 py-2.5 text-xs transition-all border-l-2',
                         sessionId === session.id
-                          ? 'bg-linear-to-r from-emerald-600/20 to-teal-600/10 text-sidebar-foreground shadow-sm'
-                          : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground',
+                          ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                          : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-sidebar-accent',
                       )}
                     >
                       {getTypeIcon(session.type)}
-                      <span className="truncate flex-1 text-left">{getSessionTitle(session)}</span>
+                      <span className="truncate flex-1 text-left tracking-tight">
+                        {getSessionTitle(session)}
+                      </span>
                     </motion.button>
 
                     <AnimatePresence>
                       {(hoveredId === session.id || openMenuId === session.id) && (
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
+                          initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
                           transition={{ duration: 0.15 }}
                           className="absolute right-2 top-1/2 -translate-y-1/2"
                         >
@@ -215,24 +220,24 @@ export default function SessionSidebar() {
                             onOpenChange={(open) => setOpenMenuId(open ? session.id : null)}
                           >
                             <DropdownMenuTrigger asChild>
-                              <button className="rounded p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground transition-colors">
-                                <MoreHorizontal className="h-4 w-4" />
+                              <button className="rounded-sm p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-primary transition-colors">
+                                <MoreHorizontal className="h-3 w-3" />
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-32">
+                            <DropdownMenuContent align="end" className="w-32 font-mono">
                               <DropdownMenuItem
                                 onClick={() =>
                                   openRenameModal(session.id, getSessionTitle(session))
                                 }
                               >
-                                <Pencil className="mr-2 h-4 w-4" />
+                                <Pencil className="mr-2 h-3 w-3" />
                                 重命名
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                className="text-destructive"
+                                className="text-destructive focus:text-destructive"
                                 onClick={() => handleDelete(session.id)}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash2 className="mr-2 h-3 w-3" />
                                 删除
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -256,13 +261,14 @@ export default function SessionSidebar() {
       <Dialog open={!!renameId} onOpenChange={closeRenameModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>重命名会话</DialogTitle>
-            <DialogDescription>为当前会话设置一个新名称</DialogDescription>
+            <DialogTitle>重命名会话 ID</DialogTitle>
+            <DialogDescription>输入此会话的新标识符。</DialogDescription>
           </DialogHeader>
           <Input
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
-            placeholder="请输入新名称"
+            placeholder="新名称..."
+            className="font-mono"
             onKeyDown={(e) => e.key === 'Enter' && renameId && handleRename(renameId)}
             autoFocus
           />
@@ -274,7 +280,7 @@ export default function SessionSidebar() {
               onClick={() => renameId && handleRename(renameId)}
               disabled={renameMutation.isPending || !renameValue.trim()}
             >
-              确定
+              确认
             </Button>
           </DialogFooter>
         </DialogContent>

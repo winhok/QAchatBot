@@ -1,3 +1,4 @@
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { SearchDialog } from '@/components/SearchDialog'
 import SessionSidebar from '@/components/SessionSidebar'
 import { CanvasSidebar } from '@/components/canvas/CanvasSidebar'
@@ -47,17 +48,19 @@ function RootComponent() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* 侧边栏 - 支持折叠 */}
-      {!sidebarCollapsed && <SessionSidebar />}
+      {/* 侧边栏 - 支持折叠 (仅在登录后显示) */}
+      <ProtectedRoute>
+        {!sidebarCollapsed && <SessionSidebar />}
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <Outlet />
-      </main>
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <Outlet />
+        </main>
 
-      <CanvasSidebar />
+        <CanvasSidebar />
 
-      {/* 搜索对话框 */}
-      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+        {/* 搜索对话框 */}
+        <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      </ProtectedRoute>
 
       {import.meta.env.DEV && (
         <TanStackDevtools
