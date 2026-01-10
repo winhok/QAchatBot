@@ -62,42 +62,39 @@ export class CanvasArtifactParser {
     }
   }
 
-  private processIdle(messageId: string): boolean {
-    // 查找 <canvasArtifact 开始标签
-    const artifactStartMatch = this.buffer.match(
-      /<canvasArtifact[^>]*id=["']([^"']+)["'][^>]*type=["']([^"']+)["'][^>]*title=["']([^"']+)["'][^>]*>/,
-    )
+  private parseArtifactAttributes(tag: string): { id: string; type: string; title: string } | null {
+    const idMatch = tag.match(/id=["']([^"']+)["']/)
+    const typeMatch = tag.match(/type=["']([^"']+)["']/)
+    const titleMatch = tag.match(/title=["']([^"']+)["']/)
 
-    if (!artifactStartMatch) {
-      // 尝试另一种属性顺序
-      const altMatch = this.buffer.match(
-        /<canvasArtifact[^>]*id=["']([^"']+)["'][^>]*title=["']([^"']+)["'][^>]*type=["']([^"']+)["'][^>]*>/,
-      )
-      if (altMatch) {
-        const [fullMatch, id, title, type] = altMatch
-        this.currentArtifact = { id, type, title, messageId }
+    if (idMatch && typeMatch && titleMatch) {
+      return { id: idMatch[1], type: typeMatch[1], title: titleMatch[1] }
+    }
+    return null
+  }
+
+  private processIdle(messageId: string): boolean {
+    const tagMatch = this.buffer.match(/<canvasArtifact[^>]*>/)
+
+    if (tagMatch) {
+      const attrs = this.parseArtifactAttributes(tagMatch[0])
+      if (attrs) {
+        this.currentArtifact = { ...attrs, messageId }
         this.state = 'in_artifact'
-        this.buffer = this.buffer.slice(this.buffer.indexOf(fullMatch) + fullMatch.length)
+        this.buffer = this.buffer.slice(this.buffer.indexOf(tagMatch[0]) + tagMatch[0].length)
         this.callbacks.onArtifactStart(this.currentArtifact)
         return true
       }
-
-      // 清理已确定不包含开始标签的部分（保留可能的部分标签）
-      const potentialStart = this.buffer.lastIndexOf('<canvas')
-      if (potentialStart > 0) {
-        this.buffer = this.buffer.slice(potentialStart)
-      } else if (this.buffer.length > 500 && !this.buffer.includes('<')) {
-        this.buffer = ''
-      }
-      return false
     }
 
-    const [fullMatch, id, type, title] = artifactStartMatch
-    this.currentArtifact = { id, type, title, messageId }
-    this.state = 'in_artifact'
-    this.buffer = this.buffer.slice(this.buffer.indexOf(fullMatch) + fullMatch.length)
-    this.callbacks.onArtifactStart(this.currentArtifact)
-    return true
+    // Clean up buffer if no potential start tag found
+    const potentialStart = this.buffer.lastIndexOf('<canvas')
+    if (potentialStart > 0) {
+      this.buffer = this.buffer.slice(potentialStart)
+    } else if (this.buffer.length > 500 && !this.buffer.includes('<')) {
+      this.buffer = ''
+    }
+    return false
   }
 
   private processInArtifact(messageId: string): boolean {

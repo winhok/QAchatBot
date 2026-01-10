@@ -1,6 +1,8 @@
-import { SessionType } from '@/types/stores'
 import { motion } from 'framer-motion'
 import { ArrowRight, Bug, FileCode, MessageSquare, TestTube2 } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+import type { SessionType } from '@/types/stores'
 
 export interface FeatureItem {
   icon: typeof MessageSquare
@@ -64,9 +66,10 @@ export function FeatureGrid({ onFeatureClick }: FeatureGridProps) {
             key={feature.title}
             onClick={() => onFeatureClick(feature)}
             disabled={!feature.implemented}
-            className={`group relative overflow-hidden rounded-sm border border-border/40 bg-card/10 p-5 text-left transition-all hover:border-primary/50 hover:bg-card/20 ${
-              !feature.implemented && 'opacity-50 cursor-not-allowed grayscale'
-            }`}
+            className={cn(
+              'group relative overflow-hidden rounded-sm border border-border/40 bg-card/10 p-5 text-left transition-all hover:border-primary/50 hover:bg-card/20',
+              !feature.implemented && 'opacity-50 cursor-not-allowed grayscale',
+            )}
           >
             {/* Hover Decor - Corner Brackets */}
             <div className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-primary/0 group-hover:border-primary/100 transition-colors" />

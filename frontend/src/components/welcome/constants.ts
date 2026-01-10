@@ -45,7 +45,7 @@ export function getRandomIndex(length: number, lastIndex: number | null): number
   return nextIndex
 }
 
-export const getTimeGreeting = () => {
+export function getTimeGreeting(): string {
   const hour = new Date().getHours()
   if (hour >= 5 && hour < 12) return '早上好'
   if (hour >= 12 && hour < 18) return '下午好'

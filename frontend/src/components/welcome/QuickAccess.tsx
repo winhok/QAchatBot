@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { BarChart3, BookOpen, Headphones, HelpCircle, Lightbulb } from 'lucide-react'
 
+import { cn } from '@/lib/utils'
+
 const secondaryFeatures = [
   { icon: BarChart3, label: '测试报告', implemented: false },
   { icon: HelpCircle, label: '操作手册', implemented: false },
@@ -9,7 +11,7 @@ const secondaryFeatures = [
   { icon: Headphones, label: '技术支持', implemented: false },
 ]
 
-export function QuickAccess() {
+export function QuickAccess(): React.ReactElement {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -26,12 +28,10 @@ export function QuickAccess() {
         <button
           key={feature.label}
           disabled={!feature.implemented}
-          className={`
-            group flex items-center gap-2 px-3 py-1.5 
-            border border-transparent hover:border-border/50 rounded-sm
-            text-xs font-mono text-muted-foreground transition-all
-            ${!feature.implemented && 'opacity-40 cursor-not-allowed'}
-          `}
+          className={cn(
+            'group flex items-center gap-2 px-3 py-1.5 border border-transparent hover:border-border/50 rounded-sm text-xs font-mono text-muted-foreground transition-all',
+            !feature.implemented && 'opacity-40 cursor-not-allowed',
+          )}
         >
           <feature.icon className="h-3 w-3 group-hover:text-primary transition-colors" />
           <span className="group-hover:text-foreground transition-colors">{feature.label}</span>

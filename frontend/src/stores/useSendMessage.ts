@@ -213,15 +213,8 @@ export function useSendMessage() {
                   if (isNewSession && finalThreadId) {
                     setSessionId(finalThreadId)
                     window.history.pushState({}, '', `/${finalThreadId}`)
-                    if (!hasUserMessage) {
-                      updateSessionNameMutation.mutate({
-                        id: finalThreadId,
-                        name: textContent,
-                      })
-                      useSession.setState({ hasUserMessage: true })
-                    }
-                    options?.onSessionCreated?.()
-                  } else if (finalThreadId && !hasUserMessage) {
+                  }
+                  if (finalThreadId && !hasUserMessage) {
                     updateSessionNameMutation.mutate({
                       id: finalThreadId,
                       name: textContent,
