@@ -1,6 +1,6 @@
-import { cn } from '@/lib/utils'
 import { CheckCircle, Eye, EyeOff, Loader2, Lock, Mail, Terminal, User } from 'lucide-react'
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
 
 interface AuthFormProps {
   onSuccess?: () => void
@@ -26,21 +26,17 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
-  const isFormValid = () => {
-    if (isLogin) {
-      return email && password
+  function isFormValid(): boolean {
+    if (!email || !password) {
+      return false
     }
-    return (
-      email &&
-      password &&
-      confirmPassword &&
-      name &&
-      password === confirmPassword &&
-      password.length >= 6
-    )
+    if (isLogin) {
+      return true
+    }
+    return Boolean(confirmPassword && name && password === confirmPassword && password.length >= 6)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault()
     setError(null)
     setSuccessMessage(null)
@@ -75,6 +71,12 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  function toggleMode(): void {
+    setIsLogin(!isLogin)
+    setError(null)
+    setSuccessMessage(null)
   }
 
   return (
@@ -234,11 +236,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
             {isLogin ? '未在数据库中索引?' : '已有访问权限?'}
             <button
               type="button"
-              onClick={() => {
-                setIsLogin(!isLogin)
-                setError(null)
-                setSuccessMessage(null)
-              }}
+              onClick={toggleMode}
               className="ml-2 text-primary hover:text-primary/80 transition-colors uppercase tracking-wider relative group/link"
             >
               <span className="relative z-10">{isLogin ? '注册新用户' : '返回登录'}</span>

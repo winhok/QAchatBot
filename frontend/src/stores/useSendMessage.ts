@@ -1,18 +1,18 @@
-import { useUpdateSessionName } from '@/hooks/useSessions'
-import type { ChatMessageContent, ToolCallData } from '@/schemas'
-import type { SendMessageOptions } from '@/types/stores'
-import { CanvasArtifactParser, type CanvasArtifactMetadata } from '@/utils/CanvasArtifactParser'
-import { extractTextContent } from '@/utils/message'
 import { getChatStoreState, useChatStore } from './chat'
 import { useCanvasArtifacts } from './useCanvasArtifacts'
 import { useSession } from './useSession'
+import type { ChatMessageContent, ToolCallData } from '@/schemas'
+import type { SendMessageOptions } from '@/types/stores'
+import type { CanvasArtifactMetadata } from '@/utils/CanvasArtifactParser'
+import { CanvasArtifactParser } from '@/utils/CanvasArtifactParser'
+import { extractTextContent } from '@/utils/message'
+import { useUpdateSessionName } from '@/hooks/useSessions'
 
-// 统一使用 /api/chat 端点
 const API_ENDPOINT = '/api/chat'
 
-// 根据工具名推断工具类型
 function inferToolType(toolName: string): ToolCallData['type'] {
   const name = toolName.toLowerCase()
+
   if (
     name.includes('api') ||
     name.includes('http') ||
@@ -32,6 +32,14 @@ function inferToolType(toolName: string): ToolCallData['type'] {
   return 'script'
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result as string)
+    reader.readAsDataURL(file)
+  })
+}
+
 export function useSendMessage() {
   const updateSessionNameMutation = useUpdateSessionName()
   const abortController = useChatStore((state) => state.abortController)
@@ -40,12 +48,12 @@ export function useSendMessage() {
     getChatStoreState().abortStreaming()
   }
 
-  const sendMessage = async (
+  async function sendMessage(
     input: string,
-    tools?: string[],
-    files?: File[],
+    tools?: Array<string>,
+    files?: Array<File>,
     options?: SendMessageOptions,
-  ) => {
+  ): Promise<void> {
     const {
       sessionId: storeSessionId,
       sessionType,
@@ -79,19 +87,10 @@ export function useSendMessage() {
     let messageContent: ChatMessageContent = input
     if (files && files.length > 0) {
       const imageBlocks = await Promise.all(
-        files.map(async (file) => {
-          const base64 = await new Promise<string>((resolve) => {
-            const reader = new FileReader()
-            reader.onloadend = () => resolve(reader.result as string)
-            reader.readAsDataURL(file)
-          })
-          return {
-            type: 'image_url' as const,
-            image_url: {
-              url: base64,
-            },
-          }
-        }),
+        files.map(async (file) => ({
+          type: 'image_url' as const,
+          image_url: { url: await fileToBase64(file) },
+        })),
       )
       messageContent = [{ type: 'text', text: input }, ...imageBlocks]
     }
@@ -175,10 +174,10 @@ export function useSendMessage() {
                 case 'chunk':
                   if (data.content) {
                     updateMessageContent(assistantMessage.id, data.content)
-                    // Canvas 解析
                     canvasParser.parse(assistantMessage.id, data.content)
                   }
                   break
+
                 case 'tool_start': {
                   const toolCall: ToolCallData = {
                     id: data.tool_call_id,
@@ -190,6 +189,7 @@ export function useSendMessage() {
                   addToolCall(assistantMessage.id, toolCall)
                   break
                 }
+
                 case 'tool_end':
                   updateToolCallStatus(
                     assistantMessage.id,
@@ -199,6 +199,7 @@ export function useSendMessage() {
                     data.duration,
                   )
                   break
+
                 case 'tool_error':
                   updateToolCallStatus(
                     assistantMessage.id,
@@ -208,6 +209,7 @@ export function useSendMessage() {
                     data.duration,
                   )
                   break
+
                 case 'end':
                   finalThreadId = data.session_id
                   if (isNewSession && finalThreadId) {
@@ -224,6 +226,7 @@ export function useSendMessage() {
                   }
                   finishStreaming(assistantMessage.id)
                   break
+
                 case 'error':
                   throw new Error(data.message || 'Server error')
               }

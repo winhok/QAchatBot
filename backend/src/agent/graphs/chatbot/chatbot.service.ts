@@ -77,40 +77,37 @@ export class ChatbotService implements OnModuleInit {
   }
 
   /**
-   * 构建增强的系统提示（包含分层记忆）
+   * Build enhanced system prompt with layered memory
    */
   private buildEnhancedSystemPrompt(memory: MergedMemory): string {
     const parts: string[] = [this.getBaseSystemPrompt()]
 
-    // 添加用户偏好
-    if (Object.keys(memory.prefs).length > 0) {
+    const hasEntries = (obj: Record<string, unknown>) => Object.keys(obj).length > 0
+
+    // User preferences
+    if (hasEntries(memory.prefs)) {
       parts.push('\n## 用户偏好')
-      for (const [k, v] of Object.entries(memory.prefs)) {
-        parts.push(`- ${k}: ${JSON.stringify(v)}`)
-      }
+      parts.push(...Object.entries(memory.prefs).map(([k, v]) => `- ${k}: ${JSON.stringify(v)}`))
     }
 
-    // 添加行为规则
+    // Behavior rules
     if (memory.rules.length > 0) {
       parts.push('\n## 行为规则')
-      memory.rules.forEach((r) => parts.push(`- ${r}`))
+      parts.push(...memory.rules.map((r) => `- ${r}`))
     }
 
-    // 添加项目上下文
-    if (Object.keys(memory.context).length > 0) {
-      parts.push('\n## 项目上下文')
-      parts.push(JSON.stringify(memory.context, null, 2))
+    // Project context
+    if (hasEntries(memory.context)) {
+      parts.push('\n## 项目上下文', JSON.stringify(memory.context, null, 2))
     }
 
-    // 添加知识库
-    if (Object.keys(memory.knowledge).length > 0) {
-      parts.push('\n## 领域知识')
-      parts.push(JSON.stringify(memory.knowledge, null, 2))
+    // Domain knowledge
+    if (hasEntries(memory.knowledge)) {
+      parts.push('\n## 领域知识', JSON.stringify(memory.knowledge, null, 2))
     }
 
-    // 添加 Canvas 系统提示
-    const artifactId = generateArtifactId()
-    parts.push(getCanvasSystemPrompt(artifactId))
+    // Canvas system prompt
+    parts.push(getCanvasSystemPrompt(generateArtifactId()))
 
     return parts.join('\n')
   }

@@ -53,12 +53,12 @@ export class CanvasArtifactParser {
     switch (this.state) {
       case 'idle':
         return this.processIdle(messageId)
+
       case 'in_artifact':
         return this.processInArtifact(messageId)
+
       case 'in_code':
         return this.processInCode(messageId)
-      default:
-        return false
     }
   }
 

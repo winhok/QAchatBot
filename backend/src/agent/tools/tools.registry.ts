@@ -41,11 +41,8 @@ export class ToolsRegistry implements OnModuleInit {
   /** MCP 工具缓存 */
   private mcpToolsCache: DynamicStructuredTool[] | null = null
 
-  /** 所有工具缓存（合并后） */
+  /** All tools merged cache */
   private allToolsCache: StructuredToolInterface[] | null = null
-
-  /** 预加载完成标志 */
-  private preloaded = false
 
   async onModuleInit() {
     await this.preloadTools()
@@ -68,7 +65,6 @@ export class ToolsRegistry implements OnModuleInit {
     // 3. 预加载 MCP 工具
     await this.preloadMCPTools()
 
-    this.preloaded = true
     console.log('[ToolsRegistry] Preloading complete')
   }
 
@@ -208,46 +204,31 @@ export class ToolsRegistry implements OnModuleInit {
   }
 
   /**
-   * 获取所有启用的工具
+   * Get all enabled tools
    */
   getAllTools(): StructuredToolInterface[] {
     if (this.allToolsCache) return this.allToolsCache
 
-    const tools: StructuredToolInterface[] = []
+    const getEnabledFromCache = (cache: Map<string, StructuredToolInterface>) =>
+      Array.from(cache.entries())
+        .filter(([id]) => this.enabledTools.has(id))
+        .map(([, tool]) => tool)
 
-    // 添加自定义工具
-    for (const [id, tool] of this.customToolsCache) {
-      if (this.enabledTools.has(id)) {
-        tools.push(tool)
-      }
-    }
-
-    // 添加 LangChain 工具
-    for (const [id, tool] of this.langChainToolsCache) {
-      if (this.enabledTools.has(id)) {
-        tools.push(tool)
-      }
-    }
-
-    // 添加 MCP 工具
-    if (this.mcpToolsCache) {
-      tools.push(...this.mcpToolsCache)
-    }
+    const tools: StructuredToolInterface[] = [
+      ...getEnabledFromCache(this.customToolsCache),
+      ...getEnabledFromCache(this.langChainToolsCache),
+      ...(this.mcpToolsCache ?? []),
+    ]
 
     this.allToolsCache = tools
     return tools
   }
 
   /**
-   * 获取工具映射
+   * Get tools as a name-indexed map
    */
   getToolsMap(): Record<string, StructuredToolInterface> {
-    const tools = this.getAllTools()
-    const map: Record<string, StructuredToolInterface> = {}
-    for (const t of tools) {
-      map[t.name] = t
-    }
-    return map
+    return Object.fromEntries(this.getAllTools().map((t) => [t.name, t]))
   }
 
   /**

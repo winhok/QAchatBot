@@ -32,31 +32,28 @@ export class ChatService {
   }
 
   /**
-   * 从消息内容中提取会话名称
-   * 支持字符串、多模态数组、对象格式
+   * Extract session name from message content
+   * Supports string and multimodal array formats
    */
   extractSessionName(message: ChatMessageContent): string {
     const MAX_LENGTH = 50
+    const DEFAULT_NAME = '新会话'
+
+    const truncate = (text: string): string => {
+      const trimmed = text.trim()
+      return trimmed.length > MAX_LENGTH ? trimmed.slice(0, MAX_LENGTH) + '...' : trimmed
+    }
 
     if (typeof message === 'string') {
-      const name = message.trim()
-      return name.length > MAX_LENGTH ? name.slice(0, MAX_LENGTH) + '...' : name
+      return truncate(message)
     }
 
-    if (Array.isArray(message)) {
-      // 从多模态内容中提取第一个文本块
-      const textBlock = message.find(
-        (block): block is { type: 'text'; text: string } => block.type === 'text',
-      )
-      if (textBlock) {
-        const name = textBlock.text.trim()
-        return name.length > MAX_LENGTH ? name.slice(0, MAX_LENGTH) + '...' : name
-      }
-      return '新会话'
-    }
+    // Extract first text block from multimodal content
+    const textBlock = message.find(
+      (block): block is { type: 'text'; text: string } => block.type === 'text',
+    )
 
-    // 对象格式 fallback
-    return '新会话'
+    return textBlock ? truncate(textBlock.text) : DEFAULT_NAME
   }
 
   async streamChat(params: StreamChatParams) {

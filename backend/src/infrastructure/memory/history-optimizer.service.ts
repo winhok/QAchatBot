@@ -23,7 +23,18 @@ export class HistoryOptimizerService {
   }
 
   /**
-   * 裁剪历史记录，保留最近的消息
+   * Convert message content to string representation
+   */
+  private getContentString(content: unknown): string {
+    if (typeof content === 'string') return content
+    if (Array.isArray(content)) {
+      return content.map((c) => (typeof c === 'string' ? c : JSON.stringify(c))).join(' ')
+    }
+    return JSON.stringify(content)
+  }
+
+  /**
+   * Trim history, keeping recent and important messages
    */
   trim(messages: BaseMessage[], keepLatest = 20): BaseMessage[] {
     if (messages.length <= keepLatest) return messages
@@ -31,6 +42,7 @@ export class HistoryOptimizerService {
     const important = messages.filter((m) => (m as MessageWithMeta).important)
     const recent = messages.slice(-keepLatest)
 
+    // Deduplicate while preserving order
     const seen = new Set<BaseMessage>()
     return [...important, ...recent].filter((m) => {
       if (seen.has(m)) return false
@@ -40,7 +52,7 @@ export class HistoryOptimizerService {
   }
 
   /**
-   * 将长对话历史压缩为摘要
+   * Compress long conversation history into a summary
    */
   async summarize(messages: BaseMessage[]): Promise<BaseMessage[]> {
     if (messages.length < this.summaryThreshold) return messages
@@ -48,17 +60,9 @@ export class HistoryOptimizerService {
     const older = messages.slice(0, -20)
     const recent = messages.slice(-20)
 
-    const getContentString = (content: unknown): string => {
-      if (typeof content === 'string') return content
-      if (Array.isArray(content)) {
-        return content.map((c) => (typeof c === 'string' ? c : JSON.stringify(c))).join(' ')
-      }
-      return JSON.stringify(content)
-    }
-
     const olderText = older
       .filter((m) => m._getType() !== 'system')
-      .map((m) => `${m._getType()}: ${getContentString(m.content)}`)
+      .map((m) => `${m._getType()}: ${this.getContentString(m.content)}`)
       .join('\n')
 
     try {
@@ -67,7 +71,7 @@ export class HistoryOptimizerService {
         new HumanMessage(olderText),
       ])
 
-      const responseContent = getContentString(response.content)
+      const responseContent = this.getContentString(response.content)
       const summaryMsg = new SystemMessage(
         `[历史摘要 - 共${older.length}条消息]\n${responseContent}`,
       )
@@ -75,7 +79,6 @@ export class HistoryOptimizerService {
       return [summaryMsg, ...recent]
     } catch (error) {
       console.error('[HistoryOptimizerService] Summarize failed:', error)
-      // 如果摘要失败，回退到简单裁剪
       return this.trim(messages, this.maxLength)
     }
   }

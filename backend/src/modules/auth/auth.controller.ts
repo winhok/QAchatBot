@@ -45,14 +45,14 @@ export class AuthController {
     }
 
     // Set httpOnly cookie
-    res.cookie(COOKIE_NAME, result.session!.access_token, COOKIE_OPTIONS)
+    res.cookie(COOKIE_NAME, result.session.access_token, COOKIE_OPTIONS)
 
     return {
       success: true,
       user: {
-        id: result.user!.id,
-        email: result.user!.email,
-        name: result.user!.user_metadata?.name || result.user!.email,
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.user_metadata?.name || result.user.email,
       },
     }
   }
