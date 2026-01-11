@@ -16,7 +16,7 @@ export function useAuth() {
 
   const fetchUser = useCallback(async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/auth/me`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/auth/me`, {
         credentials: 'include',
       })
       const data = await response.json()
@@ -39,7 +39,7 @@ export function useAuth() {
 
   const signOut = useCallback(async () => {
     try {
-      await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/auth/signout`, {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/auth/signout`, {
         method: 'POST',
         credentials: 'include',
       })
