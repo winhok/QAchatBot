@@ -42,13 +42,25 @@ export class AuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
-    const authHeader = request.headers.authorization
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or invalid Authorization header')
+    // 1. 优先从 Authorization Header 获取 token
+    let token: string | undefined
+    const authHeader = request.headers.authorization
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.substring(7)
     }
 
-    const token = authHeader.substring(7) // Remove "Bearer " prefix
+    // 2. 回退到 Cookie (sb-access-token)
+    if (!token) {
+      const cookies = request.cookies as Record<string, string | undefined> | undefined
+      token = cookies?.['sb-access-token']
+    }
+
+    if (!token) {
+      throw new UnauthorizedException('Missing authentication')
+    }
+
+    // 3. 验证 token
     const user = await this.authService.verifyToken(token)
 
     if (!user) {

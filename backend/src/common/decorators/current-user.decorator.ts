@@ -1,5 +1,10 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common'
 import type { User } from '@supabase/supabase-js'
+import type { Request } from 'express'
+
+interface AuthenticatedRequest extends Request {
+  user?: User
+}
 
 /**
  * 从请求中提取当前登录用户
@@ -20,8 +25,8 @@ import type { User } from '@supabase/supabase-js'
  */
 export const CurrentUser = createParamDecorator(
   (data: keyof User | undefined, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest()
-    const user = request.user as User | undefined
+    const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>()
+    const user = request.user
 
     return data ? user?.[data] : user
   },
