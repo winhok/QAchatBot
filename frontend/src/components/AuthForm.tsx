@@ -43,7 +43,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     setLoading(true)
 
     try {
-      const endpoint = isLogin ? '/auth/signin' : '/auth/signup'
+      const endpoint = isLogin ? '/api/auth/signin' : '/api/auth/signup'
       const body = isLogin ? { email, password } : { email, password, name }
 
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}${endpoint}`, {
