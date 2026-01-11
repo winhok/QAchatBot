@@ -9,6 +9,7 @@ import { MessagesService } from '../messages/messages.service'
 import { SessionsService } from '../sessions/sessions.service'
 
 interface StreamChatParams {
+  userId: string
   message: ChatMessageContent
   sessionId: string
   modelId: string
@@ -76,13 +77,13 @@ export class ChatService {
   }
 
   async streamChat(params: StreamChatParams) {
-    const { message, sessionId, modelId, sessionType, res, isAborted, tools } = params
+    const { userId, message, sessionId, modelId, sessionType, res, isAborted, tools } = params
 
     // Ensure session exists, and auto-name if new
-    const session = await this.sessions.findOrCreate(sessionId, sessionType)
+    const session = await this.sessions.findOrCreate(userId, sessionId, sessionType)
     if (!session.name) {
       const autoName = this.extractSessionName(message)
-      await this.sessions.update(sessionId, { name: autoName })
+      await this.sessions.update(userId, sessionId, { name: autoName })
     }
 
     // Save user message

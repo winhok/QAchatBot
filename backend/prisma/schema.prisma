@@ -8,7 +8,7 @@ datasource db {
 
 model Folder {
   id          String    @id @default(cuid())
-  userId      String?   @map("user_id")
+  userId      String    @map("user_id")
   name        String
   icon        String?
   color       String?
@@ -21,11 +21,13 @@ model Folder {
   memories    Memory[]
 
   @@index([userId])
+  @@index([userId, isDefault])
   @@map("folders")
 }
 
 model Session {
   id            String   @id @default(cuid())
+  userId        String   @map("user_id")
   folderId      String?  @map("folder_id")
   folder        Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
   name          String?
@@ -37,13 +39,16 @@ model Session {
 
   messages Message[]
 
+  @@index([userId])
+  @@index([userId, status])
   @@index([folderId])
+  @@index([status])
   @@map("sessions")
 }
 
 model Memory {
   id        String    @id @default(cuid())
-  userId    String?   @map("user_id")
+  userId    String    @map("user_id")
   folderId  String?   @map("folder_id")
   folder    Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
   scope     String    @default("folder")
@@ -56,6 +61,7 @@ model Memory {
   updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@unique([userId, folderId, scope, category, key])
+  @@index([userId])
   @@index([userId, scope])
   @@index([folderId])
   @@index([expiresAt])
@@ -68,14 +74,16 @@ model Message {
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   seq       Int
   role      String
-  content   String?
+  content   String?  @db.Text
   metadata  Json     @default("{}")
   createdAt DateTime @default(now()) @map("created_at")
 
   toolCalls ToolCall[]
 
   @@unique([sessionId, seq])
+  @@index([sessionId])
   @@index([sessionId, seq])
+  @@index([role])
   @@map("messages")
 }
 
@@ -101,12 +109,15 @@ model ToolCall {
 
 model Document {
   id         String   @id @default(cuid())
+  userId     String   @map("user_id")
   collection String   @default("default")
   content    String   @db.Text
   metadata   Json     @default("{}")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
+  @@index([userId])
+  @@index([userId, collection])
   @@index([collection])
   @@map("documents")
 }

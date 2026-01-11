@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino'
+import { PinoLogger } from 'nestjs-pino'
 
 /**
  * Supabase 认证服务
@@ -16,9 +16,10 @@ export class AuthService implements OnModuleInit {
 
   constructor(
     private readonly config: ConfigService,
-    @InjectPinoLogger(AuthService.name)
     private readonly logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(AuthService.name)
+  }
 
   onModuleInit() {
     const supabaseUrl = this.config.get<string>('SUPABASE_URL')

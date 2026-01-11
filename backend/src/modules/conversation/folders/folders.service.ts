@@ -11,21 +11,25 @@ export class FoldersService {
     private logger: LoggerService,
   ) {}
 
-  async create(data: {
-    name: string
-    userId?: string
-    icon?: string
-    color?: string
-    description?: string
-  }) {
-    const result = await this.prisma.folder.create({ data })
+  async create(
+    userId: string,
+    data: {
+      name: string
+      icon?: string
+      color?: string
+      description?: string
+    },
+  ) {
+    const result = await this.prisma.folder.create({
+      data: { ...data, userId },
+    })
     this.logger.logQueryResult(this.className, 'create', result)
     return result
   }
 
-  async findAll(userId?: string) {
+  async findAll(userId: string) {
     const result = await this.prisma.folder.findMany({
-      where: userId ? { userId } : {},
+      where: { userId },
       include: {
         sessions: {
           where: { status: { not: 'deleted' } },
@@ -41,9 +45,9 @@ export class FoldersService {
     return result
   }
 
-  async findOne(id: string) {
-    const folder = await this.prisma.folder.findUnique({
-      where: { id },
+  async findOne(userId: string, id: string) {
+    const folder = await this.prisma.folder.findFirst({
+      where: { id, userId },
       include: {
         sessions: {
           where: { status: { not: 'deleted' } },
@@ -57,9 +61,9 @@ export class FoldersService {
     return folder
   }
 
-  async getOrCreateDefault(userId?: string) {
+  async getOrCreateDefault(userId: string) {
     const existing = await this.prisma.folder.findFirst({
-      where: { userId: userId ?? null, isDefault: true },
+      where: { userId, isDefault: true },
     })
     if (existing) return existing
 
@@ -71,6 +75,7 @@ export class FoldersService {
   }
 
   async update(
+    userId: string,
     id: string,
     data: {
       name?: string
@@ -79,22 +84,26 @@ export class FoldersService {
       description?: string
     },
   ) {
+    const folder = await this.prisma.folder.findFirst({ where: { id, userId } })
+    if (!folder) throw new NotFoundException('Folder not found')
+
     const result = await this.prisma.folder.update({ where: { id }, data })
     this.logger.logQueryResult(this.className, 'update', result)
     return result
   }
 
-  async delete(id: string) {
-    const folder = await this.prisma.folder.findUnique({ where: { id } })
-    if (folder?.isDefault) {
+  async delete(userId: string, id: string) {
+    const folder = await this.prisma.folder.findFirst({ where: { id, userId } })
+    if (!folder) throw new NotFoundException('Folder not found')
+    if (folder.isDefault) {
       throw new Error('Cannot delete default folder')
     }
 
     // 将该文件夹下的会话移到默认文件夹
-    const defaultFolder = await this.getOrCreateDefault(folder?.userId ?? undefined)
+    const defaultFolder = await this.getOrCreateDefault(userId)
 
     await this.prisma.session.updateMany({
-      where: { folderId: id },
+      where: { folderId: id, userId },
       data: { folderId: defaultFolder.id },
     })
 
@@ -103,7 +112,10 @@ export class FoldersService {
     return result
   }
 
-  async moveSession(sessionId: string, folderId: string | null) {
+  async moveSession(userId: string, sessionId: string, folderId: string | null) {
+    const session = await this.prisma.session.findFirst({ where: { id: sessionId, userId } })
+    if (!session) throw new NotFoundException('Session not found')
+
     const result = await this.prisma.session.update({
       where: { id: sessionId },
       data: { folderId },
@@ -112,9 +124,9 @@ export class FoldersService {
     return result
   }
 
-  async moveSessions(sessionIds: string[], folderId: string) {
+  async moveSessions(userId: string, sessionIds: string[], folderId: string) {
     const result = await this.prisma.session.updateMany({
-      where: { id: { in: sessionIds } },
+      where: { id: { in: sessionIds }, userId },
       data: { folderId },
     })
     this.logger.logQueryResult(this.className, 'moveSessions', result)
@@ -123,9 +135,12 @@ export class FoldersService {
 
   // ========== 记忆管理 ==========
 
-  async getMemories(folderId: string) {
+  async getMemories(userId: string, folderId: string) {
+    const folder = await this.prisma.folder.findFirst({ where: { id: folderId, userId } })
+    if (!folder) throw new NotFoundException('Folder not found')
+
     const result = await this.prisma.memory.findMany({
-      where: { folderId, scope: 'folder' },
+      where: { folderId, userId, scope: 'folder' },
       orderBy: [{ category: 'asc' }, { priority: 'desc' }],
     })
     this.logger.logQueryResult(this.className, 'getMemories', result)
@@ -133,6 +148,7 @@ export class FoldersService {
   }
 
   async addMemory(
+    userId: string,
     folderId: string,
     data: {
       category: string
@@ -141,10 +157,13 @@ export class FoldersService {
       priority?: number
     },
   ) {
+    const folder = await this.prisma.folder.findFirst({ where: { id: folderId, userId } })
+    if (!folder) throw new NotFoundException('Folder not found')
+
     const result = await this.prisma.memory.upsert({
       where: {
         userId_folderId_scope_category_key: {
-          userId: '',
+          userId,
           folderId,
           scope: 'folder',
           category: data.category,
@@ -153,6 +172,7 @@ export class FoldersService {
       },
       update: { value: data.value as object, priority: data.priority ?? 0 },
       create: {
+        userId,
         folderId,
         scope: 'folder',
         category: data.category,
@@ -165,9 +185,12 @@ export class FoldersService {
     return result
   }
 
-  async deleteMemory(folderId: string, key: string) {
+  async deleteMemory(userId: string, folderId: string, key: string) {
+    const folder = await this.prisma.folder.findFirst({ where: { id: folderId, userId } })
+    if (!folder) throw new NotFoundException('Folder not found')
+
     const result = await this.prisma.memory.deleteMany({
-      where: { folderId, scope: 'folder', key },
+      where: { folderId, userId, scope: 'folder', key },
     })
     this.logger.logQueryResult(this.className, 'deleteMemory', result)
     return result

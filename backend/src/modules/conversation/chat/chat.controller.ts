@@ -1,3 +1,4 @@
+import { CurrentUser } from '@/common/decorators/current-user.decorator'
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe'
 import { ChatRequestSchema, type ChatRequest } from '@/shared/schemas/requests'
 import { BadRequestException, Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common'
@@ -14,7 +15,11 @@ export class ChatController {
   ) {}
 
   @Get()
-  async getHistory(@Query('session_id') sessionId?: string, @Query('model_id') modelId?: string) {
+  async getHistory(
+    @CurrentUser('id') userId: string,
+    @Query('session_id') sessionId?: string,
+    @Query('model_id') modelId?: string,
+  ) {
     if (!sessionId) {
       return {
         message: 'LangGraph chat api is running',
@@ -26,8 +31,8 @@ export class ChatController {
       }
     }
 
-    // Validate session exists
-    const session = await this.sessionsService.findOne(sessionId)
+    // Validate session exists and belongs to user
+    const session = await this.sessionsService.findOne(userId, sessionId)
     if (!session) {
       throw new BadRequestException('Session not found')
     }
@@ -38,6 +43,7 @@ export class ChatController {
 
   @Post()
   async chat(
+    @CurrentUser('id') userId: string,
     @Body(new ZodValidationPipe(ChatRequestSchema)) dto: ChatRequest,
     @Res() res: Response,
     @Req() req: Request,
@@ -63,6 +69,7 @@ export class ChatController {
 
     try {
       await this.chatService.streamChat({
+        userId,
         message: dto.message,
         sessionId,
         modelId,

@@ -22,6 +22,7 @@ export class DocumentService {
    * 添加单个文档
    */
   async addDocument(
+    userId: string,
     content: string,
     metadata: Record<string, unknown> = {},
     collection: string = 'default',
@@ -32,6 +33,7 @@ export class DocumentService {
     await this.prisma.document.create({
       data: {
         id,
+        userId,
         content,
         metadata: metadata as Prisma.InputJsonValue,
         collection,
@@ -54,6 +56,7 @@ export class DocumentService {
    * 批量添加文档
    */
   async addDocuments(
+    userId: string,
     docs: { content: string; metadata?: Record<string, unknown> }[],
     collection: string = 'default',
   ): Promise<string[]> {
@@ -63,6 +66,7 @@ export class DocumentService {
     await this.prisma.document.createMany({
       data: docs.map((doc, index) => ({
         id: ids[index],
+        userId,
         content: doc.content,
         metadata: (doc.metadata || {}) as Prisma.InputJsonValue,
         collection,
@@ -91,8 +95,8 @@ export class DocumentService {
   /**
    * 删除文档
    */
-  async deleteDocument(id: string): Promise<void> {
-    const doc = await this.prisma.document.findUnique({ where: { id } })
+  async deleteDocument(userId: string, id: string): Promise<void> {
+    const doc = await this.prisma.document.findFirst({ where: { id, userId } })
     if (!doc) {
       throw new Error(`Document ${id} not found`)
     }
@@ -109,16 +113,16 @@ export class DocumentService {
   /**
    * 获取文档
    */
-  async getDocument(id: string) {
-    return this.prisma.document.findUnique({ where: { id } })
+  async getDocument(userId: string, id: string) {
+    return this.prisma.document.findFirst({ where: { id, userId } })
   }
 
   /**
    * 列出指定 collection 的所有文档
    */
-  async listDocuments(collection?: string) {
+  async listDocuments(userId: string, collection?: string) {
     return this.prisma.document.findMany({
-      where: collection ? { collection } : undefined,
+      where: { userId, ...(collection ? { collection } : {}) },
       orderBy: { createdAt: 'desc' },
     })
   }
@@ -126,10 +130,11 @@ export class DocumentService {
   /**
    * 获取文档统计信息
    */
-  async getStats() {
-    const total = await this.prisma.document.count()
+  async getStats(userId: string) {
+    const total = await this.prisma.document.count({ where: { userId } })
     const byCollection = await this.prisma.document.groupBy({
       by: ['collection'],
+      where: { userId },
       _count: true,
     })
 

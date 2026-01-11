@@ -47,6 +47,7 @@ export class MemoryStoreService {
   }
 
   async putFolder<T>(
+    userId: string,
     folderId: string,
     category: MemoryCategory,
     key: string,
@@ -56,7 +57,7 @@ export class MemoryStoreService {
     return this.prisma.memory.upsert({
       where: {
         userId_folderId_scope_category_key: {
-          userId: '',
+          userId,
           folderId,
           scope: 'folder',
           category,
@@ -65,6 +66,7 @@ export class MemoryStoreService {
       },
       update: { value: value as object, priority },
       create: {
+        userId,
         folderId,
         scope: 'folder',
         category,
@@ -171,30 +173,30 @@ export class MemoryStoreService {
 
   // ========== 便捷方法 ==========
 
-  async addFolderRule(folderId: string, rule: string) {
+  async addFolderRule(userId: string, folderId: string, rule: string) {
     const key = 'custom_rules'
     const existing = await this.prisma.memory.findFirst({
-      where: { folderId, scope: 'folder', category: 'rules', key },
+      where: { userId, folderId, scope: 'folder', category: 'rules', key },
     })
     const rules: string[] = existing ? (existing.value as string[]) : []
     if (!rules.includes(rule)) {
       rules.push(rule)
     }
-    await this.putFolder(folderId, 'rules', key, rules)
+    await this.putFolder(userId, folderId, 'rules', key, rules)
   }
 
-  async removeFolderRule(folderId: string, rule: string) {
+  async removeFolderRule(userId: string, folderId: string, rule: string) {
     const key = 'custom_rules'
     const existing = await this.prisma.memory.findFirst({
-      where: { folderId, scope: 'folder', category: 'rules', key },
+      where: { userId, folderId, scope: 'folder', category: 'rules', key },
     })
     if (!existing) return
     const rules = (existing.value as string[]).filter((r) => r !== rule)
-    await this.putFolder(folderId, 'rules', key, rules)
+    await this.putFolder(userId, folderId, 'rules', key, rules)
   }
 
-  async setFolderContext(folderId: string, key: string, value: unknown) {
-    await this.putFolder(folderId, 'context', key, value)
+  async setFolderContext(userId: string, folderId: string, key: string, value: unknown) {
+    await this.putFolder(userId, folderId, 'context', key, value)
   }
 
   async setGlobalPref(userId: string, key: string, value: unknown) {

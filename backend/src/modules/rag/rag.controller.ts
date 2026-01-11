@@ -1,3 +1,4 @@
+import { CurrentUser } from '@/common/decorators/current-user.decorator'
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe'
 import {
   Body,
@@ -30,9 +31,15 @@ export class RagController {
    */
   @Post('documents')
   async addDocument(
+    @CurrentUser('id') userId: string,
     @Body(new ZodValidationPipe(AddDocumentSchema)) dto: AddDocumentDto,
   ): Promise<{ id: string }> {
-    const id = await this.documentService.addDocument(dto.content, dto.metadata, dto.collection)
+    const id = await this.documentService.addDocument(
+      userId,
+      dto.content,
+      dto.metadata,
+      dto.collection,
+    )
     return { id }
   }
 
@@ -41,9 +48,10 @@ export class RagController {
    */
   @Post('documents/batch')
   async addDocuments(
+    @CurrentUser('id') userId: string,
     @Body(new ZodValidationPipe(AddDocumentsSchema)) dto: AddDocumentsDto,
   ): Promise<{ ids: string[] }> {
-    const ids = await this.documentService.addDocuments(dto.documents, dto.collection)
+    const ids = await this.documentService.addDocuments(userId, dto.documents, dto.collection)
     return { ids }
   }
 
@@ -52,32 +60,32 @@ export class RagController {
    */
   @Delete('documents/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteDocument(@Param('id') id: string): Promise<void> {
-    await this.documentService.deleteDocument(id)
+  async deleteDocument(@CurrentUser('id') userId: string, @Param('id') id: string): Promise<void> {
+    await this.documentService.deleteDocument(userId, id)
   }
 
   /**
    * 获取文档
    */
   @Get('documents/:id')
-  async getDocument(@Param('id') id: string) {
-    return this.documentService.getDocument(id)
+  async getDocument(@CurrentUser('id') userId: string, @Param('id') id: string) {
+    return this.documentService.getDocument(userId, id)
   }
 
   /**
    * 列出文档
    */
   @Get('documents')
-  async listDocuments(@Query('collection') collection?: string) {
-    return this.documentService.listDocuments(collection)
+  async listDocuments(@CurrentUser('id') userId: string, @Query('collection') collection?: string) {
+    return this.documentService.listDocuments(userId, collection)
   }
 
   /**
    * 获取文档统计
    */
   @Get('stats')
-  async getStats() {
-    return this.documentService.getStats()
+  async getStats(@CurrentUser('id') userId: string) {
+    return this.documentService.getStats(userId)
   }
 
   /**

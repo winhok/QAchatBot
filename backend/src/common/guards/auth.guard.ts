@@ -4,7 +4,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { Reflector } from '@nestjs/core'
 import type { User } from '@supabase/supabase-js'
 import type { Request } from 'express'
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino'
+import { PinoLogger } from 'nestjs-pino'
 
 /**
  * Extended Express Request with auth properties
@@ -25,9 +25,10 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly authService: AuthService,
     private readonly reflector: Reflector,
-    @InjectPinoLogger(AuthGuard.name)
     private readonly logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(AuthGuard.name)
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // 检查是否标记为公开路由

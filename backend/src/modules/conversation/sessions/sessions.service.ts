@@ -13,9 +13,10 @@ export class SessionsService {
     private logger: LoggerService,
   ) {}
 
-  async create(dto: CreateSessionRequest) {
+  async create(userId: string, dto: CreateSessionRequest) {
     const result = await this.prisma.session.create({
       data: {
+        userId,
         ...(dto.id && { id: dto.id }),
         name: dto.name ?? '',
         type: dto.type,
@@ -26,21 +27,24 @@ export class SessionsService {
     return result
   }
 
-  async findOrCreate(id: string, type: SessionType = 'normal') {
-    const existing = await this.prisma.session.findUnique({ where: { id } })
+  async findOrCreate(userId: string, id: string, type: SessionType = 'normal') {
+    const existing = await this.prisma.session.findFirst({ where: { id, userId } })
     this.logger.logQueryResult(this.className, 'findOrCreate.find', existing)
     if (existing) return existing
 
     const result = await this.prisma.session.create({
-      data: { id, type },
+      data: { id, userId, type },
     })
     this.logger.logQueryResult(this.className, 'findOrCreate.create', result)
     return result
   }
 
-  async findAll(status?: SessionStatus) {
+  async findAll(userId: string, status?: SessionStatus) {
     const result = await this.prisma.session.findMany({
-      where: status ? { status } : { status: { not: 'deleted' } },
+      where: {
+        userId,
+        status: status ?? { not: 'deleted' },
+      },
       orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
       include: {
         folder: {
@@ -57,9 +61,10 @@ export class SessionsService {
     return result
   }
 
-  async findByType(type: SessionType, status?: SessionStatus) {
+  async findByType(userId: string, type: SessionType, status?: SessionStatus) {
     const result = await this.prisma.session.findMany({
       where: {
+        userId,
         type,
         status: status ?? { not: 'deleted' },
       },
@@ -79,9 +84,9 @@ export class SessionsService {
     return result
   }
 
-  async findOne(id: string) {
-    const result = await this.prisma.session.findUnique({
-      where: { id },
+  async findOne(userId: string, id: string) {
+    const result = await this.prisma.session.findFirst({
+      where: { id, userId },
       include: {
         folder: {
           select: { id: true, name: true, icon: true, color: true },
@@ -100,7 +105,10 @@ export class SessionsService {
     return result
   }
 
-  async update(id: string, dto: Omit<UpdateSessionRequest, 'id'>) {
+  async update(userId: string, id: string, dto: Omit<UpdateSessionRequest, 'id'>) {
+    const session = await this.prisma.session.findFirst({ where: { id, userId } })
+    if (!session) return null
+
     const result = await this.prisma.session.update({
       where: { id },
       data: {
@@ -113,7 +121,10 @@ export class SessionsService {
     return result
   }
 
-  async archive(id: string) {
+  async archive(userId: string, id: string) {
+    const session = await this.prisma.session.findFirst({ where: { id, userId } })
+    if (!session) return null
+
     const result = await this.prisma.session.update({
       where: { id },
       data: { status: 'archived' },
@@ -122,7 +133,10 @@ export class SessionsService {
     return result
   }
 
-  async remove(id: string) {
+  async remove(userId: string, id: string) {
+    const session = await this.prisma.session.findFirst({ where: { id, userId } })
+    if (!session) return null
+
     const result = await this.prisma.session.update({
       where: { id },
       data: { status: 'deleted' },
@@ -131,7 +145,10 @@ export class SessionsService {
     return result
   }
 
-  async hardDelete(id: string) {
+  async hardDelete(userId: string, id: string) {
+    const session = await this.prisma.session.findFirst({ where: { id, userId } })
+    if (!session) return null
+
     const result = await this.prisma.session.delete({
       where: { id },
     })
@@ -139,7 +156,10 @@ export class SessionsService {
     return result
   }
 
-  async updateLastMessageAt(id: string) {
+  async updateLastMessageAt(userId: string, id: string) {
+    const session = await this.prisma.session.findFirst({ where: { id, userId } })
+    if (!session) return null
+
     const result = await this.prisma.session.update({
       where: { id },
       data: { lastMessageAt: new Date() },
