@@ -9,6 +9,8 @@ const isDev = process.env.NODE_ENV !== 'production'
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  private readonly pool: Pool
+
   constructor(
     @Inject(RequestContextService)
     private readonly contextService: RequestContextService,
@@ -30,6 +32,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             { emit: 'stdout', level: 'warn' },
           ],
     })
+
+    this.pool = pool
 
     if (isDev) {
       ;(
@@ -59,5 +63,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleDestroy() {
     await this.$disconnect()
+    await this.pool.end()
+    this.logger.info({ event: 'database', status: 'disconnected' })
   }
 }
