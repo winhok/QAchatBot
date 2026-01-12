@@ -47,10 +47,7 @@ import {
 import { useDeleteSession, useRenameSession, useSessions } from '@/hooks/useSessions'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/stores/useSession'
-
-function getSessionTitle(session: Session) {
-  return session.name || `会话::${session.id.slice(0, 8).toUpperCase()}`
-}
+import { getSessionTitle } from '@/utils/session'
 
 // Root drop zone component for moving sessions out of folders
 function RootDropZone({ children, isOver }: { children: React.ReactNode; isOver: boolean }) {

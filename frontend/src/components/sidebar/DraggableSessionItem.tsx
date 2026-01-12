@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { getSessionTitle } from '@/utils/session'
 
 interface DraggableSessionItemProps {
   session: Session
@@ -30,15 +31,10 @@ interface DraggableSessionItemProps {
   onDelete: (id: string) => void
 }
 
-function getSessionTitle(session: Session) {
-  return session.name || `会话::${session.id.slice(0, 8).toUpperCase()}`
-}
-
-function getTypeIcon(type?: string) {
+function getTypeIcon(type: string | undefined): React.ReactNode {
   switch (type) {
     case 'testcase':
       return <TestTube2 className="h-4 w-4 text-primary shrink-0" />
-    case 'normal':
     default:
       return <MessageSquare className="h-4 w-4 text-primary shrink-0" />
   }

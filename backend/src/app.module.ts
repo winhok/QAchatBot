@@ -1,5 +1,4 @@
 import { AppController } from '@/app.controller'
-import { AppService } from '@/app.service'
 import { CommonModule } from '@/common/common.module'
 import { RequestContextService } from '@/infrastructure/context/request-context.service'
 import { PrismaModule } from '@/infrastructure/database/prisma.module'
@@ -25,6 +24,6 @@ import { AnalyticsModule, AuthModule, ConversationModule, RagModule } from './mo
     RagModule,
   ],
   controllers: [AppController],
-  providers: [AppService, RequestContextService, PrismaService],
+  providers: [RequestContextService, PrismaService],
 })
 export class AppModule {}

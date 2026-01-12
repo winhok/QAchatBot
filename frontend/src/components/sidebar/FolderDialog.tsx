@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Folder } from '@/schemas'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,10 +11,12 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
-// Predefined folder colors
+const DEFAULT_COLOR = 'hsl(var(--primary))'
+
 const FOLDER_COLORS = [
-  { name: 'Default', value: 'hsl(var(--primary))' },
+  { name: 'Default', value: DEFAULT_COLOR },
   { name: 'Blue', value: '#3B82F6' },
   { name: 'Green', value: '#22C55E' },
   { name: 'Yellow', value: '#EAB308' },
@@ -22,7 +24,7 @@ const FOLDER_COLORS = [
   { name: 'Red', value: '#EF4444' },
   { name: 'Purple', value: '#A855F7' },
   { name: 'Pink', value: '#EC4899' },
-]
+] as const
 
 interface FolderDialogProps {
   open: boolean
@@ -37,35 +39,42 @@ export function FolderDialog({
   onOpenChange,
   folder,
   onSubmit,
-  isLoading,
-}: FolderDialogProps) {
-  const isEditing = !!folder
-  const [name, setName] = useState(folder?.name || '')
-  const [color, setColor] = useState(folder?.color || FOLDER_COLORS[0].value)
-  const [description, setDescription] = useState(folder?.description || '')
+  isLoading = false,
+}: FolderDialogProps): React.ReactNode {
+  const [name, setName] = useState('')
+  const [color, setColor] = useState(DEFAULT_COLOR)
+  const [description, setDescription] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const isEditing = Boolean(folder)
+
+  // Sync form state when folder changes or dialog opens
+  useEffect(() => {
+    if (open) {
+      setName(folder?.name ?? '')
+      setColor(folder?.color ?? DEFAULT_COLOR)
+      setDescription(folder?.description ?? '')
+    }
+  }, [open, folder])
+
+  function handleSubmit(e: React.FormEvent): void {
     e.preventDefault()
-    if (!name.trim()) return
+    const trimmedName = name.trim()
+    if (!trimmedName) return
+
     onSubmit({
-      name: name.trim(),
-      color: color === FOLDER_COLORS[0].value ? undefined : color,
+      name: trimmedName,
+      color: color === DEFAULT_COLOR ? undefined : color,
       description: description.trim() || undefined,
     })
   }
 
-  const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      // Reset form when closing
-      setName(folder?.name || '')
-      setColor(folder?.color || FOLDER_COLORS[0].value)
-      setDescription(folder?.description || '')
-    }
-    onOpenChange(isOpen)
+  function getSubmitButtonText(): string {
+    if (isLoading) return '保存中...'
+    return isEditing ? '保存' : '创建'
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -96,11 +105,12 @@ export function FolderDialog({
                     key={c.value}
                     type="button"
                     onClick={() => setColor(c.value)}
-                    className={`w-7 h-7 rounded-full border-2 transition-all ${
+                    className={cn(
+                      'w-7 h-7 rounded-full border-2 transition-all',
                       color === c.value
                         ? 'border-foreground scale-110'
-                        : 'border-transparent hover:border-muted-foreground/30'
-                    }`}
+                        : 'border-transparent hover:border-muted-foreground/30',
+                    )}
                     style={{ backgroundColor: c.value }}
                     title={c.name}
                   />
@@ -121,11 +131,11 @@ export function FolderDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               取消
             </Button>
             <Button type="submit" disabled={!name.trim() || isLoading}>
-              {isLoading ? '保存中...' : isEditing ? '保存' : '创建'}
+              {getSubmitButtonText()}
             </Button>
           </DialogFooter>
         </form>

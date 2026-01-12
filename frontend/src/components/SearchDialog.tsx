@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Clock, MessageSquare, Search, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSessions } from '@/hooks/useSessions'
 import { cn } from '@/lib/utils'
+import { formatRelativeTime } from '@/utils/session'
 
 interface SearchResult {
   type: 'session'
@@ -20,51 +21,48 @@ interface SearchDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
+export function SearchDialog({ open, onOpenChange }: SearchDialogProps): React.ReactNode {
   const navigate = useNavigate()
   const { data: sessions = [] } = useSessions()
 
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
 
-  // 搜索结果
-  const results = ((): Array<SearchResult> => {
-    if (!query.trim()) {
-      // 无搜索词时，显示最近的会话
-      return sessions.slice(0, 10).map((session) => ({
+  // Search results using proper useMemo
+  const results = useMemo((): Array<SearchResult> => {
+    const trimmedQuery = query.trim()
+    const lowerQuery = trimmedQuery.toLowerCase()
+
+    function mapSessionToResult(session: (typeof sessions)[number]): SearchResult {
+      return {
         type: 'session',
         id: session.id,
         title: session.name || `会话 ${session.id.slice(0, 8)}`,
         subtitle: session.type === 'testcase' ? '测试设计' : '普通聊天',
         timestamp: session.createdAt,
-      }))
+      }
     }
 
-    const lowerQuery = query.toLowerCase()
+    if (!trimmedQuery) {
+      return sessions.slice(0, 10).map(mapSessionToResult)
+    }
 
-    // 搜索会话名称
-    const matchedSessions = sessions
+    return sessions
       .filter((session) => {
         const name = session.name || session.id
         return name.toLowerCase().includes(lowerQuery)
       })
-      .map((session) => ({
-        type: 'session' as const,
-        id: session.id,
-        title: session.name || `会话 ${session.id.slice(0, 8)}`,
-        subtitle: session.type === 'testcase' ? '测试设计' : '普通聊天',
-        timestamp: session.createdAt,
-      }))
+      .slice(0, 20)
+      .map(mapSessionToResult)
+  }, [sessions, query])
 
-    return matchedSessions.slice(0, 20)
-  })()
-
-  // 重置选中索引
+  // Reset selected index when results change
+  const resultsLength = results.length
   useEffect(() => {
     setSelectedIndex(0)
-  }, [results])
+  }, [resultsLength])
 
-  // 清理状态
+  // Clear state when dialog closes
   useEffect(() => {
     if (!open) {
       setQuery('')
@@ -72,8 +70,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     }
   }, [open])
 
-  // 键盘导航
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  function handleKeyDown(e: React.KeyboardEvent): void {
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault()
@@ -96,18 +93,17 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     }
   }
 
-  // 选择结果
-  const handleSelect = (result: SearchResult) => {
+  function handleSelect(result: SearchResult): void {
     onOpenChange(false)
     navigate({ to: '/$threadId', params: { threadId: result.id } })
   }
 
-  // 高亮匹配文本
-  const highlightMatch = (text: string, searchStr: string) => {
-    if (!searchStr.trim()) return text
+  function highlightMatch(text: string, searchStr: string): React.ReactNode {
+    const trimmed = searchStr.trim()
+    if (!trimmed) return text
 
     const lowerText = text.toLowerCase()
-    const lowerQuery = searchStr.toLowerCase()
+    const lowerQuery = trimmed.toLowerCase()
     const index = lowerText.indexOf(lowerQuery)
 
     if (index === -1) return text
@@ -116,30 +112,11 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
       <>
         {text.slice(0, index)}
         <span className="bg-yellow-200 dark:bg-yellow-800 rounded px-0.5">
-          {text.slice(index, index + searchStr.length)}
+          {text.slice(index, index + trimmed.length)}
         </span>
-        {text.slice(index + searchStr.length)}
+        {text.slice(index + trimmed.length)}
       </>
     )
-  }
-
-  // 格式化时间
-  const formatTime = (timestamp?: string) => {
-    if (!timestamp) return ''
-    try {
-      const date = new Date(timestamp)
-      const now = new Date()
-      const diff = now.getTime() - date.getTime()
-
-      if (diff < 60000) return '刚刚'
-      if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
-      if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
-      if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`
-
-      return date.toLocaleDateString('zh-CN')
-    } catch {
-      return ''
-    }
   }
 
   return (
@@ -206,7 +183,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                   {result.timestamp && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
                       <Clock className="h-3 w-3" />
-                      {formatTime(result.timestamp)}
+                      {formatRelativeTime(result.timestamp)}
                     </div>
                   )}
                 </button>
