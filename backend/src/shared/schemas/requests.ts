@@ -20,6 +20,7 @@ export const UpdateSessionRequestSchema = z.object({
   name: z.string().optional(),
   type: SessionTypeSchema.optional(),
   status: SessionStatusSchema.optional(),
+  folderId: z.string().cuid().nullable().optional(),
 })
 
 export const ChatMessageContentSchema = z.union([

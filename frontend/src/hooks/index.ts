@@ -92,3 +92,18 @@ export {
   useSessions,
   useUpdateSessionName,
 } from './useSessions'
+
+// ============================================================
+// 文件夹管理 Hooks
+// ============================================================
+
+export {
+  foldersQueryKey,
+  useFolders,
+  useCreateFolder,
+  useUpdateFolder,
+  useDeleteFolder,
+  useMoveSession,
+  useMoveSessionsBatch,
+  useInvalidateFolders,
+} from './useFolders'

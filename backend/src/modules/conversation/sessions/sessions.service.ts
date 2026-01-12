@@ -115,6 +115,7 @@ export class SessionsService {
         ...(dto.name !== undefined && { name: dto.name }),
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.status !== undefined && { status: dto.status }),
+        ...(dto.folderId !== undefined && { folderId: dto.folderId }),
       },
     })
     this.logger.logQueryResult(this.className, 'update', result)

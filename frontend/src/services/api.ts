@@ -3,16 +3,29 @@ import { toast } from 'sonner'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import type { z } from 'zod'
 import type {
+  CreateFolderResponse,
   CreateSessionResponse,
+  DeleteFolderResponse,
   DeleteSessionResponse,
+  Folder,
+  GetFoldersResponse,
   GetSessionsResponse,
+  MoveSessionResponse,
+  MoveSessionsResponse,
   Session,
+  UpdateFolderResponse,
   UpdateSessionResponse,
 } from '@/schemas'
 import {
+  CreateFolderResponseSchema,
   CreateSessionResponseSchema,
+  DeleteFolderResponseSchema,
   DeleteSessionResponseSchema,
+  GetFoldersResponseSchema,
   GetSessionsResponseSchema,
+  MoveSessionResponseSchema,
+  MoveSessionsResponseSchema,
+  UpdateFolderResponseSchema,
   UpdateSessionResponseSchema,
 } from '@/schemas'
 
@@ -261,6 +274,107 @@ export const chatService = {
     const { data } = await apiDelete<DeleteSessionResponse>(`/api/sessions/${sessionId}`, {
       schema: DeleteSessionResponseSchema,
     })
+    return data
+  },
+}
+
+// ============================================================================
+// Folder Service
+// ============================================================================
+
+export const folderService = {
+  /**
+   * Get all folders
+   */
+  getFolders: async (): Promise<Array<Folder>> => {
+    const { data } = await apiGet<GetFoldersResponse>('/api/folders', {
+      schema: GetFoldersResponseSchema,
+    })
+    return data.folders
+  },
+
+  /**
+   * Create a new folder
+   */
+  createFolder: async (params: {
+    name: string
+    icon?: string
+    color?: string
+    description?: string
+  }): Promise<CreateFolderResponse> => {
+    const { data } = await apiPost<CreateFolderResponse>('/api/folders', params, {
+      schema: CreateFolderResponseSchema,
+    })
+    return data
+  },
+
+  /**
+   * Update a folder
+   */
+  updateFolder: async (
+    folderId: string,
+    params: {
+      name?: string
+      icon?: string
+      color?: string
+      description?: string
+    },
+  ): Promise<UpdateFolderResponse> => {
+    const { data } = await apiPatch<UpdateFolderResponse>(`/api/folders/${folderId}`, params, {
+      schema: UpdateFolderResponseSchema,
+    })
+    return data
+  },
+
+  /**
+   * Delete a folder
+   */
+  deleteFolder: async (folderId: string): Promise<DeleteFolderResponse> => {
+    const { data } = await apiDelete<DeleteFolderResponse>(`/api/folders/${folderId}`, {
+      schema: DeleteFolderResponseSchema,
+    })
+    return data
+  },
+
+  /**
+   * Move multiple sessions to a folder
+   */
+  moveSessionsToFolder: async (
+    folderId: string,
+    sessionIds: Array<string>,
+  ): Promise<MoveSessionsResponse> => {
+    const { data } = await apiPost<MoveSessionsResponse>(
+      `/api/folders/${folderId}/sessions`,
+      { sessionIds },
+      { schema: MoveSessionsResponseSchema },
+    )
+    return data
+  },
+
+  /**
+   * Move a single session to a folder (or remove from folder if folderId is null)
+   */
+  moveSessionToFolder: async (
+    folderId: string | null,
+    sessionId: string,
+  ): Promise<MoveSessionResponse> => {
+    // If folderId is null, we need to use a different endpoint or pass null
+    // Backend supports folderId: null to remove session from folder
+    if (folderId === null) {
+      // Use PATCH to update session's folderId to null
+      const { data } = await apiPatch<MoveSessionResponse>(
+        `/api/sessions/${sessionId}`,
+        { folderId: null },
+        { schema: MoveSessionResponseSchema },
+      )
+      return data
+    }
+
+    const { data } = await apiPost<MoveSessionResponse>(
+      `/api/folders/${folderId}/sessions/${sessionId}`,
+      {},
+      { schema: MoveSessionResponseSchema },
+    )
     return data
   },
 }

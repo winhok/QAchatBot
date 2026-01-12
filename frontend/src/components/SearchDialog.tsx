@@ -36,7 +36,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
         id: session.id,
         title: session.name || `会话 ${session.id.slice(0, 8)}`,
         subtitle: session.type === 'testcase' ? '测试设计' : '普通聊天',
-        timestamp: session.created_at,
+        timestamp: session.createdAt,
       }))
     }
 
@@ -53,7 +53,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
         id: session.id,
         title: session.name || `会话 ${session.id.slice(0, 8)}`,
         subtitle: session.type === 'testcase' ? '测试设计' : '普通聊天',
-        timestamp: session.created_at,
+        timestamp: session.createdAt,
       }))
 
     return matchedSessions.slice(0, 20)

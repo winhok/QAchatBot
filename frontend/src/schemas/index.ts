@@ -106,10 +106,42 @@ export const MessageSchema = z.object({
 
 export const SessionSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: z.string().nullable(),
   type: SessionTypeSchema,
-  created_at: z.string(),
+  createdAt: z.string(),
+  folderId: z.string().nullable().optional(),
 })
+
+// ============================================================================
+// Folder Schemas
+// ============================================================================
+
+export const FolderSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  icon: z.string().nullable(),
+  color: z.string().nullable(),
+  description: z.string().nullable(),
+  isDefault: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+
+export const GetFoldersResponseSchema = z.object({
+  folders: z.array(FolderSchema),
+})
+
+export const CreateFolderResponseSchema = FolderSchema
+
+export const UpdateFolderResponseSchema = FolderSchema
+
+export const DeleteFolderResponseSchema = FolderSchema
+
+export const MoveSessionsResponseSchema = z.object({
+  count: z.number(),
+})
+
+export const MoveSessionResponseSchema = SessionSchema
 
 // ============================================================================
 // API 请求 Schemas
@@ -207,3 +239,12 @@ export type GetSessionsResponse = z.infer<typeof GetSessionsResponseSchema>
 export type CreateSessionResponse = z.infer<typeof CreateSessionResponseSchema>
 export type UpdateSessionResponse = z.infer<typeof UpdateSessionResponseSchema>
 export type DeleteSessionResponse = z.infer<typeof DeleteSessionResponseSchema>
+
+// Folder types
+export type Folder = z.infer<typeof FolderSchema>
+export type GetFoldersResponse = z.infer<typeof GetFoldersResponseSchema>
+export type CreateFolderResponse = z.infer<typeof CreateFolderResponseSchema>
+export type UpdateFolderResponse = z.infer<typeof UpdateFolderResponseSchema>
+export type DeleteFolderResponse = z.infer<typeof DeleteFolderResponseSchema>
+export type MoveSessionsResponse = z.infer<typeof MoveSessionsResponseSchema>
+export type MoveSessionResponse = z.infer<typeof MoveSessionResponseSchema>
