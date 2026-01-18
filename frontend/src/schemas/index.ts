@@ -110,6 +110,17 @@ export const SessionSchema = z.object({
 })
 
 // ============================================================================
+// Checkpoint Schemas (LangGraph Time Travel)
+// ============================================================================
+
+export const CheckpointInfoSchema = z.object({
+  checkpointId: z.string(),
+  timestamp: z.string(),
+  preview: z.string().optional(),
+  messageCount: z.number().optional(),
+})
+
+// ============================================================================
 // Folder Schemas
 // ============================================================================
 
@@ -175,6 +186,8 @@ export const ChatRequestSchema = z.object({
   message: ChatMessageContentSchema,
   session_id: z.string().cuid('Invalid session_id').optional(),
   model_id: z.string().optional(),
+  tools: z.array(z.string()).optional(),
+  checkpoint_id: z.string().optional(),
 })
 
 // ============================================================================
@@ -200,6 +213,7 @@ export type ToolCallData = z.infer<typeof ToolCallDataSchema>
 export type ApiResultData = z.infer<typeof ApiResultDataSchema>
 export type Message = z.infer<typeof MessageSchema>
 export type Session = z.infer<typeof SessionSchema>
+export type CheckpointInfo = z.infer<typeof CheckpointInfoSchema>
 
 export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>
 export type DeleteSessionRequest = z.infer<typeof DeleteSessionRequestSchema>

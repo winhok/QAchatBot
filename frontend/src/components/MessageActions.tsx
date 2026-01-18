@@ -1,18 +1,23 @@
-import { Check, Copy } from 'lucide-react'
+import { Check, Copy, GitFork } from 'lucide-react'
 import type { Message } from '@/schemas'
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { extractTextContent } from '@/utils/message'
 
 interface MessageActionsProps {
   message: Message
+  onFork?: (messageId: string) => void
 }
 
-export function MessageActions({ message }: MessageActionsProps) {
+export function MessageActions({ message, onFork }: MessageActionsProps) {
   const { copied, copy } = useCopyToClipboard()
 
   const handleCopy = () => {
     copy(extractTextContent(message.content))
+  }
+
+  const handleFork = () => {
+    onFork?.(message.id)
   }
 
   return (
@@ -35,6 +40,23 @@ export function MessageActions({ message }: MessageActionsProps) {
             <p>{copied ? '已复制' : '复制消息'}</p>
           </TooltipContent>
         </Tooltip>
+
+        {/* 分叉按钮 - 仅 assistant 消息显示 */}
+        {message.role === 'assistant' && onFork && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleFork}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+              >
+                <GitFork className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>从此分叉</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
     </TooltipProvider>
   )

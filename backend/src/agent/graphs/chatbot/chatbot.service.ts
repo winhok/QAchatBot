@@ -119,28 +119,18 @@ export class ChatbotService implements OnModuleInit {
     }
 
     const content = message.map((block: ChatMessageContentBlock) => {
-      switch (block.type) {
-        case 'text':
-          return { type: 'text' as const, text: block.text }
-        case 'image_url':
-          return {
-            type: 'image_url' as const,
-            image_url: {
-              url: block.image_url.url,
-              detail: block.image_url.detail,
-            },
-          }
-        case 'media':
-          return {
-            type: 'image_url' as const,
-            image_url: { url: block.media.url },
-          }
-        case 'document':
-          return {
-            type: 'image_url' as const,
-            image_url: { url: block.document.url },
-          }
+      if (block.type === 'text') {
+        return { type: 'text' as const, text: block.text }
       }
+      if (block.type === 'image_url') {
+        return {
+          type: 'image_url' as const,
+          image_url: { url: block.image_url.url, detail: block.image_url.detail },
+        }
+      }
+      // media and document types use same structure
+      const url = block.type === 'media' ? block.media.url : block.document.url
+      return { type: 'image_url' as const, image_url: { url } }
     })
 
     return new HumanMessage({ content })
@@ -258,5 +248,57 @@ export class ChatbotService implements OnModuleInit {
     const state = await app.getState({ configurable: { thread_id: threadId } })
     const values = state?.values as { messages?: unknown[] } | undefined
     return values?.messages || []
+  }
+
+  /**
+   * 获取 checkpoint 历史列表
+   */
+  async getCheckpoints(
+    threadId: string,
+    modelId?: string,
+  ): Promise<
+    Array<{
+      checkpointId: string
+      timestamp: string
+      preview: string
+      messageCount: number
+    }>
+  > {
+    const app = this.getApp(modelId)
+    const checkpoints: Array<{
+      checkpointId: string
+      timestamp: string
+      preview: string
+      messageCount: number
+    }> = []
+
+    for await (const state of app.getStateHistory({ configurable: { thread_id: threadId } })) {
+      const checkpointId = state.config?.configurable?.checkpoint_id as string | undefined
+      if (!checkpointId) continue
+
+      const messages = (state.values as { messages?: Array<{ content?: string }> })?.messages || []
+      const lastMessage = messages[messages.length - 1]
+      const preview =
+        typeof lastMessage?.content === 'string' ? lastMessage.content.slice(0, 100) : ''
+
+      checkpoints.push({
+        checkpointId,
+        timestamp: state.createdAt || new Date().toISOString(),
+        preview,
+        messageCount: messages.length,
+      })
+    }
+
+    return checkpoints
+  }
+
+  /**
+   * 从指定 checkpoint 获取状态
+   */
+  async getStateAtCheckpoint(threadId: string, checkpointId: string, modelId?: string) {
+    const app = this.getApp(modelId)
+    return app.getState({
+      configurable: { thread_id: threadId, checkpoint_id: checkpointId },
+    })
   }
 }

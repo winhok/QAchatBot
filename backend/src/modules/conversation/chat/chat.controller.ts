@@ -1,7 +1,17 @@
 import { CurrentUser } from '@/common/decorators/current-user.decorator'
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe'
 import { ChatRequestSchema, type ChatRequest } from '@/shared/schemas/requests'
-import { BadRequestException, Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common'
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common'
 import { createId } from '@paralleldrive/cuid2'
 import type { Request, Response } from 'express'
 import { SessionsService } from '../sessions/sessions.service'
@@ -75,6 +85,7 @@ export class ChatController {
         res,
         isAborted: () => aborted,
         tools,
+        checkpointId: dto.checkpoint_id,
       })
     } catch (error) {
       console.error('[Chat API] Error:', error)
@@ -90,5 +101,20 @@ export class ChatController {
     } finally {
       res.end()
     }
+  }
+
+  @Get(':sessionId/checkpoints')
+  async getCheckpoints(
+    @CurrentUser('id') userId: string,
+    @Param('sessionId') sessionId: string,
+    @Query('model_id') modelId?: string,
+  ) {
+    // Validate session belongs to user
+    const session = await this.sessionsService.findOne(userId, sessionId)
+    if (!session) {
+      throw new BadRequestException('Session not found')
+    }
+
+    return this.chatService.getCheckpoints(sessionId, modelId)
   }
 }

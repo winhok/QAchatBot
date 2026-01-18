@@ -26,12 +26,28 @@ function inferToolType(toolName: string): ToolCallData['type'] {
   return match?.type ?? 'script'
 }
 
-function fileToBase64(file: File): Promise<string> {
+async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve) => {
     const reader = new FileReader()
     reader.onloadend = () => resolve(reader.result as string)
     reader.readAsDataURL(file)
   })
+}
+
+async function buildMessageContent(
+  input: string,
+  files?: Array<File>,
+): Promise<ChatMessageContent> {
+  if (!files || files.length === 0) {
+    return input
+  }
+  const imageBlocks = await Promise.all(
+    files.map(async (file) => ({
+      type: 'image_url' as const,
+      image_url: { url: await fileToBase64(file) },
+    })),
+  )
+  return [{ type: 'text', text: input }, ...imageBlocks]
 }
 
 function createCanvasParserCallbacks(sessionId: string) {
@@ -109,16 +125,7 @@ export function useSendMessage() {
     setAbortController(controller)
 
     // Construct message content with images if present
-    let messageContent: ChatMessageContent = input
-    if (files && files.length > 0) {
-      const imageBlocks = await Promise.all(
-        files.map(async (file) => ({
-          type: 'image_url' as const,
-          image_url: { url: await fileToBase64(file) },
-        })),
-      )
-      messageContent = [{ type: 'text', text: input }, ...imageBlocks]
-    }
+    const messageContent = await buildMessageContent(input, files)
 
     addUserMessage(messageContent)
     setIsLoading(true)
@@ -137,6 +144,7 @@ export function useSendMessage() {
           session_id: sessionId || undefined,
           model_id: modelId,
           tools,
+          checkpoint_id: options?.checkpointId, // LangGraph Time Travel fork
         }),
         signal: controller.signal,
       })

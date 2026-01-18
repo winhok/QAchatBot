@@ -31,6 +31,7 @@ export interface ChatMessagesState {
 export interface SendMessageOptions {
   sessionId?: string
   onSessionCreated?: () => void
+  checkpointId?: string // 从指定 checkpoint 分叉 (LangGraph Time Travel)
 }
 
 export interface SessionState {

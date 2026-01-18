@@ -31,6 +31,7 @@ export const ChatRequestSchema = z.object({
   session_id: z.string().cuid().optional(),
   model_id: z.string().optional(),
   tools: z.array(z.string()).optional(),
+  checkpoint_id: z.string().optional(), // 从指定 checkpoint 分叉 (LangGraph Time Travel)
 })
 
 export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>

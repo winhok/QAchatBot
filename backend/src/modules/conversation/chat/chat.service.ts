@@ -14,6 +14,7 @@ interface StreamChatParams {
   res: Response
   isAborted: () => boolean
   tools?: string[]
+  checkpointId?: string // 从指定 checkpoint 分叉
 }
 
 /**
@@ -67,6 +68,10 @@ export class ChatService {
     return this.chatbot.getHistory(threadId, modelId)
   }
 
+  async getCheckpoints(threadId: string, modelId?: string) {
+    return this.chatbot.getCheckpoints(threadId, modelId)
+  }
+
   /**
    * Extract session name from message content
    * Supports string and multimodal array formats
@@ -75,25 +80,19 @@ export class ChatService {
     const MAX_LENGTH = 50
     const DEFAULT_NAME = '新会话'
 
-    const truncate = (text: string): string => {
-      const trimmed = text.trim()
-      return trimmed.length > MAX_LENGTH ? trimmed.slice(0, MAX_LENGTH) + '...' : trimmed
-    }
+    const truncate = (text: string): string =>
+      text.trim().length > MAX_LENGTH ? text.trim().slice(0, MAX_LENGTH) + '...' : text.trim()
 
     if (typeof message === 'string') {
       return truncate(message)
     }
 
-    // Extract first text block from multimodal content
-    const textBlock = message.find(
-      (block): block is { type: 'text'; text: string } => block.type === 'text',
-    )
-
-    return textBlock ? truncate(textBlock.text) : DEFAULT_NAME
+    const textBlock = message.find((block) => block.type === 'text')
+    return textBlock && 'text' in textBlock ? truncate(textBlock.text) : DEFAULT_NAME
   }
 
   async streamChat(params: StreamChatParams) {
-    const { userId, message, sessionId, modelId, res, isAborted, tools } = params
+    const { userId, message, sessionId, modelId, res, isAborted, tools, checkpointId } = params
 
     // Ensure session exists, and auto-name if new
     const session = await this.sessions.findOrCreate(userId, sessionId)
@@ -124,7 +123,13 @@ export class ChatService {
     console.log('[ChatService] Dispatching to Chatbot')
     const app = this.chatbot.getApp(modelId, tools)
 
-    const threadConfig = { configurable: { thread_id: sessionId } }
+    // 支持从指定 checkpoint 分叉 (LangGraph Time Travel)
+    const threadConfig = {
+      configurable: {
+        thread_id: sessionId,
+        ...(checkpointId && { checkpoint_id: checkpointId }),
+      },
+    }
 
     // Track tool calls: runId -> tool info
     const toolCallsMap = new Map<string, ToolCallInfo>()
