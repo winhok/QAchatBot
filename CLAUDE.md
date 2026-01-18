@@ -28,6 +28,7 @@ pnpm build            # Build all packages
 pnpm test             # Run all tests
 pnpm lint             # Lint all packages
 pnpm format           # Format with Prettier
+pnpm check            # Format + lint fix all packages
 
 # PM2 Production
 pnpm pm2:start        # Start with PM2
@@ -40,14 +41,17 @@ pnpm pm2:logs         # View logs
 ```bash
 cd backend
 pnpm start:dev                              # Development (watch mode)
+pnpm start:debug                            # Debug mode with watch
 pnpm build && pnpm start:prod               # Production
 
 # Database
 npx prisma migrate dev --name <name>        # Create migration
 npx prisma generate                         # Regenerate client
+npx prisma studio                           # Open Prisma Studio GUI
 
 # Testing
 pnpm test                                   # All tests
+pnpm test:watch                             # Watch mode
 pnpm test -- --testPathPattern=sessions     # Single test file
 pnpm test:cov                               # With coverage
 pnpm test:e2e                               # E2E tests
@@ -59,6 +63,7 @@ pnpm test:e2e                               # E2E tests
 cd frontend
 pnpm dev                                    # Dev server (proxies /api to :3000)
 pnpm build                                  # Production build
+pnpm preview                                # Preview production build
 pnpm test                                   # Vitest
 pnpm check                                  # Format + lint fix
 pnpm dlx shadcn@latest add <component>      # Add Shadcn component
@@ -75,8 +80,8 @@ shared/schemas/   # Zod schemas for validation
 infrastructure/
   ├── database/   # Prisma service
   ├── logger/     # Pino logging
-  ├── cache/      # Caching layer
-  └── memory/     # Persistent memory service (MemoryStoreService)
+  ├── memory/     # Persistent memory service (MemoryStoreService)
+  └── context/    # Request context handling
 agent/
   ├── tools/
   │   ├── builtin/              # Custom tools (current-time, calculator, read-file)
@@ -100,10 +105,20 @@ routes/           # TanStack Router file-based routing
 components/
   ├── ui/         # Shadcn primitives
   ├── canvas/     # Canvas artifact system (CodePreviewPanel, CanvasSidebar)
+  ├── sidebar/    # Sidebar components
   └── welcome/    # Welcome screen components
 stores/
-  ├── chat/       # Sliced Zustand store (messages, streaming, toolCalls)
+  ├── chat/
+  │   ├── slices/
+  │   │   ├── message/    # Message state and actions
+  │   │   ├── stream/     # Streaming state
+  │   │   └── toolCall/   # Tool call state
+  │   ├── store.ts        # Combined store
+  │   └── selectors.ts    # Memoized selectors
   ├── useSession.ts
+  ├── usePanel.ts
+  ├── useTheme.ts
+  ├── useCanvasArtifacts.ts
   └── useSendMessage.ts   # SSE streaming with abort support
 hooks/            # TanStack Query wrappers
 services/         # Axios API layer with Zod validation
@@ -197,17 +212,33 @@ export const myTool: ToolDefinition = {
 Register in `unified-tools.config.ts`:
 
 ```typescript
-{ id: 'my_tool', type: 'custom', enabled: true, config: { toolName: 'my_tool' } }
+{
+  id: 'my_tool',
+  name: '工具名称',
+  description: myTool.description,
+  icon: '🔧',
+  enabled: true,
+  type: 'custom',
+  schema: myTool.schema,
+  handler: myTool.handler,
+}
 ```
 
 ### LangChain Tools
 
 ```typescript
 {
-  id: 'tavily_search',
-  type: 'langchain',
+  id: 'tavily',
+  name: 'Tavily 搜索',
+  description: '使用 Tavily API 进行网络搜索',
+  icon: '🌐',
   enabled: true,
-  config: { package: '@langchain/community/tools/tavily_search', className: 'TavilySearchResults' }
+  type: 'langchain',
+  langChainTool: {
+    importPath: '@langchain/tavily',
+    className: 'TavilySearch',
+    options: { maxResults: 5 },
+  },
 }
 ```
 
@@ -215,9 +246,18 @@ Register in `unified-tools.config.ts`:
 
 ```typescript
 {
-  serverName: 'filesystem',
-  command: 'npx',
-  args: ['-y', '@modelcontextprotocol/server-filesystem', '/path/to/dir']
+  id: 'sequential-thinking',
+  name: '顺序思考',
+  description: '结构化思考过程',
+  icon: '🧠',
+  enabled: true,
+  type: 'mcp',
+  mcpConfig: {
+    server: 'server-sequential-thinking',
+    command: 'npx',
+    args: ['-y', '@modelcontextprotocol/server-sequential-thinking'],
+    transport: 'stdio',
+  },
 }
 ```
 
@@ -236,11 +276,63 @@ graph.ts          # StateGraph compilation
 
 QA-chatbot stages: `init` → `test_points` → `test_cases` → `review` → `completed`
 
+## Code Style Guidelines
+
+### Formatting (Prettier)
+
+- **No semicolons**: `semi: false`
+- **Single quotes**: `singleQuote: true`
+- **Trailing commas**: `trailingComma: 'all'`
+- **Line width**: `printWidth: 100`
+- **Tabs**: 2 spaces, `useTabs: false`
+
+### Import Order
+
+```typescript
+// 1. External dependencies (sorted)
+import { z } from 'zod'
+import { Injectable } from '@nestjs/common'
+
+// 2. Internal imports with @ alias (sorted)
+import { LoggerService } from '@/infrastructure/logger/logger.service'
+import { SessionsService } from '@/modules/conversation/sessions/sessions.service'
+
+// 3. Relative imports
+import { createRouterNode } from './nodes'
+```
+
+### Naming Conventions
+
+```typescript
+// camelCase for variables and functions
+const userId = '123'
+async function createSession() {}
+
+// PascalCase for classes, interfaces, types, components
+export class MessagesService {}
+export interface CreateMessageDto {}
+export type MessageState = {}
+export function MessageList() {}
+
+// UPPER_SNAKE_CASE for constants
+const API_ENDPOINT = '/api/chat'
+const MAX_LENGTH = 50
+```
+
+### Type Imports
+
+```typescript
+import type { MessageRole } from '@/shared/schemas/enums'
+import type { Prisma } from '../../../../generated/prisma/index.js'
+```
+
+### File Naming
+
+- **Backend**: `*.service.ts`, `*.controller.ts`, `*.module.ts`, `*.dto.ts`
+- **Frontend**: `*.tsx` (components), `*.ts` (hooks/stores/services)
+- **Shared types**: `*.types.ts` or `schemas/*.ts`
+
 ## Key Patterns
-
-### TypeScript Compiler
-
-Project uses Go-based native TypeScript compiler (`@typescript/native-preview` v7.0.0-dev) for significantly faster type checking and builds.
 
 ### Multi-Provider LLM Support
 
@@ -248,7 +340,7 @@ Model IDs support optional provider prefix: `openai:gpt-4o`, `google:gemini-pro`
 
 ### Frontend State Management
 
-- **Zustand slices**: `stores/chat/` has messageSlice, streamSlice, toolCallSlice
+- **Zustand slices**: `stores/chat/slices/` has message, stream, toolCall subdirectories
 - **Debug mode**: Add `?debug=chat` to enable devtools
 - **External access**: Use `getChatStoreState()` outside React
 
@@ -267,16 +359,51 @@ Hierarchical with scopes:
 
 Categories: `prefs`, `rules`, `knowledge`, `context`
 
-### Sentry Instrumentation
-
-Error collection configured in `frontend/src/router.tsx`. For server function instrumentation:
+### Backend Service Pattern
 
 ```typescript
-import * as Sentry from '@sentry/tanstackstart-react'
-Sentry.startSpan({ name: 'Operation description' }, async () => {
-  /* ... */
-})
+@Injectable()
+export class MessagesService {
+  private readonly className = 'MessagesService'
+
+  constructor(
+    private prisma: PrismaService,
+    private logger: LoggerService,
+  ) {}
+
+  async create(dto: CreateMessageDto) {
+    const result = await this.prisma.message.create({ ... })
+    this.logger.logQueryResult(this.className, 'create', result)
+    return result
+  }
+}
 ```
+
+### Frontend API Layer
+
+```typescript
+// Type-safe service methods with Zod schemas
+export const chatService = {
+  getSessions: async (): Promise<Array<Session>> => {
+    const { data } = await apiGet<GetSessionsResponse>('/api/sessions', {
+      schema: GetSessionsResponseSchema,
+    })
+    return data.sessions
+  },
+}
+```
+
+## Key Files Reference
+
+| Purpose            | Path                                                      |
+| ------------------ | --------------------------------------------------------- |
+| Tool registry      | `backend/src/agent/tools/config/unified-tools.config.ts`  |
+| Session management | `backend/src/modules/conversation/sessions/`              |
+| Chat streaming     | `backend/src/modules/conversation/chat/chat.service.ts`   |
+| Store slices       | `frontend/src/stores/chat/slices/`                        |
+| API layer          | `frontend/src/services/api.ts`                            |
+| Zod schemas        | `backend/src/shared/schemas/` and `frontend/src/schemas/` |
+| Logger service     | `backend/src/infrastructure/logger/logger.service.ts`     |
 
 ## Environment Variables
 
@@ -296,9 +423,16 @@ OPENAI_MODEL=gpt-4o
 GOOGLE_API_KEY=
 GOOGLE_MODEL_NAME=gemini-pro
 
+# Tavily Search (optional)
+TAVILY_API_KEY=
+
 # LangSmith tracing (optional)
 LANGSMITH_API_KEY=
 LANGSMITH_TRACING=false
+
+# Supabase (optional)
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
 ```
 
 ## Conventions

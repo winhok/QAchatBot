@@ -3,7 +3,6 @@ import { createFileRoute, notFound, useParams } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { ChatHeader } from '@/components/ChatHeader'
 import { ChatInput } from '@/components/ChatInput'
-import { FloatingChatBubble } from '@/components/FloatingChatBubble'
 import { MessageList } from '@/components/MessageList'
 import { useChatHistory, useRegisterChatHotkeys } from '@/hooks'
 import { useInvalidateSessions } from '@/hooks/useSessions'
@@ -57,8 +56,6 @@ function ThreadPage() {
 
         <ChatInput onSend={handleSend} disabled={isLoading} />
       </div>
-
-      <FloatingChatBubble />
     </div>
   )
 }

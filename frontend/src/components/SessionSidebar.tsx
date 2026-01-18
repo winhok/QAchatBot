@@ -9,7 +9,14 @@ import {
 import { rankItem } from '@tanstack/match-sorter-utils'
 import { useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
-import { ChevronRight, FlaskConical, FolderPlus, MessageSquare, Plus, Search } from 'lucide-react'
+import {
+  ChevronRight,
+  FolderPlus,
+  MessageSquare,
+  MessageSquareMore,
+  Plus,
+  Search,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import type { Folder } from '@/schemas'
@@ -289,32 +296,29 @@ export default function SessionSidebar() {
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <aside className="w-64 border-r border-border/50 bg-sidebar/95 backdrop-blur-md h-full flex flex-col font-mono">
-        {/* Header Area */}
-        <div className="flex items-center gap-3 p-4 pb-2">
-          <div className="relative group">
-            <div className="absolute inset-0 rounded-sm bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-sm bg-primary/10 border border-primary/20 text-primary">
-              <FlaskConical className="h-5 w-5" />
-            </div>
+      <aside className="w-64 border-r-2 border-foreground bg-sidebar h-full flex flex-col">
+        {/* Header Area - Neubrutalism */}
+        <div className="flex items-center gap-3 p-4 border-b-2 border-sidebar-border">
+          <div className="flex h-10 w-10 items-center justify-center border-2 border-primary bg-primary text-primary-foreground">
+            <MessageSquareMore className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground tracking-tighter">
-              QA<span className="text-primary">BOT</span>_v1
+            <h1 className="text-xl font-black text-sidebar-foreground tracking-tight">
+              Chat<span className="text-primary">+</span>
             </h1>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">系统在线</p>
+            <p className="text-xs text-sidebar-foreground/60">对话即能力</p>
           </div>
         </div>
 
-        <div className="px-3 py-2">
-          <div className="flex items-center gap-2 rounded-sm bg-sidebar-accent/50 border border-transparent focus-within:border-primary/50 px-3 py-2 text-muted-foreground transition-colors">
+        <div className="px-3 py-3">
+          <div className="flex items-center gap-2 border-2 border-sidebar-border bg-sidebar-accent px-3 py-2 text-sidebar-foreground focus-within:border-primary transition-colors">
             <Search className="h-4 w-4" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索记录..."
-              className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground/50 font-mono"
+              placeholder="搜索..."
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-sidebar-foreground/40"
             />
           </div>
         </div>
@@ -322,16 +326,16 @@ export default function SessionSidebar() {
         <div className="px-3 py-2 flex gap-2">
           <Button
             onClick={handleNew}
-            className="flex-1 justify-center gap-2 rounded-sm bg-primary text-primary-foreground shadow-glow hover:bg-primary/90 transition-all active:scale-[0.98]"
+            className="flex-1 justify-center gap-2 border-2 border-primary bg-primary text-primary-foreground hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none shadow-[2px_2px_0_0_hsl(var(--sidebar-foreground))] transition-all"
           >
             <Plus className="h-4 w-4" />
-            新建会话
+            新建
           </Button>
           <Button
             onClick={handleCreateFolder}
             variant="outline"
             size="icon"
-            className="shrink-0 rounded-sm"
+            className="shrink-0 border-2 border-sidebar-border bg-sidebar hover:bg-sidebar-accent"
             title="新建文件夹"
           >
             <FolderPlus className="h-4 w-4" />
@@ -340,10 +344,10 @@ export default function SessionSidebar() {
 
         <div className="flex-1 px-3 py-2 overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-2 mb-2">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              历史索引
+            <span className="text-xs font-bold text-sidebar-foreground/60 uppercase tracking-wide">
+              历史
             </span>
-            <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            <ChevronRight className="h-3 w-3 text-sidebar-foreground/40" />
           </div>
 
           <ScrollArea className="flex-1 scrollbar-thin">
@@ -390,9 +394,9 @@ export default function SessionSidebar() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-center py-8 text-muted-foreground/40 text-xs"
+                      className="text-center py-8 text-sidebar-foreground/40 text-sm font-medium"
                     >
-                      [ 空记录 ]
+                      开始新对话
                     </motion.div>
                   ) : null}
                 </RootDropZone>
@@ -403,9 +407,9 @@ export default function SessionSidebar() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center py-8 text-muted-foreground/40 text-xs"
+                  className="text-center py-8 text-sidebar-foreground/40 text-sm"
                 >
-                  [ 无匹配项 ]
+                  无匹配
                 </motion.div>
               )}
             </div>
@@ -413,7 +417,7 @@ export default function SessionSidebar() {
         </div>
 
         {/* 用户区域 */}
-        <div className="px-3 py-3 border-t border-border/50 mt-auto">
+        <div className="px-3 py-3 border-t-2 border-sidebar-border mt-auto">
           <UserSection />
         </div>
 
@@ -421,14 +425,13 @@ export default function SessionSidebar() {
         <Dialog open={!!renameId} onOpenChange={closeRenameModal}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>重命名会话 ID</DialogTitle>
-              <DialogDescription>输入此会话的新标识符。</DialogDescription>
+              <DialogTitle>重命名会话</DialogTitle>
+              <DialogDescription>为此会话设置一个新名称</DialogDescription>
             </DialogHeader>
             <Input
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
               placeholder="新名称..."
-              className="font-mono"
               onKeyDown={(e) => e.key === 'Enter' && renameId && handleRename(renameId)}
               autoFocus
             />
@@ -459,9 +462,11 @@ export default function SessionSidebar() {
       {/* Drag Overlay */}
       <DragOverlay>
         {draggedSession && (
-          <div className="flex items-center gap-2 px-3 py-2 text-xs bg-sidebar border border-border rounded-sm shadow-lg">
+          <div className="flex items-center gap-2 px-3 py-2 text-sm bg-sidebar border-2 border-foreground shadow-[4px_4px_0_0_hsl(var(--foreground))]">
             <MessageSquare className="h-4 w-4 text-primary" />
-            <span className="truncate">{getSessionTitle(draggedSession)}</span>
+            <span className="truncate text-sidebar-foreground">
+              {getSessionTitle(draggedSession)}
+            </span>
           </div>
         )}
       </DragOverlay>

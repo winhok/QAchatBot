@@ -6,7 +6,6 @@ export const useSession = create<SessionState>((set) => ({
   sessionId: '',
   modelId: DEFAULT_MODEL_ID,
   hasUserMessage: false,
-  hasModeSelected: false,
   welcomeRefreshTrigger: 0,
   renameId: null,
   renameValue: '',
@@ -17,10 +16,6 @@ export const useSession = create<SessionState>((set) => ({
 
   setModelId: (modelId) => {
     set({ modelId })
-  },
-
-  setHasModeSelected: (selected) => {
-    set({ hasModeSelected: selected })
   },
 
   refreshWelcome: () => {

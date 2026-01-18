@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ChatHeader } from '@/components/ChatHeader'
 import { ChatInput } from '@/components/ChatInput'
-import { FloatingChatBubble } from '@/components/FloatingChatBubble'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { useInvalidateSessions, useRegisterChatHotkeys } from '@/hooks'
 import { useChatStore } from '@/stores/chat'
@@ -34,13 +33,11 @@ function HomePage() {
     <div className="flex flex-1 flex-col">
       <ChatHeader />
 
-      <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0">
+      <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col items-center justify-center p-4 min-h-0">
         <WelcomeScreen />
 
         <ChatInput onSend={handleSend} disabled={isLoading} />
       </div>
-
-      <FloatingChatBubble />
     </div>
   )
 }

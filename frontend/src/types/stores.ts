@@ -37,13 +37,11 @@ export interface SessionState {
   sessionId: string
   modelId: string
   hasUserMessage: boolean
-  hasModeSelected: boolean
   welcomeRefreshTrigger: number
   renameId: string | null
   renameValue: string
   setSessionId: (id: string) => void
   setModelId: (modelId: string) => void
-  setHasModeSelected: (selected: boolean) => void
   refreshWelcome: () => void
   createNewSession: (id: string) => void
   setHasUserMessage: (has: boolean) => void

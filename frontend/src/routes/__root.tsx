@@ -10,6 +10,7 @@ import { CanvasSidebar } from '@/components/canvas/CanvasSidebar'
 import { useRegisterGlobalHotkeys } from '@/hooks'
 import { useArtifactParsing } from '@/hooks/useArtifactParsing'
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools'
+import { usePanel } from '@/stores/usePanel'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -34,8 +35,10 @@ function NotFoundComponent() {
 function RootComponent() {
   // 搜索对话框状态
   const [searchOpen, setSearchOpen] = useState(false)
-  // 侧边栏折叠状态
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  // 侧边栏折叠状态 - 使用全局 store
+  const sidebarCollapsed = usePanel((s) => s.sidebarCollapsed)
+  const toggleSidebar = usePanel((s) => s.toggleSidebar)
 
   // 全局 artifact 解析监听
   useArtifactParsing()
@@ -43,7 +46,7 @@ function RootComponent() {
   // 注册全局热键
   useRegisterGlobalHotkeys({
     onSearchOpen: () => setSearchOpen(true),
-    onToggleSidebar: () => setSidebarCollapsed((prev) => !prev),
+    onToggleSidebar: toggleSidebar,
   })
 
   return (

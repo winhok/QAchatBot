@@ -1,14 +1,13 @@
-// TODO: 导出按钮组件（QA 场景特有）
+// TODO: 导出按钮组件
 // 功能需求：
 // 1. 支持导出为 Excel/CSV/JSON/Markdown 格式
-// 2. 测试用例导出为标准格式
-// 3. 对话历史导出
-// 4. 下拉菜单选择导出格式
-// 5. 导出进度提示
+// 2. 对话历史导出
+// 3. 下拉菜单选择导出格式
+// 4. 导出进度提示
 
 interface ExportButtonProps {
   data: unknown
-  type: 'testcase' | 'conversation' | 'bug-report'
+  type: 'conversation'
   sessionId: string
 }
 

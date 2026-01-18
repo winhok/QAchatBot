@@ -10,7 +10,6 @@ export function useQuickAction() {
   const navigate = useNavigate()
 
   const setSessionId = useSession((s) => s.setSessionId)
-  const setHasModeSelected = useSession((s) => s.setHasModeSelected)
   const refreshWelcome = useSession((s) => s.refreshWelcome)
   const clearMessages = useChatStore((s) => s.clearMessages)
 
@@ -23,7 +22,6 @@ export function useQuickAction() {
     }
 
     setSessionId('')
-    setHasModeSelected(true)
     clearMessages()
 
     if (window.location.pathname !== '/') {
@@ -34,7 +32,6 @@ export function useQuickAction() {
 
   const resetToLobby = () => {
     setSessionId('')
-    setHasModeSelected(false)
     clearMessages()
     refreshWelcome()
 
