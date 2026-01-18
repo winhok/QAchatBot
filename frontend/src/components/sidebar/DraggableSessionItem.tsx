@@ -1,23 +1,16 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { AnimatePresence, motion } from 'framer-motion'
-import {
-  GripVertical,
-  MessageSquare,
-  MoreHorizontal,
-  Pencil,
-  TestTube2,
-  Trash2,
-} from 'lucide-react'
+import { GripVertical, MessageSquare, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import type { Session } from '@/types/stores'
+import { getSessionTitle } from '@/utils/session'
+import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { cn } from '@/lib/utils'
-import { getSessionTitle } from '@/utils/session'
 
 interface DraggableSessionItemProps {
   session: Session
@@ -29,15 +22,6 @@ interface DraggableSessionItemProps {
   onMenuOpenChange: (id: string | null) => void
   onRename: (id: string, name: string) => void
   onDelete: (id: string) => void
-}
-
-function getTypeIcon(type: string | undefined): React.ReactNode {
-  switch (type) {
-    case 'testcase':
-      return <TestTube2 className="h-4 w-4 text-primary shrink-0" />
-    default:
-      return <MessageSquare className="h-4 w-4 text-primary shrink-0" />
-  }
 }
 
 export function DraggableSessionItem({
@@ -96,7 +80,7 @@ export function DraggableSessionItem({
           <GripVertical className="h-3 w-3 text-muted-foreground" />
         </div>
 
-        {getTypeIcon(session.type)}
+        <MessageSquare className="h-4 w-4 text-primary shrink-0" />
         <span className="truncate flex-1 text-left tracking-tight">{getSessionTitle(session)}</span>
       </motion.button>
 

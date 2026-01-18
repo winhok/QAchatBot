@@ -6,7 +6,7 @@ import { ChatInput } from '@/components/ChatInput'
 import { FloatingChatBubble } from '@/components/FloatingChatBubble'
 import { MessageList } from '@/components/MessageList'
 import { useChatHistory, useRegisterChatHotkeys } from '@/hooks'
-import { useInvalidateSessions, useSessions } from '@/hooks/useSessions'
+import { useInvalidateSessions } from '@/hooks/useSessions'
 import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 import { useSession } from '@/stores/useSession'
@@ -24,22 +24,11 @@ function ThreadPage() {
   const { threadId } = useParams({ from: '/$threadId' })
   const invalidateSessions = useInvalidateSessions()
 
-  const sessionType = useSession((s) => s.sessionType)
   const setSessionId = useSession((s) => s.setSessionId)
-  const setSessionType = useSession((s) => s.setSessionType)
 
   const isLoading = useChatStore((s) => s.isLoading)
 
   const { sendMessage } = useSendMessage()
-
-  const { data: sessions = [] } = useSessions()
-
-  useEffect(() => {
-    const session = sessions.find((s) => s.id === threadId)
-    if (session?.type && session.type !== sessionType) {
-      setSessionType(session.type)
-    }
-  }, [sessions, threadId, sessionType, setSessionType])
 
   useEffect(() => {
     if (threadId) {

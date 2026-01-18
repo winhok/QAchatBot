@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore, useTransition } from 'react'
 import { featureTips, getRandomIndex, getTimeGreeting, welcomeMessages } from './welcome/constants'
 import { FeatureGrid } from './welcome/FeatureGrid'
-import { NormalModeView, TestCaseModeView } from './welcome/ModeViews'
+import { NormalModeView } from './welcome/ModeViews'
 import { QuickAccess } from './welcome/QuickAccess'
 import { WelcomeHeader } from './welcome/WelcomeHeader'
 import type { FeatureItem } from './welcome/FeatureGrid'
@@ -15,7 +15,6 @@ const TIP_STORAGE_KEY = 'last_tip_index'
 export function WelcomeScreen() {
   const { startNewSession, resetToLobby } = useQuickAction()
   const sessionId = useSession((s) => s.sessionId)
-  const sessionType = useSession((s) => s.sessionType)
   const hasModeSelected = useSession((s) => s.hasModeSelected)
   const welcomeRefreshTrigger = useSession((s) => s.welcomeRefreshTrigger)
   const [welcomeIndex, setWelcomeIndex] = useState<number | null>(null)
@@ -94,7 +93,7 @@ export function WelcomeScreen() {
     if (!feature.implemented) {
       return
     }
-    startNewSession(feature.type)
+    startNewSession()
   }
 
   // 防止 Hydration 不匹配
@@ -108,11 +107,7 @@ export function WelcomeScreen() {
 
   const currentTip = featureTips[tipIndex]
 
-  if (hasModeSelected && sessionType === 'testcase') {
-    return <TestCaseModeView resetToLobby={resetToLobby} />
-  }
-
-  if (hasModeSelected && sessionType === 'normal') {
+  if (hasModeSelected) {
     return <NormalModeView resetToLobby={resetToLobby} />
   }
 

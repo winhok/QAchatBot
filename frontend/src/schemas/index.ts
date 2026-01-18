@@ -4,8 +4,6 @@ import { z } from 'zod'
 // 基础枚举 Schemas
 // ============================================================================
 
-export const SessionTypeSchema = z.enum(['normal', 'testcase'])
-
 export const ToolStatusSchema = z.enum(['running', 'success', 'error'])
 
 export const ToolTypeSchema = z.enum(['api', 'database', 'script'])
@@ -107,7 +105,6 @@ export const MessageSchema = z.object({
 export const SessionSchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
-  type: SessionTypeSchema,
   createdAt: z.string(),
   folderId: z.string().nullable().optional(),
 })
@@ -149,7 +146,6 @@ export const MoveSessionResponseSchema = SessionSchema
 
 export const CreateSessionRequestSchema = z.object({
   name: z.string().optional(),
-  type: SessionTypeSchema.default('normal'),
 })
 
 export const DeleteSessionRequestSchema = z.object({
@@ -159,7 +155,6 @@ export const DeleteSessionRequestSchema = z.object({
 export const UpdateSessionRequestSchema = z.object({
   id: z.string().min(1, 'Session ID is required'),
   name: z.string().min(1, 'Name is required'),
-  type: SessionTypeSchema.default('normal'),
 })
 
 // 聊天消息内容 Schema（支持纯文本或多模态内容块数组）
@@ -180,14 +175,12 @@ export const ChatRequestSchema = z.object({
   message: ChatMessageContentSchema,
   session_id: z.string().cuid('Invalid session_id').optional(),
   model_id: z.string().optional(),
-  session_type: SessionTypeSchema.optional(),
 })
 
 // ============================================================================
 // 类型导出 (从 Schemas 推断)
 // ============================================================================
 
-export type SessionType = z.infer<typeof SessionTypeSchema>
 export type ToolStatus = z.infer<typeof ToolStatusSchema>
 export type ToolType = z.infer<typeof ToolTypeSchema>
 export type HttpMethod = z.infer<typeof HttpMethodSchema>
@@ -224,7 +217,6 @@ export const GetSessionsResponseSchema = z.object({
 export const CreateSessionResponseSchema = z.object({
   session_id: z.string(),
   name: z.string(),
-  type: SessionTypeSchema,
 })
 
 export const UpdateSessionResponseSchema = z.object({

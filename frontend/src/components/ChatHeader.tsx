@@ -1,4 +1,4 @@
-import { Bell, MessageSquare, Settings, TestTube2, Wrench } from 'lucide-react'
+import { Bell, MessageSquare, Settings, Wrench } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,26 +13,9 @@ import {
 import { TOOLS } from '@/lib/constants'
 import { useSession } from '@/stores/useSession'
 
-const SESSION_TYPE_CONFIG = {
-  normal: {
-    label: '普通聊天',
-    icon: MessageSquare,
-    variant: 'success' as const,
-  },
-  testcase: {
-    label: '测试设计',
-    icon: TestTube2,
-    variant: 'teal' as const,
-  },
-}
-
 export function ChatHeader() {
-  const sessionType = useSession((s) => s.sessionType)
   const sessionId = useSession((s) => s.sessionId)
   const enabledToolsCount = TOOLS.filter((t) => t.enabled).length
-
-  const config = SESSION_TYPE_CONFIG[sessionType]
-  const TypeIcon = config.icon
 
   const handleNotifications = () => {
     // TODO: Implement notifications feature
@@ -48,9 +31,9 @@ export function ChatHeader() {
     <header className="flex h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 sticky top-0 z-10">
       <div className="flex items-center gap-3">
         {sessionId && (
-          <Badge variant={config.variant} className="gap-1.5">
-            <TypeIcon className="h-3 w-3" />
-            {config.label}
+          <Badge variant="success" className="gap-1.5">
+            <MessageSquare className="h-3 w-3" />
+            AI 对话
           </Badge>
         )}
 

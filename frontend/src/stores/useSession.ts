@@ -1,10 +1,9 @@
 import { create } from 'zustand'
-import type { SessionState, SessionType } from '@/types/stores'
+import type { SessionState } from '@/types/stores'
 import { DEFAULT_MODEL_ID } from '@/config/models'
 
 export const useSession = create<SessionState>((set) => ({
   sessionId: '',
-  sessionType: 'normal' as SessionType,
   modelId: DEFAULT_MODEL_ID,
   hasUserMessage: false,
   hasModeSelected: false,
@@ -14,10 +13,6 @@ export const useSession = create<SessionState>((set) => ({
 
   setSessionId: (id) => {
     set({ sessionId: id })
-  },
-
-  setSessionType: (type) => {
-    set({ sessionType: type })
   },
 
   setModelId: (modelId) => {
@@ -32,8 +27,8 @@ export const useSession = create<SessionState>((set) => ({
     set((state) => ({ welcomeRefreshTrigger: state.welcomeRefreshTrigger + 1 }))
   },
 
-  createNewSession: (id, type = 'normal') => {
-    set({ sessionId: id, sessionType: type, hasUserMessage: false })
+  createNewSession: (id) => {
+    set({ sessionId: id, hasUserMessage: false })
   },
 
   setHasUserMessage: (hasUserMessage: boolean) => set({ hasUserMessage }),

@@ -1,13 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common'
 import { CurrentUser } from '@/common/decorators/current-user.decorator'
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe'
+import type { SessionStatus } from '@/shared/schemas/enums'
 import {
   CreateSessionRequestSchema,
   UpdateSessionRequestSchema,
   type CreateSessionRequest,
   type UpdateSessionRequest,
 } from '@/shared/schemas/requests'
-import type { SessionStatus, SessionType } from '@/shared/schemas/enums'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common'
 import { SessionsService } from './sessions.service'
 
 @Controller('api/sessions')
@@ -24,14 +24,8 @@ export class SessionsController {
   }
 
   @Get()
-  async findAll(
-    @CurrentUser('id') userId: string,
-    @Query('type') type?: SessionType,
-    @Query('status') status?: SessionStatus,
-  ) {
-    const sessions = type
-      ? await this.sessionsService.findByType(userId, type, status)
-      : await this.sessionsService.findAll(userId, status)
+  async findAll(@CurrentUser('id') userId: string, @Query('status') status?: SessionStatus) {
+    const sessions = await this.sessionsService.findAll(userId, status)
     return { sessions }
   }
 

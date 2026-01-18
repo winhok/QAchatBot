@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Clock, MessageSquare, Search, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -38,7 +38,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps): React.R
         type: 'session',
         id: session.id,
         title: session.name || `会话 ${session.id.slice(0, 8)}`,
-        subtitle: session.type === 'testcase' ? '测试设计' : '普通聊天',
+        subtitle: 'AI 对话',
         timestamp: session.createdAt,
       }
     }

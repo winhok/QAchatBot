@@ -1,12 +1,6 @@
 import { z } from 'zod'
-import {
-  ToolTypeSchema,
-  ToolStatusSchema,
-  HttpMethodSchema,
-  MessageRoleSchema,
-  SessionTypeSchema,
-} from './enums'
 import { MessageContentBlockSchema } from './content-blocks'
+import { HttpMethodSchema, MessageRoleSchema, ToolStatusSchema, ToolTypeSchema } from './enums'
 
 export const ToolCallDataSchema = z.object({
   id: z.string(),
@@ -47,7 +41,6 @@ export const MessageSchema = z.object({
 export const SessionSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: SessionTypeSchema,
   created_at: z.string(),
 })
 

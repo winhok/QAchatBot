@@ -31,7 +31,6 @@ model Session {
   folderId      String?  @map("folder_id")
   folder        Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
   name          String?
-  type          String   @default("normal")
   status        String   @default("active")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")

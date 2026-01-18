@@ -1,3 +1,4 @@
+import { getDatabaseUrl } from '@/config/database-url'
 import { RequestContextService } from '@/infrastructure/context/request-context.service'
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { PrismaPg } from '@prisma/adapter-pg'
@@ -17,7 +18,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     @InjectPinoLogger(PrismaService.name)
     private readonly logger: PinoLogger,
   ) {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+    const pool = new Pool({ connectionString: getDatabaseUrl() })
     const adapter = new PrismaPg(pool)
     super({
       adapter,

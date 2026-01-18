@@ -9,20 +9,12 @@ import {
 import { rankItem } from '@tanstack/match-sorter-utils'
 import { useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
-import {
-  ChevronRight,
-  FlaskConical,
-  FolderPlus,
-  MessageSquare,
-  Plus,
-  Search,
-  TestTube2,
-} from 'lucide-react'
+import { ChevronRight, FlaskConical, FolderPlus, MessageSquare, Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import type { Folder } from '@/schemas'
 import type { Session } from '@/types/stores'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { DraggableSessionItem, FolderDialog, FolderItem } from '@/components/sidebar'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,7 +28,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { UserSection } from '@/components/UserSection'
-import { useQuickAction } from '@/hooks/useQuickAction'
 import {
   useCreateFolder,
   useDeleteFolder,
@@ -44,10 +35,28 @@ import {
   useMoveSession,
   useUpdateFolder,
 } from '@/hooks/useFolders'
+import { useQuickAction } from '@/hooks/useQuickAction'
 import { useDeleteSession, useRenameSession, useSessions } from '@/hooks/useSessions'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/stores/useSession'
 import { getSessionTitle } from '@/utils/session'
+
+/**
+ * Filter sessions by search query using fuzzy matching
+ */
+function filterSessionsByQuery(sessions: Array<Session>, query: string): Array<Session> {
+  if (!query.trim()) return sessions
+
+  return sessions
+    .map((session) => {
+      const title = getSessionTitle(session)
+      const ranking = rankItem(title, query, { threshold: 2 })
+      return { session, ranking }
+    })
+    .filter(({ ranking }) => ranking.passed)
+    .sort((a, b) => b.ranking.rank - a.ranking.rank)
+    .map(({ session }) => session)
+}
 
 // Root drop zone component for moving sessions out of folders
 function RootDropZone({ children, isOver }: { children: React.ReactNode; isOver: boolean }) {
@@ -140,30 +149,16 @@ export default function SessionSidebar() {
     return { rootSessions: root, sessionsByFolder: byFolder }
   }, [sessions, userFolders])
 
-  // Filter by search query
-  const filterSessions = (sessionList: Array<Session>) => {
-    if (!searchQuery.trim()) return sessionList
-
-    return sessionList
-      .map((session) => {
-        const title = getSessionTitle(session)
-        const ranking = rankItem(title, searchQuery, { threshold: 2 })
-        return { session, ranking }
-      })
-      .filter(({ ranking }) => ranking.passed)
-      .sort((a, b) => b.ranking.rank - a.ranking.rank)
-      .map(({ session }) => session)
-  }
-
+  // Apply search filter to sessions
   const filteredRootSessions = useMemo(
-    () => filterSessions(rootSessions),
+    () => filterSessionsByQuery(rootSessions, searchQuery),
     [rootSessions, searchQuery],
   )
 
   const filteredSessionsByFolder = useMemo(() => {
     const result: Record<string, Array<Session>> = {}
     Object.entries(sessionsByFolder).forEach(([folderId, folderSessions]) => {
-      result[folderId] = filterSessions(folderSessions)
+      result[folderId] = filterSessionsByQuery(folderSessions, searchQuery)
     })
     return result
   }, [sessionsByFolder, searchQuery])
@@ -465,11 +460,7 @@ export default function SessionSidebar() {
       <DragOverlay>
         {draggedSession && (
           <div className="flex items-center gap-2 px-3 py-2 text-xs bg-sidebar border border-border rounded-sm shadow-lg">
-            {draggedSession.type === 'testcase' ? (
-              <TestTube2 className="h-4 w-4 text-primary" />
-            ) : (
-              <MessageSquare className="h-4 w-4 text-primary" />
-            )}
+            <MessageSquare className="h-4 w-4 text-primary" />
             <span className="truncate">{getSessionTitle(draggedSession)}</span>
           </div>
         )}

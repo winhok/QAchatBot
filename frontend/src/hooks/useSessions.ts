@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { Session, SessionType } from '@/types/stores'
+import type { Session } from '@/types/stores'
 
 // API 函数
 async function fetchSessions(): Promise<Array<Session>> {
@@ -23,12 +23,14 @@ async function deleteSession(id: string): Promise<void> {
   })
 }
 
-async function renameSession(id: string, name: string, type?: SessionType): Promise<void> {
-  await fetch(`/api/sessions/${id}`, {
+async function renameSession(id: string, name: string, maxLength?: number): Promise<void> {
+  const trimmedName = maxLength ? name.slice(0, maxLength) : name
+  const res = await fetch(`/api/sessions/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, type }),
+    body: JSON.stringify({ name: trimmedName }),
   })
+  if (!res.ok) throw new Error('Failed to update session name')
 }
 
 // Query key
@@ -68,27 +70,23 @@ export function useRenameSession() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, name, type }: { id: string; name: string; type?: SessionType }) =>
-      renameSession(id, name, type),
+    mutationFn: ({ id, name, maxLength }: { id: string; name: string; maxLength?: number }) =>
+      renameSession(id, name, maxLength),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sessionsQueryKey })
     },
   })
 }
 
+/**
+ * Alias for useRenameSession with a default maxLength of 20
+ * Used for auto-naming sessions from first message
+ */
 export function useUpdateSessionName() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const res = await fetch(`/api/sessions/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.slice(0, 20) }),
-      })
-      if (!res.ok) throw new Error('Failed to update session name')
-      return res.json()
-    },
+    mutationFn: ({ id, name }: { id: string; name: string }) => renameSession(id, name, 20),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sessionsQueryKey })
     },

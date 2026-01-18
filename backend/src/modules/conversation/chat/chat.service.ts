@@ -1,6 +1,4 @@
 import { ChatbotService } from '@/agent/graphs/chatbot'
-import { QaChatbotService } from '@/agent/graphs/qa-chatbot'
-import type { SessionType } from '@/shared/schemas/enums'
 import type { ChatMessageContent } from '@/shared/schemas/requests'
 import { Injectable } from '@nestjs/common'
 import type { Response } from 'express'
@@ -13,7 +11,6 @@ interface StreamChatParams {
   message: ChatMessageContent
   sessionId: string
   modelId: string
-  sessionType: SessionType
   res: Response
   isAborted: () => boolean
   tools?: string[]
@@ -38,11 +35,30 @@ interface StreamEvent {
   }
 }
 
+interface ToolCallInfo {
+  dbId?: string
+  name: string
+  startTime: number
+}
+
+/**
+ * Write SSE-formatted JSON to response
+ */
+function writeSSE(res: Response, data: Record<string, unknown>): void {
+  res.write(JSON.stringify(data) + '\n')
+}
+
+/**
+ * Format error for response
+ */
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 @Injectable()
 export class ChatService {
   constructor(
     private readonly chatbot: ChatbotService,
-    private readonly qaChatbot: QaChatbotService,
     private readonly sessions: SessionsService,
     private readonly messages: MessagesService,
   ) {}
@@ -77,10 +93,10 @@ export class ChatService {
   }
 
   async streamChat(params: StreamChatParams) {
-    const { userId, message, sessionId, modelId, sessionType, res, isAborted, tools } = params
+    const { userId, message, sessionId, modelId, res, isAborted, tools } = params
 
     // Ensure session exists, and auto-name if new
-    const session = await this.sessions.findOrCreate(userId, sessionId, sessionType)
+    const session = await this.sessions.findOrCreate(userId, sessionId)
     if (!session.name) {
       const autoName = this.extractSessionName(message)
       await this.sessions.update(userId, sessionId, { name: autoName })
@@ -104,20 +120,14 @@ export class ChatService {
 
     const userMessage = this.chatbot.createHumanMessage(message)
 
-    // Dispatch based on session type
-    let app: any // Using any to accommodate different graph types
-    if (sessionType === 'testcase') {
-      console.log('[ChatService] Dispatching to QA Chatbot')
-      app = this.qaChatbot.getApp()
-    } else {
-      console.log('[ChatService] Dispatching to General Chatbot')
-      app = this.chatbot.getApp(modelId, tools)
-    }
+    // Use general chatbot (QA capabilities are now available as tools)
+    console.log('[ChatService] Dispatching to Chatbot')
+    const app = this.chatbot.getApp(modelId, tools)
 
     const threadConfig = { configurable: { thread_id: sessionId } }
 
-    // Track tool calls: runId -> { dbId, name, startTime }
-    const toolCallsMap = new Map<string, { dbId?: string; name: string; startTime: number }>()
+    // Track tool calls: runId -> tool info
+    const toolCallsMap = new Map<string, ToolCallInfo>()
 
     let accumulatedContent = ''
 
@@ -131,17 +141,16 @@ export class ChatService {
         break
       }
 
-      // Handle model streaming output
-      if (event.event === 'on_chat_model_stream') {
-        const chunk = event.data?.chunk
+      switch (event.event) {
+        case 'on_chat_model_stream': {
+          const chunk = event.data?.chunk
+          if (!chunk) break
 
-        if (chunk) {
           const dataObj: Record<string, unknown> = {
             type: 'chunk',
             content: chunk.content,
           }
 
-          // Accumulate content for database
           if (chunk.content) {
             accumulatedContent += chunk.content
           }
@@ -154,101 +163,90 @@ export class ChatService {
             dataObj.tool_call_chunks = chunk.tool_call_chunks
           }
 
-          res.write(JSON.stringify(dataObj) + '\n')
+          writeSSE(res, dataObj)
+          break
         }
-      }
 
-      // Handle tool call start
-      if (event.event === 'on_tool_start') {
-        const toolName = event.name ?? 'unknown_tool'
-        const runId = event.run_id ?? ''
-        const inputData = event.data?.input ?? {}
+        case 'on_tool_start': {
+          const toolName = event.name ?? 'unknown_tool'
+          const runId = event.run_id ?? ''
+          const inputData = event.data?.input ?? {}
 
-        // Create tool call in database
-        const toolCall = await this.messages.createToolCall({
-          messageId: assistantMessage.id,
-          toolCallId: runId,
-          toolName,
-          args: inputData as Prisma.InputJsonValue,
-        })
+          const toolCall = await this.messages.createToolCall({
+            messageId: assistantMessage.id,
+            toolCallId: runId,
+            toolName,
+            args: inputData as Prisma.InputJsonValue,
+          })
 
-        // Update status to running
-        await this.messages.updateToolCall(toolCall.id, { status: 'running' })
+          await this.messages.updateToolCall(toolCall.id, { status: 'running' })
 
-        toolCallsMap.set(runId, {
-          dbId: toolCall.id,
-          name: toolName,
-          startTime: Date.now(),
-        })
+          toolCallsMap.set(runId, {
+            dbId: toolCall.id,
+            name: toolName,
+            startTime: Date.now(),
+          })
 
-        res.write(
-          JSON.stringify({
+          writeSSE(res, {
             type: 'tool_start',
             tool_call_id: runId,
             name: toolName,
             input: inputData,
-          }) + '\n',
-        )
-      }
-
-      // Handle tool call end
-      if (event.event === 'on_tool_end') {
-        const runId = event.run_id ?? ''
-        const toolInfo = toolCallsMap.get(runId)
-        const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
-        const outputData = event.data?.output
-
-        // Update tool call in database
-        if (toolInfo?.dbId) {
-          await this.messages.updateToolCall(toolInfo.dbId, {
-            status: 'completed',
-            result: outputData as Prisma.InputJsonValue | undefined,
-            duration,
           })
+          break
         }
 
-        res.write(
-          JSON.stringify({
+        case 'on_tool_end': {
+          const runId = event.run_id ?? ''
+          const toolInfo = toolCallsMap.get(runId)
+          const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
+          const outputData = event.data?.output
+
+          if (toolInfo?.dbId) {
+            await this.messages.updateToolCall(toolInfo.dbId, {
+              status: 'completed',
+              result: outputData as Prisma.InputJsonValue | undefined,
+              duration,
+            })
+          }
+
+          writeSSE(res, {
             type: 'tool_end',
             tool_call_id: runId,
             name: toolInfo?.name || 'unknown_tool',
             output: outputData,
             duration,
-          }) + '\n',
-        )
-
-        toolCallsMap.delete(runId)
-      }
-
-      // Handle tool call error
-      if (event.event === 'on_tool_error') {
-        const runId = event.run_id ?? ''
-        const error = event.data?.error
-        const toolInfo = toolCallsMap.get(runId)
-        const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
-
-        // Update tool call in database with error
-        if (toolInfo?.dbId) {
-          await this.messages.updateToolCall(toolInfo.dbId, {
-            status: 'error',
-            result: {
-              error: error instanceof Error ? error.message : String(error),
-            },
-            duration,
           })
+
+          toolCallsMap.delete(runId)
+          break
         }
 
-        res.write(
-          JSON.stringify({
+        case 'on_tool_error': {
+          const runId = event.run_id ?? ''
+          const error = event.data?.error
+          const toolInfo = toolCallsMap.get(runId)
+          const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
+
+          if (toolInfo?.dbId) {
+            await this.messages.updateToolCall(toolInfo.dbId, {
+              status: 'error',
+              result: { error: formatError(error) },
+              duration,
+            })
+          }
+
+          writeSSE(res, {
             type: 'tool_error',
             tool_call_id: runId,
             name: toolInfo?.name || 'unknown_tool',
-            error: error instanceof Error ? error.message : String(error),
+            error: formatError(error),
             duration,
-          }) + '\n',
-        )
+          })
 
-        toolCallsMap.delete(runId)
+          toolCallsMap.delete(runId)
+          break
+        }
       }
     }
 
@@ -258,12 +256,10 @@ export class ChatService {
     }
 
     // Send end signal
-    res.write(
-      JSON.stringify({
-        type: 'end',
-        status: isAborted() ? 'aborted' : 'success',
-        session_id: sessionId,
-      }) + '\n',
-    )
+    writeSSE(res, {
+      type: 'end',
+      status: isAborted() ? 'aborted' : 'success',
+      session_id: sessionId,
+    })
   }
 }

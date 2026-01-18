@@ -50,7 +50,6 @@ export class ChatController {
   ): Promise<void> {
     const sessionId = dto.session_id || createId()
     const modelId = dto.model_id || 'gpt-4o'
-    const sessionType = dto.session_type || 'normal'
     const tools = dto.tools
 
     // Set streaming response headers
@@ -73,7 +72,6 @@ export class ChatController {
         message: dto.message,
         sessionId,
         modelId,
-        sessionType,
         res,
         isAborted: () => aborted,
         tools,

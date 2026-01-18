@@ -42,7 +42,6 @@ const QUICK_COMMANDS = [
 const MAX_TEXTAREA_HEIGHT = 160
 
 export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputProps) {
-  const sessionType = useSession((s) => s.sessionType)
   const modelId = useSession((s) => s.modelId)
   const setModelId = useSession((s) => s.setModelId)
 
@@ -196,9 +195,7 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              placeholder={
-                placeholder || (sessionType === 'testcase' ? '输入需求文档...' : '输入指令...')
-              }
+              placeholder={placeholder || '输入指令...'}
               className="min-h-[24px] max-h-[200px] flex-1 bg-transparent border-0 p-1.5 focus-visible:ring-0 resize-none font-mono text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/40"
               rows={1}
             />
@@ -244,13 +241,11 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
 
               <div className="h-3 w-px bg-border/50" />
 
-              {sessionType === 'normal' && (
-                <ToolSelector
-                  tools={AVAILABLE_TOOLS}
-                  selectedTools={selectedTools}
-                  onToolToggle={handleToolToggle}
-                />
-              )}
+              <ToolSelector
+                tools={AVAILABLE_TOOLS}
+                selectedTools={selectedTools}
+                onToolToggle={handleToolToggle}
+              />
             </div>
 
             <div className="flex items-center gap-1.5 opacity-60">

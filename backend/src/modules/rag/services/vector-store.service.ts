@@ -1,7 +1,7 @@
+import { getDatabaseUrl } from '@/config/database-url'
 import { DistanceStrategy, PGVectorStore } from '@langchain/community/vectorstores/pgvector'
 import { Document } from '@langchain/core/documents'
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { Pool } from 'pg'
 import { EmbeddingsService } from './embeddings.service'
 
@@ -46,13 +46,10 @@ export class VectorStoreService implements OnModuleInit, OnModuleDestroy {
 
   private readonly logger = new Logger(VectorStoreService.name)
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly embeddingsService: EmbeddingsService,
-  ) {}
+  constructor(private readonly embeddingsService: EmbeddingsService) {}
 
   async onModuleInit() {
-    const connectionString = this.configService.get<string>('DATABASE_URL')
+    const connectionString: string = getDatabaseUrl()
     this.pool = new Pool({ connectionString })
 
     // 初始化默认 collection 的向量存储

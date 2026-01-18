@@ -4,32 +4,26 @@ import { useSession } from './useSession'
 import type { ChatMessageContent, ToolCallData } from '@/schemas'
 import type { SendMessageOptions } from '@/types/stores'
 import type { CanvasArtifactMetadata } from '@/utils/CanvasArtifactParser'
+import { useUpdateSessionName } from '@/hooks/useSessions'
 import { CanvasArtifactParser } from '@/utils/CanvasArtifactParser'
 import { extractTextContent } from '@/utils/message'
-import { useUpdateSessionName } from '@/hooks/useSessions'
 
 const API_ENDPOINT = '/api/chat'
 
+const TOOL_TYPE_PATTERNS: ReadonlyArray<{
+  keywords: ReadonlyArray<string>
+  type: ToolCallData['type']
+}> = [
+  { keywords: ['api', 'http', 'fetch', 'request'], type: 'api' },
+  { keywords: ['db', 'database', 'query', 'sql'], type: 'database' },
+]
+
 function inferToolType(toolName: string): ToolCallData['type'] {
   const name = toolName.toLowerCase()
-
-  if (
-    name.includes('api') ||
-    name.includes('http') ||
-    name.includes('fetch') ||
-    name.includes('request')
-  ) {
-    return 'api'
-  }
-  if (
-    name.includes('db') ||
-    name.includes('database') ||
-    name.includes('query') ||
-    name.includes('sql')
-  ) {
-    return 'database'
-  }
-  return 'script'
+  const match = TOOL_TYPE_PATTERNS.find((pattern) =>
+    pattern.keywords.some((keyword) => name.includes(keyword)),
+  )
+  return match?.type ?? 'script'
 }
 
 function fileToBase64(file: File): Promise<string> {
@@ -38,6 +32,38 @@ function fileToBase64(file: File): Promise<string> {
     reader.onloadend = () => resolve(reader.result as string)
     reader.readAsDataURL(file)
   })
+}
+
+function createCanvasParserCallbacks(sessionId: string) {
+  const canvasStore = useCanvasArtifacts.getState()
+
+  return {
+    onArtifactStart: (metadata: CanvasArtifactMetadata) => {
+      canvasStore.createArtifact(metadata.messageId, {
+        id: metadata.id,
+        type: metadata.type as 'react' | 'component',
+        title: metadata.title,
+        sessionId: sessionId || '',
+      })
+      canvasStore.setActiveArtifactId(metadata.id)
+      canvasStore.setIsCanvasVisible(true, 'preview')
+    },
+    onCodeStart: (messageId: string, artifactId: string, language: string) => {
+      canvasStore.startCode(messageId, artifactId, language as 'jsx')
+    },
+    onCodeChunk: (messageId: string, artifactId: string, chunk: string) => {
+      canvasStore.appendCodeChunk(messageId, artifactId, chunk)
+    },
+    onCodeEnd: (messageId: string, artifactId: string, fullContent: string) => {
+      canvasStore.endCode(messageId, artifactId, fullContent)
+    },
+    onArtifactEnd: (messageId: string, artifactId: string) => {
+      canvasStore.updateArtifact(messageId, artifactId, {
+        status: 'ready',
+        isStreaming: false,
+      })
+    },
+  }
 }
 
 export function useSendMessage() {
@@ -56,7 +82,6 @@ export function useSendMessage() {
   ): Promise<void> {
     const {
       sessionId: storeSessionId,
-      sessionType,
       modelId,
       setSessionId,
       hasUserMessage,
@@ -102,35 +127,7 @@ export function useSendMessage() {
     let assistantMessageId = ''
 
     try {
-      // 创建 Canvas 解析器
-      const canvasStore = useCanvasArtifacts.getState()
-      const canvasParser = new CanvasArtifactParser({
-        onArtifactStart: (metadata: CanvasArtifactMetadata) => {
-          canvasStore.createArtifact(metadata.messageId, {
-            id: metadata.id,
-            type: metadata.type as 'react' | 'component',
-            title: metadata.title,
-            sessionId: sessionId || '',
-          })
-          canvasStore.setActiveArtifactId(metadata.id)
-          canvasStore.setIsCanvasVisible(true, 'preview')
-        },
-        onCodeStart: (messageId: string, artifactId: string, language: string) => {
-          canvasStore.startCode(messageId, artifactId, language as 'jsx')
-        },
-        onCodeChunk: (messageId: string, artifactId: string, chunk: string) => {
-          canvasStore.appendCodeChunk(messageId, artifactId, chunk)
-        },
-        onCodeEnd: (messageId: string, artifactId: string, fullContent: string) => {
-          canvasStore.endCode(messageId, artifactId, fullContent)
-        },
-        onArtifactEnd: (messageId: string, artifactId: string) => {
-          canvasStore.updateArtifact(messageId, artifactId, {
-            status: 'ready',
-            isStreaming: false,
-          })
-        },
-      })
+      const canvasParser = new CanvasArtifactParser(createCanvasParserCallbacks(sessionId))
 
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
@@ -139,7 +136,6 @@ export function useSendMessage() {
           message: messageContent,
           session_id: sessionId || undefined,
           model_id: modelId,
-          session_type: sessionType,
           tools,
         }),
         signal: controller.signal,

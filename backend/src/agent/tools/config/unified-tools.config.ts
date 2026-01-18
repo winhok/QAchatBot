@@ -1,4 +1,11 @@
-import { calculatorTool, currentTimeTool, readFileTool } from '../builtin'
+import {
+  analyzeTestPointsTool,
+  calculatorTool,
+  currentTimeTool,
+  generateTestCasesTool,
+  readFileTool,
+  reviewTestCasesTool,
+} from '../builtin'
 import type { UnifiedToolConfig } from '../types'
 
 /**
@@ -43,6 +50,38 @@ export const unifiedToolsConfig: UnifiedToolConfig[] = [
     type: 'custom',
     schema: readFileTool.schema,
     handler: readFileTool.handler,
+  },
+
+  // ==================== QA 测试工具 ====================
+  {
+    id: 'analyze_test_points',
+    name: '测试点分析',
+    description: analyzeTestPointsTool.description,
+    icon: '📋',
+    enabled: true,
+    type: 'custom',
+    schema: analyzeTestPointsTool.schema,
+    handler: analyzeTestPointsTool.handler,
+  },
+  {
+    id: 'generate_test_cases',
+    name: '生成测试用例',
+    description: generateTestCasesTool.description,
+    icon: '✅',
+    enabled: true,
+    type: 'custom',
+    schema: generateTestCasesTool.schema,
+    handler: generateTestCasesTool.handler,
+  },
+  {
+    id: 'review_test_cases',
+    name: '评审测试用例',
+    description: reviewTestCasesTool.description,
+    icon: '🔍',
+    enabled: true,
+    type: 'custom',
+    schema: reviewTestCasesTool.schema,
+    handler: reviewTestCasesTool.handler,
   },
 
   // ==================== LangChain 预构建工具 ====================

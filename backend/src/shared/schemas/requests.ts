@@ -1,13 +1,12 @@
 import { z } from 'zod'
 import { ChatMessageContentBlockSchema } from './content-blocks'
-import { SessionStatusSchema, SessionTypeSchema } from './enums'
+import { SessionStatusSchema } from './enums'
 
 // ========== Session Schemas ==========
 
 export const CreateSessionRequestSchema = z.object({
   id: z.string().cuid().optional(),
   name: z.string().optional(),
-  type: SessionTypeSchema.default('normal'),
   folderId: z.string().cuid().optional(),
 })
 
@@ -18,7 +17,6 @@ export const DeleteSessionRequestSchema = z.object({
 export const UpdateSessionRequestSchema = z.object({
   id: z.string().min(1, 'Session ID is required'),
   name: z.string().optional(),
-  type: SessionTypeSchema.optional(),
   status: SessionStatusSchema.optional(),
   folderId: z.string().cuid().nullable().optional(),
 })
@@ -32,7 +30,6 @@ export const ChatRequestSchema = z.object({
   message: ChatMessageContentSchema,
   session_id: z.string().cuid().optional(),
   model_id: z.string().optional(),
-  session_type: SessionTypeSchema.optional(),
   tools: z.array(z.string()).optional(),
 })
 

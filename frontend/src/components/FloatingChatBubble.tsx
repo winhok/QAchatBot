@@ -7,7 +7,6 @@ import {
   Keyboard,
   MessageSquare,
   Sparkles,
-  TestTube2,
   X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -37,28 +36,12 @@ const quickPrompts = [
   { label: '性能测试点', prompt: '请分析需要关注的性能测试点：' },
 ]
 
-const SESSION_CONFIG = {
-  normal: {
-    label: '普通聊天',
-    icon: MessageSquare,
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/20',
-  },
-  testcase: {
-    label: '测试设计',
-    icon: TestTube2,
-    color: 'text-teal-400',
-    bg: 'bg-teal-500/20',
-  },
-}
-
 export function FloatingChatBubble() {
   const [isOpen, setIsOpen] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const { resetToLobby } = useQuickAction()
 
   const sessionId = useSession((s) => s.sessionId)
-  const sessionType = useSession((s) => s.sessionType)
   const hasModeSelected = useSession((s) => s.hasModeSelected)
   const setDraftMessage = useChatStore((s) => s.setDraftMessage)
   const draftMessage = useChatStore((s) => s.draftMessage)
@@ -77,9 +60,6 @@ export function FloatingChatBubble() {
     posY: number
   } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  const config = SESSION_CONFIG[sessionType]
-  const ModeIcon = config.icon
 
   const calculateDockSide = (x: number, y: number): DockSide => {
     const windowWidth = window.innerWidth
@@ -416,13 +396,9 @@ export function FloatingChatBubble() {
                   {(sessionId || hasModeSelected) && (
                     <div className="flex items-center justify-between pb-2 border-b border-border/50">
                       <div className="flex items-center gap-2">
-                        <Badge
-                          variant={sessionType === 'testcase' ? 'teal' : 'success'}
-                          size="sm"
-                          className="gap-1"
-                        >
-                          <ModeIcon className="h-3 w-3" />
-                          {config.label}
+                        <Badge variant="success" size="sm" className="gap-1">
+                          <MessageSquare className="h-3 w-3" />
+                          AI 对话
                         </Badge>
                       </div>
                       {sessionId && (

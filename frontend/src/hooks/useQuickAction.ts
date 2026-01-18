@@ -1,5 +1,4 @@
 import { useNavigate } from '@tanstack/react-router'
-import type { SessionType } from '@/types/stores'
 import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
 
@@ -10,13 +9,12 @@ import { useSession } from '@/stores/useSession'
 export function useQuickAction() {
   const navigate = useNavigate()
 
-  const setSessionType = useSession((s) => s.setSessionType)
   const setSessionId = useSession((s) => s.setSessionId)
   const setHasModeSelected = useSession((s) => s.setHasModeSelected)
   const refreshWelcome = useSession((s) => s.refreshWelcome)
   const clearMessages = useChatStore((s) => s.clearMessages)
 
-  const startNewSession = (type: SessionType = 'normal') => {
+  const startNewSession = () => {
     const { sessionId } = useSession.getState()
 
     // 如果已经在首页（sessionId 为空），则手动触发欢迎词刷新
@@ -25,7 +23,6 @@ export function useQuickAction() {
     }
 
     setSessionId('')
-    setSessionType(type)
     setHasModeSelected(true)
     clearMessages()
 
@@ -38,7 +35,6 @@ export function useQuickAction() {
   const resetToLobby = () => {
     setSessionId('')
     setHasModeSelected(false)
-    setSessionType('normal')
     clearMessages()
     refreshWelcome()
 

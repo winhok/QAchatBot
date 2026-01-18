@@ -1,9 +1,149 @@
-# dependencies
+# ========================================
+# Dependencies
+# ========================================
 node_modules/
+.pnpm-store/
 
-# notes
-/notes
+# ========================================
+# Build outputs
+# ========================================
+dist/
+build/
+.output/
+*.tsbuildinfo
 
-# env files
-.env*
+# ========================================
+# Environment files
+# ========================================
+.env
+.env.*
 !.env.example
+
+# ========================================
+# IDE & Editor
+# ========================================
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+.settings/
+*.launch
+.c9/
+.cursorrules
+.cursorignore
+
+# ========================================
+# OS files
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ========================================
+# Logs
+# ========================================
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ========================================
+# Testing
+# ========================================
+coverage/
+.nyc_output/
+*.lcov
+
+# ========================================
+# Temporary files
+# ========================================
+.temp/
+.tmp/
+tmp/
+temp/
+*.swp
+*.swo
+*~
+
+# ========================================
+# Runtime data
+# ========================================
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ========================================
+# Diagnostic reports
+# ========================================
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# ========================================
+# Code analysis & AI tools cache
+# ========================================
+.serena/
+.claude/
+.cursor/
+.aider*
+.continue/
+
+# ========================================
+# Framework specific
+# ========================================
+# Vite
+.vite/
+
+# TanStack
+.tanstack/
+
+# Nitro/Nuxt
+.nitro/
+.nuxt/
+
+# Cloudflare
+.wrangler/
+
+# Vinxi
+.vinxi/
+
+# Vercel
+.vercel/
+
+# Next.js
+.next/
+
+# ========================================
+# Project specific
+# ========================================
+/notes/
+todos.json
+count.txt
+
+# Documentation - only keep README
+*.md
+!README.md
+!**/README.md
+
+# Prisma generated client
+backend/generated/
+
+# ========================================
+# Misc
+# ========================================
+*.local
+*.bak
+*.backup

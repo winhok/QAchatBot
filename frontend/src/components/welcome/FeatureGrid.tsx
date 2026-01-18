@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, Bug, FileCode, MessageSquare, TestTube2 } from 'lucide-react'
 
-import type { SessionType } from '@/types/stores'
 import { cn } from '@/lib/utils'
 
 export interface FeatureItem {
@@ -9,7 +8,6 @@ export interface FeatureItem {
   title: string
   description: string
   code: string
-  type: SessionType
   implemented: boolean
 }
 
@@ -19,15 +17,13 @@ const primaryFeatures: Array<FeatureItem> = [
     title: '自由对话',
     description: '通用人工智能助手协议。',
     code: '0x01',
-    type: 'normal',
     implemented: true,
   },
   {
     icon: TestTube2,
     title: '测试生成',
-    description: '自动化测试套件生成模块。',
+    description: '描述需求即可生成测试用例。',
     code: '0x02',
-    type: 'testcase',
     implemented: true,
   },
   {
@@ -35,7 +31,6 @@ const primaryFeatures: Array<FeatureItem> = [
     title: 'API审计',
     description: '端点验证与压力测试。',
     code: '0x03',
-    type: 'normal', // Placeholder
     implemented: false,
   },
   {
@@ -43,7 +38,6 @@ const primaryFeatures: Array<FeatureItem> = [
     title: '日志分析',
     description: '错误模式识别与诊断。',
     code: '0x04',
-    type: 'normal', // Placeholder
     implemented: false,
   },
 ]

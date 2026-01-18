@@ -1,6 +1,7 @@
 import { registerAs } from '@nestjs/config'
+import { getDatabaseUrl } from './database-url'
 
 export default registerAs('database', () => ({
-  url: process.env.DATABASE_URL,
+  url: getDatabaseUrl(),
   poolSize: parseInt(process.env.DATABASE_POOL_SIZE || '10', 10),
 }))

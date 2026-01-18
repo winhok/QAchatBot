@@ -1,10 +1,10 @@
-# 前端类型检查
-cd frontend && pnpm exec tsgo
-cd ..
+# 前端检查
+pnpm -C frontend typecheck
+pnpm -C frontend check
 
-# 后端类型检查  
-cd backend && pnpm exec tsgo
-cd ..
+# 后端检查
+pnpm -C backend typecheck
+pnpm -C backend check
 
 # 格式化暂存文件
 pnpm exec lint-staged

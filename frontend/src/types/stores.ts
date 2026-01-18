@@ -1,7 +1,7 @@
-import type { ChatMessageContent, Message, Session, SessionType, ToolCallData } from '@/schemas'
+import type { ChatMessageContent, Message, Session, ToolCallData } from '@/schemas'
 
 // 重新导出类型
-export type { Session, SessionType }
+export type { Session }
 
 // Store 状态类型 (包含方法，不适合用 Zod 定义)
 export interface ChatMessagesState {
@@ -35,7 +35,6 @@ export interface SendMessageOptions {
 
 export interface SessionState {
   sessionId: string
-  sessionType: SessionType
   modelId: string
   hasUserMessage: boolean
   hasModeSelected: boolean
@@ -43,11 +42,10 @@ export interface SessionState {
   renameId: string | null
   renameValue: string
   setSessionId: (id: string) => void
-  setSessionType: (type: SessionType) => void
   setModelId: (modelId: string) => void
   setHasModeSelected: (selected: boolean) => void
   refreshWelcome: () => void
-  createNewSession: (id: string, type?: SessionType) => void
+  createNewSession: (id: string) => void
   setHasUserMessage: (has: boolean) => void
   resetHasUserMessage: () => void
   setRenameId: (id: string | null) => void

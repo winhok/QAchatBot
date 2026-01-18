@@ -7,6 +7,7 @@ import {
 } from '@/agent/prompts'
 import { ToolsService } from '@/agent/tools'
 import { ModelFactory } from '@/agent/utils'
+import { getDatabaseUrl } from '@/config/database-url'
 import { HistoryOptimizerService } from '@/infrastructure/memory/history-optimizer.service'
 import { MemoryStoreService, type MergedMemory } from '@/infrastructure/memory/memory-store.service'
 import type { ChatMessageContentBlock } from '@/shared/schemas/content-blocks'
@@ -36,8 +37,8 @@ export class ChatbotService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const databaseUrl = this.config.get<string>('DATABASE_URL')
-    this.checkpointer = PostgresSaver.fromConnString(databaseUrl!)
+    const databaseUrl = getDatabaseUrl()
+    this.checkpointer = PostgresSaver.fromConnString(databaseUrl)
     try {
       await this.checkpointer.setup()
     } catch (error: unknown) {
