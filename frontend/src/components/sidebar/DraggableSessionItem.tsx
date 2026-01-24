@@ -1,16 +1,24 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { AnimatePresence, motion } from 'framer-motion'
-import { GripVertical, MessageSquare, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import {
+  GitBranch,
+  GripVertical,
+  MessageSquare,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
 import type { Session } from '@/types/stores'
-import { getSessionTitle } from '@/utils/session'
-import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useBranchCount } from '@/hooks/useBranchCount'
+import { cn } from '@/lib/utils'
+import { getSessionTitle } from '@/utils/session'
 
 interface DraggableSessionItemProps {
   session: Session
@@ -42,6 +50,9 @@ export function DraggableSessionItem({
       session,
     },
   })
+
+  // 获取分支数量（仅当 hover 或 active 时才请求）
+  const { data: branchCount } = useBranchCount(isActive || isHovered ? session.id : undefined)
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -82,6 +93,13 @@ export function DraggableSessionItem({
 
         <MessageSquare className="h-4 w-4 text-primary shrink-0" />
         <span className="truncate flex-1 text-left tracking-tight">{getSessionTitle(session)}</span>
+        {/* 分支数徽章 */}
+        {branchCount && branchCount > 1 && (
+          <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground bg-muted px-1 py-0.5 rounded shrink-0">
+            <GitBranch className="h-2.5 w-2.5" />
+            {branchCount}
+          </span>
+        )}
       </motion.button>
 
       <AnimatePresence>

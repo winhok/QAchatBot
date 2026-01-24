@@ -2,91 +2,87 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import type { Message } from '@/schemas'
 import { useChatStore } from '@/stores/chat'
+import { useBranchStore } from '@/stores/useBranchStore'
 import { useSession } from '@/stores/useSession'
 
-/**
- * LangGraph 消息格式
- *
- * LangGraph 返回的消息结构，包含：
- * - id: 消息类型标识数组，如 ['HumanMessage'] 或 ['AIMessage']
- * - kwargs: 消息内容，包含 content 字段
- */
+/** LangGraph message structure */
 interface LangGraphMessage {
   id: Array<string> | unknown
-  kwargs?: { content?: string }
+  kwargs?: {
+    content?: string
+    additional_kwargs?: {
+      checkpoint_id?: string
+      parent_checkpoint_id?: string
+    }
+    checkpoint_id?: string
+    parent_checkpoint_id?: string
+  }
 }
 
-/**
- * 解析 LangGraph 消息角色
- *
- * 根据 id 数组判断消息来源：
- * - 包含 'HumanMessage' → 用户消息
- * - 其他 → AI 助手消息
- */
+interface HistoryResponse {
+  history: Array<LangGraphMessage>
+  checkpoint_id?: string
+  parent_checkpoint_id?: string
+}
+
+/** Parse message role from LangGraph message ID */
 function parseRole(msgId: unknown): 'user' | 'assistant' {
   if (!Array.isArray(msgId)) return 'assistant'
   if (msgId.includes('HumanMessage')) return 'user'
   return 'assistant'
 }
 
-/**
- * 转换 LangGraph 消息为前端 Message 格式
- */
+/** Transform LangGraph messages to frontend Message format */
 function transformMessages(history: Array<LangGraphMessage>): Array<Message> {
   return history.map((msg, idx) => ({
     id: String(idx + 1),
     content: msg.kwargs?.content || '',
     role: parseRole(msg.id),
     timestamp: new Date(),
+    checkpointId: msg.kwargs?.additional_kwargs?.checkpoint_id || msg.kwargs?.checkpoint_id,
+    parentCheckpointId:
+      msg.kwargs?.additional_kwargs?.parent_checkpoint_id || msg.kwargs?.parent_checkpoint_id,
   }))
 }
 
-/**
- * 从服务器获取聊天历史
- *
- * 调用 GET /api/chat?session_id=xxx 获取 LangGraph 格式的历史消息，
- * 然后转换为前端 Message 格式
- */
-async function fetchHistory(sessionId: string): Promise<Array<Message>> {
-  const res = await fetch(`/api/chat?session_id=${sessionId}`)
-  const data = (await res.json()) as { history?: Array<LangGraphMessage> }
-  if (Array.isArray(data.history) && data.history.length > 0) {
-    return transformMessages(data.history)
+/** Fetch chat history from server */
+async function fetchHistory(
+  sessionId: string,
+  checkpointId?: string,
+): Promise<{ messages: Array<Message>; checkpointId?: string }> {
+  const params = new URLSearchParams({ session_id: sessionId })
+  if (checkpointId) {
+    params.append('checkpoint_id', checkpointId)
   }
-  return []
+
+  const res = await fetch(`/api/chat?${params.toString()}`)
+  const data = (await res.json()) as HistoryResponse
+
+  return {
+    messages:
+      Array.isArray(data.history) && data.history.length > 0 ? transformMessages(data.history) : [],
+    checkpointId: data.checkpoint_id,
+  }
 }
 
-/**
- * 聊天历史记录 Hook
- *
- * 负责加载和管理会话的聊天历史：
- * 1. 根据 threadId 从服务器获取历史消息
- * 2. 转换 LangGraph 消息格式为前端 Message 格式
- * 3. 加载到 useChatStore 中
- * 4. 切换会话时自动重置加载状态
- *
- * 使用 TanStack Query 进行数据获取和缓存管理
- *
- * @param threadId - 会话线程 ID
- * @param enabled - 是否启用历史加载（切换会话时控制）
- * @returns TanStack Query result，包含 data、isLoading、error 等
- *
- * @example
- * ```tsx
- * const { isLoading, error } = useChatHistory({
- *   threadId: currentSessionId,
- *   enabled: !!currentSessionId,
- * })
- * ```
- */
+/** Load and manage chat history for a session */
 export function useChatHistory({ threadId, enabled }: { threadId: string; enabled: boolean }) {
   const loadMessages = useChatStore((s) => s.loadMessages)
   const resetHasUserMessage = useSession((s) => s.resetHasUserMessage)
+  const currentCheckpointId = useBranchStore((s) => s.currentCheckpointId)
+  const setCurrentCheckpoint = useBranchStore((s) => s.setCurrentCheckpoint)
+  const resetBranch = useBranchStore((s) => s.reset)
   const hasLoadedRef = useRef(false)
 
   const query = useQuery({
-    queryKey: ['chatHistory', threadId],
-    queryFn: () => fetchHistory(threadId),
+    queryKey: ['chatHistory', threadId, currentCheckpointId],
+    queryFn: async () => {
+      const result = await fetchHistory(threadId, currentCheckpointId)
+      if (result.checkpointId && result.checkpointId !== currentCheckpointId) {
+        setCurrentCheckpoint(result.checkpointId)
+      }
+      return result.messages
+    },
     enabled: !!threadId && enabled,
     staleTime: Infinity,
     gcTime: 0,
@@ -94,12 +90,14 @@ export function useChatHistory({ threadId, enabled }: { threadId: string; enable
 
   const prevThreadIdRef = useRef<string | null>(null)
 
+  // Reset state when switching sessions
   useEffect(() => {
     if (threadId !== prevThreadIdRef.current) {
       hasLoadedRef.current = false
       prevThreadIdRef.current = threadId
+      resetBranch()
     }
-  }, [threadId])
+  }, [threadId, resetBranch])
 
   useEffect(() => {
     if (query.data !== undefined && !hasLoadedRef.current && enabled) {

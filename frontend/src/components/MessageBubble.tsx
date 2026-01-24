@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion'
 import { Bot, User } from 'lucide-react'
 import type { Message } from '@/schemas'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { cn } from '@/lib/utils'
-import { assistantMessageVariants, typingCursorVariants, userMessageVariants } from '@/lib/motion'
 import { ApiResultBlock } from '@/components/ApiResultBlock'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 import { MessageActions } from '@/components/MessageActions'
 import { ToolCallBlock } from '@/components/ToolCallBlock'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { assistantMessageVariants, typingCursorVariants, userMessageVariants } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 import {
   extractDocumentUrls,
   extractImageUrls,
@@ -17,9 +17,11 @@ import {
 
 interface MessageBubbleProps {
   message: Message
+  onEdit?: (messageId: string) => void
+  onRegenerate?: (messageId: string) => void
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubbleProps) {
   const isUser = message.role === 'user'
 
   const textContent = extractTextContent(message.content)
@@ -128,7 +130,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             {/* 消息操作按钮 */}
             {!message.isStreaming && (
               <div className={cn('absolute -bottom-6', isUser ? 'right-0' : 'left-0')}>
-                <MessageActions message={message} />
+                <MessageActions message={message} onEdit={onEdit} onRegenerate={onRegenerate} />
               </div>
             )}
           </div>

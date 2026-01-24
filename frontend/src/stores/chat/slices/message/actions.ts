@@ -12,7 +12,7 @@ export interface MessageAction {
   addUserMessage: (content: ChatMessageContent) => Message
   addAssistantMessage: () => Message
   updateMessageContent: (messageId: string, content: string) => void
-  finishStreaming: (messageId: string) => void
+  finishStreaming: (messageId: string, checkpointId?: string) => void
   addErrorMessage: () => void
   clearMessages: () => void
   loadMessages: (historyMessages: Array<Message>) => void
@@ -92,10 +92,14 @@ export const messageSlice: StateCreator<
     )
   },
 
-  finishStreaming: (messageId) => {
+  finishStreaming: (messageId, checkpointId) => {
     set(
       (state) => ({
-        messages: messagesReducer(state.messages, { type: 'finishStreaming', id: messageId }),
+        messages: messagesReducer(state.messages, {
+          type: 'finishStreaming',
+          id: messageId,
+          checkpointId,
+        }),
       }),
       false,
       'message/finishStreaming',

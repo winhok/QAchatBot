@@ -17,21 +17,15 @@ export interface ModelConfig {
 // 可用的模型列表
 export const models: Array<ModelConfig> = [
   {
-    id: 'gpt-5.2-high',
-    name: 'gpt-5.2-high',
-    description: 'gpt-5.2-high',
-    modelName: 'gpt-5.2-high',
-  },
-  {
-    id: 'gemini-3-pro-preview',
-    name: 'gemini-3-pro-preview',
-    description: 'gemini-3-pro-preview',
-    modelName: 'gemini-3-pro-preview',
+    id: 'gemini-3-flash',
+    name: 'Gemini 3 Flash',
+    description: 'Google Gemini 3 Flash',
+    modelName: 'gemini-3-flash',
   },
 ]
 
 // 默认模型 ID
-export const DEFAULT_MODEL_ID = 'qwen-plus'
+export const DEFAULT_MODEL_ID = 'gemini-3-flash'
 
 /**
  * 根据模型 ID 获取模型配置

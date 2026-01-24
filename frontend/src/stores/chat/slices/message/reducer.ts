@@ -16,6 +16,7 @@ interface UpdateMessageContent {
 interface FinishStreaming {
   type: 'finishStreaming'
   id: string
+  checkpointId?: string
 }
 
 interface DeleteMessage {
@@ -64,6 +65,9 @@ export const messagesReducer = (state: Array<Message>, action: MessageDispatch):
         const message = draft.find((m) => m.id === action.id)
         if (message) {
           message.isStreaming = false
+          if (action.checkpointId) {
+            message.checkpointId = action.checkpointId
+          }
         }
       })
 

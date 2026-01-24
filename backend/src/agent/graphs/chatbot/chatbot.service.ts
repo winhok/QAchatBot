@@ -20,6 +20,25 @@ import { ToolNode } from '@langchain/langgraph/prebuilt'
 import { Injectable, OnModuleInit } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
+/** LangGraph message structure with checkpoint metadata */
+interface LangGraphMessage {
+  id?: string
+  kwargs?: {
+    id?: string
+    content?: string
+    checkpoint_id?: string
+    parent_checkpoint_id?: string
+    additional_kwargs?: Record<string, unknown>
+    [key: string]: unknown
+  }
+  [key: string]: unknown
+}
+
+interface CheckpointInfo {
+  checkpointId: string
+  parentCheckpointId?: string
+}
+
 @Injectable()
 export class ChatbotService implements OnModuleInit {
   /** 工作流缓存最大数量 */
@@ -178,7 +197,6 @@ export class ChatbotService implements OnModuleInit {
       if (!hasSystemMessage) {
         // 首次对话，注入系统指令
         messagesToSend = [new SystemMessage(enhancedPrompt), ...messagesToSend]
-        console.log('[ChatbotService] Injected enhanced SystemMessage')
       }
 
       console.log('[ChatbotService] Invoking model with', messagesToSend.length, 'messages')
@@ -242,12 +260,107 @@ export class ChatbotService implements OnModuleInit {
 
   /**
    * 获取聊天历史
+   * @param threadId 会话线程 ID
+   * @param checkpointId 可选的 checkpoint ID，用于获取指定分支的历史
+   * @param modelId 模型 ID
    */
-  async getHistory(threadId: string, modelId?: string): Promise<unknown[]> {
+  async getHistory(
+    threadId: string,
+    checkpointId?: string,
+    modelId?: string,
+  ): Promise<{
+    messages: unknown[]
+    checkpointId?: string
+    parentCheckpointId?: string
+  }> {
     const app = this.getApp(modelId)
-    const state = await app.getState({ configurable: { thread_id: threadId } })
-    const values = state?.values as { messages?: unknown[] } | undefined
-    return values?.messages || []
+    const config = {
+      configurable: {
+        thread_id: threadId,
+        ...(checkpointId && { checkpoint_id: checkpointId }),
+      },
+    }
+
+    const state = await app.getState(config)
+    const messages = (state?.values as { messages?: LangGraphMessage[] })?.messages || []
+
+    if (messages.length === 0) {
+      return {
+        messages: [],
+        checkpointId: state?.config?.configurable?.checkpoint_id as string | undefined,
+      }
+    }
+
+    // Build message-to-checkpoint mapping from state history
+    const messageCheckpointMap = await this.buildMessageCheckpointMap(app, config)
+
+    // Inject checkpoint info into messages
+    const enhancedMessages = messages.map((msg) =>
+      this.injectCheckpointInfo(msg, messageCheckpointMap),
+    )
+
+    return {
+      messages: enhancedMessages,
+      checkpointId: state?.config?.configurable?.checkpoint_id as string | undefined,
+      parentCheckpointId: state?.parentConfig?.configurable?.checkpoint_id as string | undefined,
+    }
+  }
+
+  private async buildMessageCheckpointMap(
+    app: ReturnType<typeof this.compileWorkflow>,
+    config: { configurable: { thread_id: string; checkpoint_id?: string } },
+  ): Promise<Map<string, CheckpointInfo>> {
+    const map = new Map<string, CheckpointInfo>()
+
+    try {
+      for await (const snapshot of app.getStateHistory(config)) {
+        const snapshotMessages =
+          (snapshot.values as { messages?: LangGraphMessage[] })?.messages || []
+        const snapshotCheckpointId = snapshot.config.configurable?.checkpoint_id as
+          | string
+          | undefined
+        const snapshotParentCheckpointId = snapshot.parentConfig?.configurable?.checkpoint_id as
+          | string
+          | undefined
+
+        if (snapshotMessages.length === 0 || !snapshotCheckpointId) continue
+
+        const lastMessage = snapshotMessages[snapshotMessages.length - 1]
+        const msgId = lastMessage.id || lastMessage.kwargs?.id
+        if (msgId && !map.has(msgId)) {
+          map.set(msgId, {
+            checkpointId: snapshotCheckpointId,
+            parentCheckpointId: snapshotParentCheckpointId,
+          })
+        }
+      }
+    } catch (error) {
+      console.warn('[ChatbotService] Failed to retrieve state history for checkpoints:', error)
+    }
+
+    return map
+  }
+
+  private injectCheckpointInfo(
+    msg: LangGraphMessage,
+    checkpointMap: Map<string, CheckpointInfo>,
+  ): LangGraphMessage {
+    const msgId = msg.id || msg.kwargs?.id
+    if (!msgId || !checkpointMap.has(msgId)) return msg
+
+    const cpInfo = checkpointMap.get(msgId)!
+    if (!msg.kwargs) msg.kwargs = {}
+    if (!msg.kwargs.additional_kwargs) msg.kwargs.additional_kwargs = {}
+
+    msg.kwargs.checkpoint_id = cpInfo.checkpointId
+    msg.kwargs.additional_kwargs.checkpoint_id = cpInfo.checkpointId
+
+    if (cpInfo.parentCheckpointId) {
+      msg.kwargs.parent_checkpoint_id = cpInfo.parentCheckpointId
+      msg.kwargs.additional_kwargs.parent_checkpoint_id = cpInfo.parentCheckpointId
+    }
+
+    return msg
   }
 
   /**
@@ -300,5 +413,109 @@ export class ChatbotService implements OnModuleInit {
     return app.getState({
       configurable: { thread_id: threadId, checkpoint_id: checkpointId },
     })
+  }
+
+  /**
+   * 获取指定 checkpoint 的同级分支列表
+   * 用于实现 LobeChat 风格的分支选择器 (1/3, 2/3, 3/3)
+   */
+  async getBranches(
+    threadId: string,
+    targetCheckpointId: string,
+    modelId?: string,
+  ): Promise<{
+    branches: Array<{
+      checkpointId: string
+      preview: string
+      createdAt: string
+      isCurrent: boolean
+    }>
+    currentIndex: number
+    total: number
+  }> {
+    const app = this.getApp(modelId)
+
+    // 1. 获取目标 checkpoint 的状态，找到其 parentCheckpointId
+    const targetState = await app.getState({
+      configurable: { thread_id: threadId, checkpoint_id: targetCheckpointId },
+    })
+    const parentCheckpointId = targetState?.parentConfig?.configurable?.checkpoint_id as
+      | string
+      | undefined
+
+    // 2. 遍历历史，找出所有共享同一 parent 的 checkpoints（同级分支）
+    const siblings: Array<{
+      checkpointId: string
+      preview: string
+      createdAt: string
+    }> = []
+
+    for await (const state of app.getStateHistory({ configurable: { thread_id: threadId } })) {
+      const cpId = state.config?.configurable?.checkpoint_id as string | undefined
+      const parentCpId = state.parentConfig?.configurable?.checkpoint_id as string | undefined
+
+      // 匹配共享同一父节点的 checkpoints
+      if (parentCpId === parentCheckpointId && cpId) {
+        const messages =
+          (state.values as { messages?: Array<{ content?: string }> })?.messages || []
+        const lastMsg = messages[messages.length - 1]
+
+        siblings.push({
+          checkpointId: cpId,
+          preview: typeof lastMsg?.content === 'string' ? lastMsg.content.slice(0, 50) : '',
+          createdAt: state.createdAt || new Date().toISOString(),
+        })
+      }
+    }
+
+    // 按时间排序（最早的在前）
+    siblings.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+    const currentIndex = siblings.findIndex((s) => s.checkpointId === targetCheckpointId)
+
+    return {
+      branches: siblings.map((s) => ({
+        ...s,
+        isCurrent: s.checkpointId === targetCheckpointId,
+      })),
+      currentIndex: currentIndex >= 0 ? currentIndex : 0,
+      total: siblings.length,
+    }
+  }
+
+  /**
+   * 获取分支数量
+   * 用于侧边栏显示会话的分支数量徽章
+   */
+  async getBranchCount(threadId: string, modelId?: string): Promise<number> {
+    const app = this.getApp(modelId)
+    const config = { configurable: { thread_id: threadId } }
+
+    // 统计有多少个不同的 parent checkpoint（即分叉点）
+    const parentCheckpoints = new Set<string>()
+    let totalCheckpoints = 0
+
+    try {
+      for await (const state of app.getStateHistory(config)) {
+        totalCheckpoints++
+        const parentCpId = state.parentConfig?.configurable?.checkpoint_id as string | undefined
+        if (parentCpId) {
+          parentCheckpoints.add(parentCpId)
+        }
+      }
+    } catch (error) {
+      console.warn('[ChatbotService] Failed to get branch count:', error)
+      return 1
+    }
+
+    // 分支数 = 总 checkpoint 数 - 不同的 parent 数 + 1（主分支）
+    // 如果一个 parent 有多个子 checkpoint，说明有分叉
+    // 简化：分支数 = 总 checkpoint 数减去线性 checkpoint 数
+    // 更简单的计算：如果 checkpoints > parentCheckpoints.size，有分支
+    if (totalCheckpoints <= 1) return 1
+
+    // 分支数 = 总数 - 唯一 parent 数（有分叉时，parent 会有多个子节点）
+    const branchCount = totalCheckpoints - parentCheckpoints.size
+    return Math.max(1, branchCount)
   }
 }

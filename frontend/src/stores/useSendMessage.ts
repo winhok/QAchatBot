@@ -1,12 +1,13 @@
 import { getChatStoreState, useChatStore } from './chat'
+import { useBranchStore } from './useBranchStore'
 import { useCanvasArtifacts } from './useCanvasArtifacts'
 import { useSession } from './useSession'
 import type { ChatMessageContent, ToolCallData } from '@/schemas'
 import type { SendMessageOptions } from '@/types/stores'
 import type { CanvasArtifactMetadata } from '@/utils/CanvasArtifactParser'
-import { useUpdateSessionName } from '@/hooks/useSessions'
 import { CanvasArtifactParser } from '@/utils/CanvasArtifactParser'
 import { extractTextContent } from '@/utils/message'
+import { useUpdateSessionName } from '@/hooks/useSessions'
 
 const API_ENDPOINT = '/api/chat'
 
@@ -228,7 +229,12 @@ export function useSendMessage() {
                     useSession.setState({ hasUserMessage: true })
                     options?.onSessionCreated?.()
                   }
-                  finishStreaming(assistantMessage.id)
+                  // 同步新的 checkpoint_id 到 branch store
+                  if (data.checkpoint_id) {
+                    useBranchStore.getState().setCurrentCheckpoint(data.checkpoint_id)
+                  }
+                  // 传递 checkpointId 到 finishStreaming，存储到消息中用于后续分叉
+                  finishStreaming(assistantMessage.id, data.checkpoint_id)
                   break
 
                 case 'error':

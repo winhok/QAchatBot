@@ -9,6 +9,8 @@ import type { Components } from 'react-markdown'
 
 import { CanvasTitleCard } from '@/components/canvas/CanvasTitleCard'
 import { CodeBlock } from '@/components/CodeBlock'
+import { ImageCard } from '@/components/ImageCard'
+import { VideoCard } from '@/components/VideoCard'
 import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts'
 
 interface MarkdownRendererProps {
@@ -26,6 +28,54 @@ export function MarkdownRenderer({ content, className = '', messageId }: Markdow
   }
 
   const components: Components = {
+    // Custom handling for imagecard tag
+    // @ts-ignore -- imagecard is a custom HTML element parsed by rehype-raw
+    imagecard: ({
+      node,
+      ...props
+    }: {
+      node?: unknown
+      status?: string
+      src?: string
+      prompt?: string
+      aspectRatio?: string
+      download?: string
+    }) => {
+      return (
+        <ImageCard
+          status={props.status === 'loading' ? 'loading' : 'ready'}
+          src={props.src}
+          prompt={props.prompt}
+          aspectRatio={props.aspectRatio}
+          download={props.download || props.src}
+        />
+      )
+    },
+    // Custom handling for videocard tag
+    // @ts-ignore -- videocard is a custom HTML element parsed by rehype-raw
+    videocard: ({
+      node,
+      ...props
+    }: {
+      node?: unknown
+      status?: string
+      src?: string
+      duration?: string
+      resolution?: string
+      prompt?: string
+      download?: string
+    }) => {
+      return (
+        <VideoCard
+          status={props.status === 'loading' ? 'loading' : 'ready'}
+          src={props.src}
+          duration={props.duration}
+          resolution={props.resolution}
+          prompt={props.prompt}
+          download={props.download || props.src}
+        />
+      )
+    },
     // Custom handling for canvasartifact tag
     // @ts-ignore -- canvasartifact is a custom HTML element parsed by rehype-raw, not a standard React component
     canvasartifact: ({ node, ...props }: any) => {

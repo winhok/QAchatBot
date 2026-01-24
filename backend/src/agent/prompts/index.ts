@@ -3,12 +3,7 @@
  */
 
 // Persona
-export {
-  DEFAULT_PERSONA,
-  PERSONA_TEMPLATES,
-  type PersonaConfig,
-  type PersonaTemplate,
-} from './persona'
+export { DEFAULT_PERSONA, type PersonaConfig } from './persona'
 
 // Chatbot prompts
 export { buildChatbotSystemPrompt } from './chatbot.prompts'

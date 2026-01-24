@@ -40,10 +40,14 @@ function ThreadPage() {
   // 注册聊天热键（如 Escape 停止生成）
   useRegisterChatHotkeys()
 
-  const handleSend = (input: string, tools?: Array<string>, files?: Array<File>) => {
-    sendMessage(input, tools, files, {
+  const handleSend = (
+    input: string,
+    options?: { tools?: Array<string>; files?: Array<File>; deepResearch?: boolean },
+  ) => {
+    sendMessage(input, options?.tools, options?.files, {
       sessionId: threadId,
       onSessionCreated: invalidateSessions,
+      deepResearch: options?.deepResearch,
     })
   }
 

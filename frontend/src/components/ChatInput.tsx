@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowUp, Paperclip, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import type React from 'react'
+import { DeepResearchToggle } from '@/components/DeepResearchToggle'
 import { ModelSelector } from '@/components/ModelSelector'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -9,12 +10,22 @@ import { useChatStore } from '@/stores/chat'
 import { useSession } from '@/stores/useSession'
 
 interface ChatInputProps {
-  onSend: (message: string, tools?: Array<string>, files?: Array<File>) => void
+  onSend: (
+    message: string,
+    options?: { tools?: Array<string>; files?: Array<File>; deepResearch?: boolean },
+  ) => void
   disabled?: boolean
   placeholder?: string
 }
 
 const MAX_TEXTAREA_HEIGHT = 180
+
+// Deep research tool IDs for multi-tool workflow
+const DEEP_RESEARCH_TOOLS = [
+  'analyze_research_topic',
+  'research_section',
+  'generate_research_report',
+]
 
 export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputProps) {
   const modelId = useSession((s) => s.modelId)
@@ -25,6 +36,7 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [selectedFiles, setSelectedFiles] = useState<Array<File>>([])
+  const [deepResearchEnabled, setDeepResearchEnabled] = useState(false)
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -43,13 +55,17 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
   }
 
   const handleSend = () => {
-    if ((message.trim() || selectedFiles.length > 0) && !disabled) {
-      onSend(message.trim(), undefined, selectedFiles)
-      clearDraftMessage()
-      setSelectedFiles([])
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto'
-      }
+    if ((!message.trim() && selectedFiles.length === 0) || disabled) return
+
+    onSend(message.trim(), {
+      tools: deepResearchEnabled ? DEEP_RESEARCH_TOOLS : undefined,
+      files: selectedFiles.length > 0 ? selectedFiles : undefined,
+      deepResearch: deepResearchEnabled,
+    })
+    clearDraftMessage()
+    setSelectedFiles([])
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
     }
   }
 
@@ -154,7 +170,18 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
 
         {/* Footer */}
         <div className="flex items-center justify-between px-4 py-2 border-t-2 border-foreground bg-muted">
-          <ModelSelector currentModelId={modelId} onModelChange={setModelId} disabled={disabled} />
+          <div className="flex items-center gap-2">
+            <ModelSelector
+              currentModelId={modelId}
+              onModelChange={setModelId}
+              disabled={disabled}
+            />
+            <DeepResearchToggle
+              enabled={deepResearchEnabled}
+              onToggle={setDeepResearchEnabled}
+              disabled={disabled}
+            />
+          </div>
 
           <span className="text-xs text-muted-foreground font-medium">Enter 发送</span>
         </div>

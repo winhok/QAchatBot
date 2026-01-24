@@ -93,6 +93,10 @@ export const MessageSchema = z.object({
   isStreaming: z.boolean().optional(),
   toolCalls: z.array(ToolCallDataSchema).optional(),
   apiResult: ApiResultDataSchema.optional(),
+  /** LangGraph checkpoint ID - 该消息诞生后的状态 */
+  checkpointId: z.string().optional(),
+  /** LangGraph parent checkpoint ID - 该消息诞生前的状态，用于编辑/重新生成 */
+  parentCheckpointId: z.string().optional(),
   usage_metadata: z
     .object({
       input_tokens: z.number(),

@@ -28,6 +28,7 @@ export class ChatController {
   async getHistory(
     @CurrentUser('id') userId: string,
     @Query('session_id') sessionId?: string,
+    @Query('checkpoint_id') checkpointId?: string,
     @Query('model_id') modelId?: string,
   ) {
     if (!sessionId) {
@@ -37,6 +38,7 @@ export class ChatController {
         endpoints: {
           chat: 'POST /api/chat - Stream chat messages',
           history: 'GET /api/chat?session_id=xxx - Get chat history',
+          branches: 'GET /api/chat/:sessionId/branches?checkpoint_id=xxx - Get branches',
         },
       }
     }
@@ -47,8 +49,13 @@ export class ChatController {
       throw new BadRequestException('Session not found')
     }
 
-    const history = await this.chatService.getHistory(sessionId, modelId)
-    return { session_id: sessionId, history }
+    const result = await this.chatService.getHistory(sessionId, checkpointId, modelId)
+    return {
+      session_id: sessionId,
+      history: result.messages,
+      checkpoint_id: result.checkpointId,
+      parent_checkpoint_id: result.parentCheckpointId,
+    }
   }
 
   @Post()
@@ -103,6 +110,26 @@ export class ChatController {
     }
   }
 
+  @Get(':sessionId/branches')
+  async getBranches(
+    @CurrentUser('id') userId: string,
+    @Param('sessionId') sessionId: string,
+    @Query('checkpoint_id') checkpointId: string,
+    @Query('model_id') modelId?: string,
+  ) {
+    if (!checkpointId) {
+      throw new BadRequestException('checkpoint_id is required')
+    }
+
+    // Validate session belongs to user
+    const session = await this.sessionsService.findOne(userId, sessionId)
+    if (!session) {
+      throw new BadRequestException('Session not found')
+    }
+
+    return this.chatService.getBranches(sessionId, checkpointId, modelId)
+  }
+
   @Get(':sessionId/checkpoints')
   async getCheckpoints(
     @CurrentUser('id') userId: string,
@@ -116,5 +143,21 @@ export class ChatController {
     }
 
     return this.chatService.getCheckpoints(sessionId, modelId)
+  }
+
+  @Get(':sessionId/branch-count')
+  async getBranchCount(
+    @CurrentUser('id') userId: string,
+    @Param('sessionId') sessionId: string,
+    @Query('model_id') modelId?: string,
+  ) {
+    // Validate session belongs to user
+    const session = await this.sessionsService.findOne(userId, sessionId)
+    if (!session) {
+      throw new BadRequestException('Session not found')
+    }
+
+    const count = await this.chatService.getBranchCount(sessionId, modelId)
+    return { branchCount: count }
   }
 }

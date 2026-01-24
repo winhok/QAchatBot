@@ -5,9 +5,9 @@ import { SessionStatusSchema } from './enums'
 // ========== Session Schemas ==========
 
 export const CreateSessionRequestSchema = z.object({
-  id: z.string().cuid().optional(),
+  id: z.string().cuid2().optional(),
   name: z.string().optional(),
-  folderId: z.string().cuid().optional(),
+  folderId: z.string().cuid2().optional(),
 })
 
 export const DeleteSessionRequestSchema = z.object({
@@ -18,7 +18,7 @@ export const UpdateSessionRequestSchema = z.object({
   id: z.string().min(1, 'Session ID is required'),
   name: z.string().optional(),
   status: SessionStatusSchema.optional(),
-  folderId: z.string().cuid().nullable().optional(),
+  folderId: z.string().cuid2().nullable().optional(),
 })
 
 export const ChatMessageContentSchema = z.union([
@@ -28,7 +28,7 @@ export const ChatMessageContentSchema = z.union([
 
 export const ChatRequestSchema = z.object({
   message: ChatMessageContentSchema,
-  session_id: z.string().cuid().optional(),
+  session_id: z.string().cuid2().optional(),
   model_id: z.string().optional(),
   tools: z.array(z.string()).optional(),
   checkpoint_id: z.string().optional(), // 从指定 checkpoint 分叉 (LangGraph Time Travel)
@@ -67,7 +67,7 @@ export const AddMemoryRequestSchema = z.object({
 })
 
 export const MoveSessionsRequestSchema = z.object({
-  sessionIds: z.array(z.string().cuid()),
+  sessionIds: z.array(z.string().cuid2()),
 })
 
 export type MemoryCategory = z.infer<typeof MemoryCategorySchema>

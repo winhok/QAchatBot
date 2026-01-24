@@ -19,13 +19,17 @@ function HomePage() {
   // 注册聊天热键（如 Escape 停止生成）
   useRegisterChatHotkeys()
 
-  const handleSend = (input: string, tools?: Array<string>, files?: Array<File>) => {
+  const handleSend = (
+    input: string,
+    options?: { tools?: Array<string>; files?: Array<File>; deepResearch?: boolean },
+  ) => {
     // 首页发送第一条消息时，逻辑统一交给 useSendMessage 处理
     // 它会识别到没有 sessionId 并进行初始化
-    sendMessage(input, tools, files, {
+    sendMessage(input, options?.tools, options?.files, {
       onSessionCreated: () => {
         invalidateSessions()
       },
+      deepResearch: options?.deepResearch,
     })
   }
 

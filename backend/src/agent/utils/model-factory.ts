@@ -88,7 +88,9 @@ export class ModelFactory {
       temperature: 0.7,
       streaming: true,
       timeout,
-      configuration: { baseURL },
+      configuration: {
+        baseURL,
+      },
     })
   }
 

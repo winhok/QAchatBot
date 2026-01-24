@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
 import { BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages'
 import { ChatOpenAI } from '@langchain/openai'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 interface MessageWithMeta extends BaseMessage {
@@ -67,7 +67,9 @@ export class HistoryOptimizerService {
 
     try {
       const response = await this.model.invoke([
-        new SystemMessage('将以下对话历史压缩为简洁摘要，保留关键信息和决策。使用中文回复。'),
+        new SystemMessage(
+          '将以下对话历史压缩为简洁摘要。要求：1. 保留关键决策和结论 2. 保留重要的技术细节 3. 省略寒暄和重复内容 4. 使用中文，简明扼要',
+        ),
         new HumanMessage(olderText),
       ])
 

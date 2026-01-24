@@ -60,18 +60,23 @@ export function getCanvasSystemPrompt(artifactId: string): string {
    - 标签应该是响应内容的一部分，可以和文字说明混合输出
    - 输出代码后必须添加功能和实现的简单总结
 
-2. **属性要求**:
+2. **输出保证**:
+   - 当用户明确要求创建组件时，**必须**输出 canvasArtifact 标签
+   - 如果无法实现用户需求，先解释原因，再给出替代方案
+   - 不要只给代码片段而不使用 canvasArtifact 标签
+
+3. **属性要求**:
    - \`id\`: **必须使用 "${artifactId}"**
    - \`type\`: 必填，固定值 "react"
    - \`title\`: 必填，组件的显示标题（中文）
    - \`language\`: 必填（canvasCode 属性），固定值 "jsx"
 
-3. **代码要求**:
+4. **代码要求**:
    - 必须包含完整的 \`export default function\` 定义
    - 所有 import 语句必须放在代码开头
    - 代码必须完整可运行，不要使用占位符或省略号
 
-4. **可用依赖**:
+5. **可用依赖**:
    - React hooks: useState, useEffect, useRef, useMemo, useCallback
    - 图标库: lucide-react（使用 import { IconName } from 'lucide-react'）
    - 样式: TailwindCSS（无需 import，直接使用 className）

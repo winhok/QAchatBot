@@ -64,12 +64,20 @@ export class ChatService {
     private readonly messages: MessagesService,
   ) {}
 
-  async getHistory(threadId: string, modelId?: string): Promise<unknown[]> {
-    return this.chatbot.getHistory(threadId, modelId)
+  async getHistory(threadId: string, checkpointId?: string, modelId?: string) {
+    return this.chatbot.getHistory(threadId, checkpointId, modelId)
   }
 
   async getCheckpoints(threadId: string, modelId?: string) {
     return this.chatbot.getCheckpoints(threadId, modelId)
+  }
+
+  async getBranches(threadId: string, checkpointId: string, modelId?: string) {
+    return this.chatbot.getBranches(threadId, checkpointId, modelId)
+  }
+
+  async getBranchCount(threadId: string, modelId?: string) {
+    return this.chatbot.getBranchCount(threadId, modelId)
   }
 
   /**
@@ -123,7 +131,7 @@ export class ChatService {
     console.log('[ChatService] Dispatching to Chatbot')
     const app = this.chatbot.getApp(modelId, tools)
 
-    // 支持从指定 checkpoint 分叉 (LangGraph Time Travel)
+    // Support branching from a specific checkpoint (LangGraph Time Travel)
     const threadConfig = {
       configurable: {
         thread_id: sessionId,
@@ -140,119 +148,127 @@ export class ChatService {
       app as { streamEvents: (input: unknown, config: unknown) => AsyncIterable<StreamEvent> }
     ).streamEvents({ messages: [userMessage] }, { version: 'v2', ...threadConfig })
 
-    for await (const event of eventStream) {
-      if (isAborted()) {
-        console.log('[Chat Service] Client disconnected, stopping')
-        break
-      }
-
-      switch (event.event) {
-        case 'on_chat_model_stream': {
-          const chunk = event.data?.chunk
-          if (!chunk) break
-
-          const dataObj: Record<string, unknown> = {
-            type: 'chunk',
-            content: chunk.content,
-          }
-
-          if (chunk.content) {
-            accumulatedContent += chunk.content
-          }
-
-          if (chunk.usage_metadata) {
-            dataObj.usage_metadata = chunk.usage_metadata
-          }
-
-          if (chunk.tool_call_chunks?.length) {
-            dataObj.tool_call_chunks = chunk.tool_call_chunks
-          }
-
-          writeSSE(res, dataObj)
+    try {
+      for await (const event of eventStream) {
+        if (isAborted()) {
+          console.log('[Chat Service] Client disconnected, stopping')
           break
         }
 
-        case 'on_tool_start': {
-          const toolName = event.name ?? 'unknown_tool'
-          const runId = event.run_id ?? ''
-          const inputData = event.data?.input ?? {}
+        switch (event.event) {
+          case 'on_chat_model_stream': {
+            const chunk = event.data?.chunk
+            if (!chunk) break
 
-          const toolCall = await this.messages.createToolCall({
-            messageId: assistantMessage.id,
-            toolCallId: runId,
-            toolName,
-            args: inputData as Prisma.InputJsonValue,
-          })
+            const dataObj: Record<string, unknown> = {
+              type: 'chunk',
+              content: chunk.content,
+            }
 
-          await this.messages.updateToolCall(toolCall.id, { status: 'running' })
+            if (chunk.content) {
+              accumulatedContent += chunk.content
+            }
 
-          toolCallsMap.set(runId, {
-            dbId: toolCall.id,
-            name: toolName,
-            startTime: Date.now(),
-          })
+            if (chunk.usage_metadata) {
+              dataObj.usage_metadata = chunk.usage_metadata
+            }
 
-          writeSSE(res, {
-            type: 'tool_start',
-            tool_call_id: runId,
-            name: toolName,
-            input: inputData,
-          })
-          break
-        }
+            if (chunk.tool_call_chunks?.length) {
+              dataObj.tool_call_chunks = chunk.tool_call_chunks
+            }
 
-        case 'on_tool_end': {
-          const runId = event.run_id ?? ''
-          const toolInfo = toolCallsMap.get(runId)
-          const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
-          const outputData = event.data?.output
+            writeSSE(res, dataObj)
+            break
+          }
 
-          if (toolInfo?.dbId) {
-            await this.messages.updateToolCall(toolInfo.dbId, {
-              status: 'completed',
-              result: outputData as Prisma.InputJsonValue | undefined,
+          case 'on_tool_start': {
+            const toolName = event.name ?? 'unknown_tool'
+            const runId = event.run_id ?? ''
+            const inputData = event.data?.input ?? {}
+
+            const toolCall = await this.messages.createToolCall({
+              messageId: assistantMessage.id,
+              toolCallId: runId,
+              toolName,
+              args: inputData as Prisma.InputJsonValue,
+            })
+
+            await this.messages.updateToolCall(toolCall.id, { status: 'running' })
+
+            toolCallsMap.set(runId, {
+              dbId: toolCall.id,
+              name: toolName,
+              startTime: Date.now(),
+            })
+
+            writeSSE(res, {
+              type: 'tool_start',
+              tool_call_id: runId,
+              name: toolName,
+              input: inputData,
+            })
+            break
+          }
+
+          case 'on_tool_end': {
+            const runId = event.run_id ?? ''
+            const toolInfo = toolCallsMap.get(runId)
+            const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
+            const outputData = event.data?.output
+
+            if (toolInfo?.dbId) {
+              await this.messages.updateToolCall(toolInfo.dbId, {
+                status: 'completed',
+                result: outputData as Prisma.InputJsonValue | undefined,
+                duration,
+              })
+            }
+
+            writeSSE(res, {
+              type: 'tool_end',
+              tool_call_id: runId,
+              name: toolInfo?.name || 'unknown_tool',
+              output: outputData,
               duration,
             })
+
+            toolCallsMap.delete(runId)
+            break
           }
 
-          writeSSE(res, {
-            type: 'tool_end',
-            tool_call_id: runId,
-            name: toolInfo?.name || 'unknown_tool',
-            output: outputData,
-            duration,
-          })
+          case 'on_tool_error': {
+            const runId = event.run_id ?? ''
+            const error = event.data?.error
+            const toolInfo = toolCallsMap.get(runId)
+            const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
 
-          toolCallsMap.delete(runId)
-          break
-        }
+            if (toolInfo?.dbId) {
+              await this.messages.updateToolCall(toolInfo.dbId, {
+                status: 'error',
+                result: { error: formatError(error) },
+                duration,
+              })
+            }
 
-        case 'on_tool_error': {
-          const runId = event.run_id ?? ''
-          const error = event.data?.error
-          const toolInfo = toolCallsMap.get(runId)
-          const duration = toolInfo ? Date.now() - toolInfo.startTime : undefined
-
-          if (toolInfo?.dbId) {
-            await this.messages.updateToolCall(toolInfo.dbId, {
-              status: 'error',
-              result: { error: formatError(error) },
+            writeSSE(res, {
+              type: 'tool_error',
+              tool_call_id: runId,
+              name: toolInfo?.name || 'unknown_tool',
+              error: formatError(error),
               duration,
             })
+
+            toolCallsMap.delete(runId)
+            break
           }
-
-          writeSSE(res, {
-            type: 'tool_error',
-            tool_call_id: runId,
-            name: toolInfo?.name || 'unknown_tool',
-            error: formatError(error),
-            duration,
-          })
-
-          toolCallsMap.delete(runId)
-          break
         }
       }
+    } catch (streamError) {
+      console.error('[ChatService] Stream error:', streamError)
+      writeSSE(res, {
+        type: 'error',
+        error: formatError(streamError),
+      })
     }
 
     // Save accumulated content to assistant message
@@ -260,11 +276,21 @@ export class ChatService {
       await this.messages.updateContent(assistantMessage.id, accumulatedContent)
     }
 
-    // Send end signal
+    // Get the latest checkpoint_id after streaming
+    let latestCheckpointId: string | undefined
+    try {
+      const latestState = await app.getState({ configurable: { thread_id: sessionId } })
+      latestCheckpointId = latestState?.config?.configurable?.checkpoint_id as string | undefined
+    } catch {
+      // Ignore errors getting checkpoint
+    }
+
+    // Send end signal with checkpoint_id
     writeSSE(res, {
       type: 'end',
       status: isAborted() ? 'aborted' : 'success',
       session_id: sessionId,
+      checkpoint_id: latestCheckpointId,
     })
   }
 }

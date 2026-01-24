@@ -1,10 +1,15 @@
 import {
+  analyzeResearchTopicTool,
   analyzeTestPointsTool,
   calculatorTool,
   currentTimeTool,
+  generateResearchReportTool,
   generateTestCasesTool,
+  imageGenerationTool,
   readFileTool,
+  researchSectionTool,
   reviewTestCasesTool,
+  videoGenerationTool,
 } from '../builtin'
 import type { UnifiedToolConfig } from '../types'
 
@@ -82,6 +87,60 @@ export const unifiedToolsConfig: UnifiedToolConfig[] = [
     type: 'custom',
     schema: reviewTestCasesTool.schema,
     handler: reviewTestCasesTool.handler,
+  },
+
+  // ==================== 多模态生成工具 ====================
+  {
+    id: 'image_generation',
+    name: '图片生成',
+    description: imageGenerationTool.description,
+    icon: '🖼️',
+    enabled: true,
+    type: 'custom',
+    schema: imageGenerationTool.schema,
+    handler: imageGenerationTool.handler,
+  },
+  {
+    id: 'video_generation',
+    name: '视频生成',
+    description: videoGenerationTool.description,
+    icon: '🎬',
+    enabled: true,
+    type: 'custom',
+    schema: videoGenerationTool.schema,
+    handler: videoGenerationTool.handler,
+  },
+
+  // ==================== 深度调研工具 ====================
+  {
+    id: 'analyze_research_topic',
+    name: '研究主题分析',
+    description: analyzeResearchTopicTool.description,
+    icon: '🔬',
+    enabled: true,
+    type: 'custom',
+    schema: analyzeResearchTopicTool.schema,
+    handler: analyzeResearchTopicTool.handler,
+  },
+  {
+    id: 'research_section',
+    name: '章节研究',
+    description: researchSectionTool.description,
+    icon: '📝',
+    enabled: true,
+    type: 'custom',
+    schema: researchSectionTool.schema,
+    handler: researchSectionTool.handler,
+  },
+  {
+    id: 'generate_research_report',
+    name: '生成研究报告',
+    description: generateResearchReportTool.description,
+    icon: '📊',
+    enabled: true,
+    type: 'custom',
+    schema: generateResearchReportTool.schema,
+    handler: generateResearchReportTool.handler,
   },
 
   // ==================== LangChain 预构建工具 ====================
