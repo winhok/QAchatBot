@@ -1,9 +1,17 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUp, Paperclip, X } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { ArrowUp, Paperclip } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import type React from 'react'
 import { DeepResearchToggle } from '@/components/chat/DeepResearchToggle'
 import { ModelSelector } from '@/components/chat/ModelSelector'
+import {
+  Attachment,
+  AttachmentPreview,
+  AttachmentRemove,
+  Attachments,
+} from '@/components/common/attachments'
+import { Loader } from '@/components/common/loader'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useChatStore } from '@/stores/chat'
@@ -18,14 +26,30 @@ interface ChatInputProps {
   placeholder?: string
 }
 
+const MAX_FILES = 4
+const MAX_FILE_SIZE = 10 * 1024 * 1024
+const ACCEPTED_TYPES = ['image/*', 'application/pdf', 'text/*']
 const MAX_TEXTAREA_HEIGHT = 180
 
-// Deep research tool IDs for multi-tool workflow
 const DEEP_RESEARCH_TOOLS = [
   'analyze_research_topic',
   'research_section',
   'generate_research_report',
 ]
+
+interface FileWithPreview extends File {
+  preview: string
+  id: string
+}
+
+function matchesAccept(file: File, accept: Array<string>): boolean {
+  return accept.some((pattern) => {
+    if (pattern.endsWith('/*')) {
+      return file.type.startsWith(pattern.slice(0, -1))
+    }
+    return file.type === pattern
+  })
+}
 
 export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputProps) {
   const modelId = useSession((s) => s.modelId)
@@ -34,98 +58,209 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
   const { draftMessage: message, setDraftMessage: setMessage, clearDraftMessage } = useChatStore()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const [selectedFiles, setSelectedFiles] = useState<Array<File>>([])
+  const [selectedFiles, setSelectedFiles] = useState<Array<FileWithPreview>>([])
   const [deepResearchEnabled, setDeepResearchEnabled] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files)
-      setSelectedFiles((prev) => [...prev, ...newFiles].slice(0, 4))
+  useEffect(() => {
+    return () => {
+      selectedFiles.forEach((f) => URL.revokeObjectURL(f.preview))
     }
+  }, [selectedFiles])
+
+  const validateAndAddFiles = useCallback(
+    (files: Array<File> | FileList) => {
+      const incoming = Array.from(files)
+      if (incoming.length === 0) return
+
+      const accepted = incoming.filter((f) => matchesAccept(f, ACCEPTED_TYPES))
+      if (incoming.length > 0 && accepted.length === 0) {
+        toast.error('不支持的文件类型')
+        return
+      }
+
+      const sizeValid = accepted.filter((f) => f.size <= MAX_FILE_SIZE)
+      if (accepted.length > 0 && sizeValid.length === 0) {
+        toast.error(`文件太大，最大支持 ${MAX_FILE_SIZE / 1024 / 1024}MB`)
+        return
+      }
+
+      const remaining = MAX_FILES - selectedFiles.length
+      if (remaining <= 0) {
+        toast.error(`最多只能上传 ${MAX_FILES} 个文件`)
+        return
+      }
+
+      const toAdd = sizeValid.slice(0, remaining)
+      if (sizeValid.length > remaining) {
+        toast.warning(`仅添加了 ${toAdd.length} 个文件，已达上限`)
+      }
+
+      const filesWithPreview: Array<FileWithPreview> = toAdd.map((file) =>
+        Object.assign(file, {
+          preview: URL.createObjectURL(file),
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        }),
+      )
+
+      setSelectedFiles((prev) => [...prev, ...filesWithPreview])
+    },
+    [selectedFiles.length],
+  )
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>): void {
+    if (e.target.files) {
+      validateAndAddFiles(e.target.files)
+    }
+    e.target.value = ''
   }
 
-  const removeFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
+  function removeFile(id: string): void {
+    setSelectedFiles((prev) => {
+      const target = prev.find((f) => f.id === id)
+      if (target) {
+        URL.revokeObjectURL(target.preview)
+      }
+      return prev.filter((f) => f.id !== id)
+    })
   }
 
-  const adjustHeight = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = 'auto'
-    textarea.style.height = Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT) + 'px'
-  }
+  function handleSend(): void {
+    const trimmedMessage = message.trim()
+    if ((!trimmedMessage && selectedFiles.length === 0) || disabled) return
 
-  const handleSend = () => {
-    if ((!message.trim() && selectedFiles.length === 0) || disabled) return
-
-    onSend(message.trim(), {
+    onSend(trimmedMessage, {
       tools: deepResearchEnabled ? DEEP_RESEARCH_TOOLS : undefined,
       files: selectedFiles.length > 0 ? selectedFiles : undefined,
       deepResearch: deepResearchEnabled,
     })
     clearDraftMessage()
+    selectedFiles.forEach((f) => URL.revokeObjectURL(f.preview))
     setSelectedFiles([])
+
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  function handleKeyDown(e: React.KeyboardEvent): void {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>): void {
     setMessage(e.target.value)
-    adjustHeight(e.target)
+    const textarea = e.target
+    textarea.style.height = 'auto'
+    textarea.style.height = Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT) + 'px'
+  }
+
+  function handleDragEnter(e: React.DragEvent): void {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragOver(true)
+    }
+  }
+
+  function handleDragLeave(e: React.DragEvent): void {
+    e.preventDefault()
+    e.stopPropagation()
+    if (containerRef.current && !containerRef.current.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false)
+    }
+  }
+
+  function handleDragOver(e: React.DragEvent): void {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  function handleDrop(e: React.DragEvent): void {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+    if (e.dataTransfer.files.length > 0) {
+      validateAndAddFiles(e.dataTransfer.files)
+    }
+  }
+
+  function handlePaste(e: React.ClipboardEvent): void {
+    const files = Array.from(e.clipboardData.files)
+    if (files.length > 0) {
+      e.preventDefault()
+      validateAndAddFiles(files)
+    }
   }
 
   const hasContent = message.trim() || selectedFiles.length > 0
 
   return (
     <div className="w-full max-w-2xl mx-auto pb-8 px-4">
-      {/* Neubrutalism container - thick border + hard shadow */}
       <div
+        ref={containerRef}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
         className={cn(
-          'relative bg-background border-2 border-foreground overflow-hidden transition-shadow',
+          'relative bg-background border-2 border-foreground overflow-hidden transition-all',
           'shadow-[4px_4px_0_0_hsl(var(--foreground))]',
           'hover:shadow-[6px_6px_0_0_hsl(var(--foreground))]',
+          isDragOver && 'ring-2 ring-primary ring-offset-2 border-primary',
         )}
       >
-        {/* File Preview Strip */}
+        <AnimatePresence>
+          {isDragOver && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-10 bg-primary/10 backdrop-blur-sm flex items-center justify-center"
+            >
+              <div className="text-primary font-bold text-lg">释放以添加文件</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence>
           {selectedFiles.length > 0 && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="flex gap-2 p-3 overflow-x-auto border-b-2 border-foreground bg-muted"
+              className="border-b-2 border-foreground bg-muted p-3"
             >
-              {selectedFiles.map((file, index) => (
-                <div
-                  key={index}
-                  className="relative group shrink-0 w-16 h-16 border-2 border-foreground overflow-hidden bg-background"
-                >
-                  <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
-                  <button
-                    onClick={() => removeFile(index)}
-                    className="absolute inset-0 bg-foreground/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+              <Attachments variant="grid">
+                {selectedFiles.map((file) => (
+                  <Attachment
+                    key={file.id}
+                    data={{
+                      id: file.id,
+                      url: file.preview,
+                      filename: file.name,
+                      mediaType: file.type,
+                    }}
+                    onRemove={() => removeFile(file.id)}
                   >
-                    <X className="h-5 w-5 text-background" />
-                  </button>
-                </div>
-              ))}
+                    <AttachmentPreview />
+                    <AttachmentRemove />
+                  </Attachment>
+                ))}
+              </Attachments>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Input Area */}
         <div className="flex items-end gap-3 p-4">
-          {/* Attachment Button */}
           <button
             onClick={() => fileInputRef.current?.click()}
             className="shrink-0 h-10 w-10 flex items-center justify-center border-2 border-foreground bg-background hover:bg-muted transition-colors cursor-pointer"
+            aria-label="添加附件"
           >
             <Paperclip className="h-5 w-5" />
           </button>
@@ -135,9 +270,11 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
             value={message}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             placeholder={placeholder || '输入消息...'}
             className="min-h-[40px] max-h-[180px] flex-1 bg-transparent border-0 p-2 focus:outline-none resize-none text-base leading-relaxed text-foreground placeholder:text-muted-foreground"
             rows={1}
+            aria-label="消息输入框"
           />
 
           <input
@@ -146,13 +283,15 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
             onChange={handleFileSelect}
             className="hidden"
             multiple
+            accept={ACCEPTED_TYPES.join(',')}
+            aria-label="选择文件"
           />
 
-          {/* Send Button - Primary color */}
           <Button
             onClick={handleSend}
             disabled={!hasContent || disabled}
             size="icon"
+            aria-label={disabled ? '发送中' : '发送消息'}
             className={cn(
               'shrink-0 h-10 w-10 border-2 border-foreground transition-all',
               hasContent
@@ -160,15 +299,10 @@ export function ChatInput({ onSend, disabled = false, placeholder }: ChatInputPr
                 : 'bg-muted text-muted-foreground',
             )}
           >
-            {disabled ? (
-              <div className="h-5 w-5 border-2 border-current border-t-transparent animate-spin" />
-            ) : (
-              <ArrowUp className="h-5 w-5" />
-            )}
+            {disabled ? <Loader size={20} /> : <ArrowUp className="h-5 w-5" />}
           </Button>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between px-4 py-2 border-t-2 border-foreground bg-muted">
           <div className="flex items-center gap-2">
             <ModelSelector
