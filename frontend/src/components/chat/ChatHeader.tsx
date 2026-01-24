@@ -1,5 +1,5 @@
 import { PanelLeft, PanelLeftClose } from 'lucide-react'
-import { ThemeToggle } from '@/components/ThemeToggle'
+import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { usePanel } from '@/stores/usePanel'
 

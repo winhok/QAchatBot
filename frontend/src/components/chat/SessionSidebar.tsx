@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { UserSection } from '@/components/UserSection'
+import { UserSection } from '@/components/auth/UserSection'
 import {
   useCreateFolder,
   useDeleteFolder,

@@ -1,4 +1,4 @@
-import { BranchSelector } from '@/components/BranchSelector'
+import { BranchSelector } from '@/components/message/BranchSelector'
 import { useBranches } from '@/hooks/useBranches'
 import { useBranchStore } from '@/stores/useBranchStore'
 import { useSession } from '@/stores/useSession'

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { getTimeGreeting } from './welcome/constants'
+import { getTimeGreeting } from '@/components/welcome/constants'
 
 export function WelcomeScreen() {
   const timeGreeting = useSyncExternalStore(

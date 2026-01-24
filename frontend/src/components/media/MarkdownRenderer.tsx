@@ -8,9 +8,9 @@ import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
 
 import { CanvasTitleCard } from '@/components/canvas/CanvasTitleCard'
-import { CodeBlock } from '@/components/CodeBlock'
-import { ImageCard } from '@/components/ImageCard'
-import { VideoCard } from '@/components/VideoCard'
+import { CodeBlock } from '@/components/media/CodeBlock'
+import { ImageCard } from '@/components/media/ImageCard'
+import { VideoCard } from '@/components/media/VideoCard'
 import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts'
 
 interface MarkdownRendererProps {

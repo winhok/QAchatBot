@@ -1,6 +1,6 @@
 import { Check, Copy, Pencil, RefreshCw } from 'lucide-react'
 import type { Message } from '@/schemas'
-import { ConnectedBranchSelector } from '@/components/ConnectedBranchSelector'
+import { ConnectedBranchSelector } from '@/components/message/ConnectedBranchSelector'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { extractTextContent } from '@/utils/message'
