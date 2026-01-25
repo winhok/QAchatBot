@@ -26,24 +26,39 @@ model Folder {
 }
 
 model Session {
-  id               String    @id @default(cuid())
-  userId           String    @map("user_id")
-  folderId         String?   @map("folder_id")
-  folder           Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  id               String      @id @default(cuid())
+  userId           String      @map("user_id")
+  folderId         String?     @map("folder_id")
+  folder           Folder?     @relation(fields: [folderId], references: [id], onDelete: SetNull)
   name             String?
-  status           String    @default("active")
-  lastCheckpointId String?   @map("last_checkpoint_id") // 记住用户上次分支
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  lastMessageAt    DateTime? @map("last_message_at")
+  status           String      @default("active")
+  lastCheckpointId String?     @map("last_checkpoint_id") // 记住用户上次分支
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  lastMessageAt    DateTime?   @map("last_message_at")
 
-  messages Message[]
+  messages   Message[]
+  reasonings Reasoning[]
 
   @@index([userId])
   @@index([userId, status])
   @@index([folderId])
   @@index([status])
   @@map("sessions")
+}
+
+model Reasoning {
+  id           String   @id @default(cuid())
+  sessionId    String   @map("session_id")
+  session      Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  checkpointId String   @unique @map("checkpoint_id") // LangGraph checkpoint ID
+  content      String   @db.Text
+  duration     Int? // 思考时长（ms）
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([checkpointId])
+  @@map("reasonings")
 }
 
 model Memory {

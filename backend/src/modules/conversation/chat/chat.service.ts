@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common'
 import type { Response } from 'express'
 import type { Prisma } from '../../../../generated/prisma/index.js'
 import { MessagesService } from '../messages/messages.service'
+import { ReasoningService } from '../reasoning/reasoning.service'
 import { SessionsService } from '../sessions/sessions.service'
 
 interface StreamChatParams {
@@ -20,16 +21,21 @@ interface StreamChatParams {
 /**
  * LangGraph stream event types
  */
+interface StreamChunk {
+  content?: string
+  thinking_content?: string // Claude extended thinking
+  reasoning?: string // DeepSeek R1
+  thought?: string // 通义千问
+  usage_metadata?: unknown
+  tool_call_chunks?: unknown[]
+}
+
 interface StreamEvent {
   event: string
   name?: string
   run_id?: string
   data?: {
-    chunk?: {
-      content?: string
-      usage_metadata?: unknown
-      tool_call_chunks?: unknown[]
-    }
+    chunk?: StreamChunk
     input?: unknown
     output?: unknown
     error?: unknown
@@ -56,28 +62,94 @@ function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
+/**
+ * Extract reasoning content from chunk (supports multiple model formats)
+ */
+function extractReasoningFromChunk(chunk: StreamChunk | undefined): string | undefined {
+  if (!chunk) return undefined
+  return chunk.thinking_content || chunk.reasoning || chunk.thought
+}
+
 @Injectable()
 export class ChatService {
   constructor(
     private readonly chatbot: ChatbotService,
     private readonly sessions: SessionsService,
     private readonly messages: MessagesService,
+    private readonly reasoning: ReasoningService,
   ) {}
 
-  async getHistory(threadId: string, checkpointId?: string, modelId?: string) {
+  async getHistory(
+    threadId: string,
+    checkpointId?: string,
+    modelId?: string,
+  ): Promise<{ messages: unknown[]; checkpointId?: string; parentCheckpointId?: string }> {
     return this.chatbot.getHistory(threadId, checkpointId, modelId)
   }
 
-  async getCheckpoints(threadId: string, modelId?: string) {
+  async getCheckpoints(
+    threadId: string,
+    modelId?: string,
+  ): Promise<
+    Array<{
+      checkpointId: string
+      parentCheckpointId: string | null
+      timestamp: string
+      preview: string
+      messageCount: number
+    }>
+  > {
     return this.chatbot.getCheckpoints(threadId, modelId)
   }
 
-  async getBranches(threadId: string, checkpointId: string, modelId?: string) {
+  async getBranches(
+    threadId: string,
+    checkpointId: string,
+    modelId?: string,
+  ): Promise<{
+    branches: Array<{
+      checkpointId: string
+      preview: string
+      createdAt: string
+      isCurrent: boolean
+    }>
+    currentIndex: number
+    total: number
+  }> {
     return this.chatbot.getBranches(threadId, checkpointId, modelId)
   }
 
-  async getBranchCount(threadId: string, modelId?: string) {
+  async getBranchCount(threadId: string, modelId?: string): Promise<number> {
     return this.chatbot.getBranchCount(threadId, modelId)
+  }
+
+  async buildTree(
+    threadId: string,
+    modelId?: string,
+  ): Promise<{
+    nodes: Array<{
+      checkpointId: string
+      parentCheckpointId: string | null
+      preview: string
+      messageCount: number
+      createdAt: string
+      role: 'user' | 'assistant'
+    }>
+  }> {
+    return this.chatbot.buildTree(threadId, modelId)
+  }
+
+  async getDiff(
+    threadId: string,
+    checkpointA: string,
+    checkpointB: string,
+    modelId?: string,
+  ): Promise<{
+    branchA: { checkpointId: string; messages: Array<{ role: string; content: string }> }
+    branchB: { checkpointId: string; messages: Array<{ role: string; content: string }> }
+    commonAncestor: string | null
+  }> {
+    return this.chatbot.getDiff(threadId, checkpointA, checkpointB, modelId)
   }
 
   /**
@@ -144,6 +216,10 @@ export class ChatService {
 
     let accumulatedContent = ''
 
+    // Reasoning tracking
+    let reasoningContent = ''
+    let reasoningStartTime: number | null = null
+
     const eventStream = (
       app as { streamEvents: (input: unknown, config: unknown) => AsyncIterable<StreamEvent> }
     ).streamEvents({ messages: [userMessage] }, { version: 'v2', ...threadConfig })
@@ -159,6 +235,31 @@ export class ChatService {
           case 'on_chat_model_stream': {
             const chunk = event.data?.chunk
             if (!chunk) break
+
+            // Check for reasoning content
+            const reasoningChunk = extractReasoningFromChunk(chunk)
+            if (reasoningChunk) {
+              if (!reasoningStartTime) {
+                reasoningStartTime = Date.now()
+                writeSSE(res, { type: 'reasoning_start' })
+              }
+              reasoningContent += reasoningChunk
+              writeSSE(res, {
+                type: 'reasoning',
+                content: reasoningChunk,
+              })
+              break // Don't process as regular content
+            }
+
+            // If we were in reasoning mode and now get regular content, reasoning is complete
+            if (reasoningStartTime && chunk.content) {
+              const reasoningDuration = Date.now() - reasoningStartTime
+              writeSSE(res, {
+                type: 'reasoning_end',
+                duration: reasoningDuration,
+              })
+              reasoningStartTime = null // Reset, reasoning complete
+            }
 
             const dataObj: Record<string, unknown> = {
               type: 'chunk',
@@ -227,7 +328,7 @@ export class ChatService {
             writeSSE(res, {
               type: 'tool_end',
               tool_call_id: runId,
-              name: toolInfo?.name || 'unknown_tool',
+              name: toolInfo?.name ?? 'unknown_tool',
               output: outputData,
               duration,
             })
@@ -253,7 +354,7 @@ export class ChatService {
             writeSSE(res, {
               type: 'tool_error',
               tool_call_id: runId,
-              name: toolInfo?.name || 'unknown_tool',
+              name: toolInfo?.name ?? 'unknown_tool',
               error: formatError(error),
               duration,
             })
@@ -285,12 +386,29 @@ export class ChatService {
       // Ignore errors getting checkpoint
     }
 
-    // Send end signal with checkpoint_id
+    // Save reasoning to database if we have any
+    if (reasoningContent && latestCheckpointId) {
+      const reasoningDuration = reasoningStartTime ? Date.now() - reasoningStartTime : undefined
+      try {
+        await this.reasoning.create({
+          sessionId,
+          checkpointId: latestCheckpointId,
+          content: reasoningContent,
+          duration: reasoningDuration,
+        })
+        console.log(`[ChatService] Saved reasoning for checkpoint ${latestCheckpointId}`)
+      } catch (err) {
+        console.error('[ChatService] Failed to save reasoning:', err)
+      }
+    }
+
+    // Send end signal with checkpoint_id and reasoning indicator
     writeSSE(res, {
       type: 'end',
       status: isAborted() ? 'aborted' : 'success',
       session_id: sessionId,
       checkpoint_id: latestCheckpointId,
+      has_reasoning: !!reasoningContent,
     })
   }
 }

@@ -372,6 +372,7 @@ export class ChatbotService implements OnModuleInit {
   ): Promise<
     Array<{
       checkpointId: string
+      parentCheckpointId: string | null
       timestamp: string
       preview: string
       messageCount: number
@@ -380,6 +381,7 @@ export class ChatbotService implements OnModuleInit {
     const app = this.getApp(modelId)
     const checkpoints: Array<{
       checkpointId: string
+      parentCheckpointId: string | null
       timestamp: string
       preview: string
       messageCount: number
@@ -389,6 +391,8 @@ export class ChatbotService implements OnModuleInit {
       const checkpointId = state.config?.configurable?.checkpoint_id as string | undefined
       if (!checkpointId) continue
 
+      const parentCheckpointId =
+        (state.parentConfig?.configurable?.checkpoint_id as string | undefined) || null
       const messages = (state.values as { messages?: Array<{ content?: string }> })?.messages || []
       const lastMessage = messages[messages.length - 1]
       const preview =
@@ -396,6 +400,7 @@ export class ChatbotService implements OnModuleInit {
 
       checkpoints.push({
         checkpointId,
+        parentCheckpointId,
         timestamp: state.createdAt || new Date().toISOString(),
         preview,
         messageCount: messages.length,
@@ -517,5 +522,173 @@ export class ChatbotService implements OnModuleInit {
     // 分支数 = 总数 - 唯一 parent 数（有分叉时，parent 会有多个子节点）
     const branchCount = totalCheckpoints - parentCheckpoints.size
     return Math.max(1, branchCount)
+  }
+
+  /**
+   * 构建对话树结构
+   * 用于全屏时间线可视化
+   */
+  async buildTree(
+    threadId: string,
+    modelId?: string,
+  ): Promise<{
+    nodes: Array<{
+      checkpointId: string
+      parentCheckpointId: string | null
+      preview: string
+      messageCount: number
+      createdAt: string
+      role: 'user' | 'assistant'
+    }>
+  }> {
+    const app = this.getApp(modelId)
+    const nodes: Array<{
+      checkpointId: string
+      parentCheckpointId: string | null
+      preview: string
+      messageCount: number
+      createdAt: string
+      role: 'user' | 'assistant'
+    }> = []
+
+    try {
+      for await (const state of app.getStateHistory({ configurable: { thread_id: threadId } })) {
+        const checkpointId = state.config?.configurable?.checkpoint_id as string | undefined
+        if (!checkpointId) continue
+
+        const parentCheckpointId =
+          (state.parentConfig?.configurable?.checkpoint_id as string | undefined) || null
+        const messages =
+          (state.values as { messages?: Array<{ content?: string; _getType?: () => string }> })
+            ?.messages || []
+        const lastMessage = messages[messages.length - 1]
+
+        // 判断最后一条消息的角色
+        let role: 'user' | 'assistant' = 'assistant'
+        if (lastMessage) {
+          const msgType =
+            typeof lastMessage._getType === 'function' ? lastMessage._getType() : undefined
+          if (msgType === 'human') {
+            role = 'user'
+          }
+        }
+
+        const preview =
+          typeof lastMessage?.content === 'string' ? lastMessage.content.slice(0, 50) : ''
+
+        nodes.push({
+          checkpointId,
+          parentCheckpointId,
+          preview,
+          messageCount: messages.length,
+          createdAt: state.createdAt || new Date().toISOString(),
+          role,
+        })
+      }
+    } catch (error) {
+      console.warn('[ChatbotService] Failed to build tree:', error)
+    }
+
+    // 按创建时间正序排列（最早的在前）
+    nodes.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+    return { nodes }
+  }
+
+  /**
+   * 对比两个分支的消息差异
+   */
+  async getDiff(
+    threadId: string,
+    checkpointA: string,
+    checkpointB: string,
+    modelId?: string,
+  ): Promise<{
+    branchA: {
+      checkpointId: string
+      messages: Array<{ role: string; content: string }>
+    }
+    branchB: {
+      checkpointId: string
+      messages: Array<{ role: string; content: string }>
+    }
+    commonAncestor: string | null
+  }> {
+    // 获取两个分支的完整历史
+    const [historyA, historyB] = await Promise.all([
+      this.getHistory(threadId, checkpointA, modelId),
+      this.getHistory(threadId, checkpointB, modelId),
+    ])
+
+    // 转换消息格式
+    const transformMessages = (messages: unknown[]): Array<{ role: string; content: string }> => {
+      return messages.map((msg: unknown) => {
+        const m = msg as {
+          _getType?: () => string
+          kwargs?: { content?: string }
+          content?: string
+        }
+
+        let role = 'unknown'
+        if (typeof m._getType === 'function') {
+          const type = m._getType()
+          if (type === 'human') {
+            role = 'user'
+          } else if (type === 'ai') {
+            role = 'assistant'
+          } else {
+            role = type
+          }
+        }
+
+        let content = ''
+        if (typeof m.content === 'string') {
+          content = m.content
+        } else if (typeof m.kwargs?.content === 'string') {
+          content = m.kwargs.content
+        }
+
+        return { role, content }
+      })
+    }
+
+    // 查找共同祖先
+    // 构建 A 的祖先链
+    const ancestorsA = new Set<string>()
+    let currentCp = checkpointA
+    const checkpoints = await this.getCheckpoints(threadId, modelId)
+    const cpMap = new Map(checkpoints.map((cp) => [cp.checkpointId, cp.parentCheckpointId]))
+
+    while (currentCp) {
+      ancestorsA.add(currentCp)
+      const parent = cpMap.get(currentCp)
+      if (!parent) break
+      currentCp = parent
+    }
+
+    // 从 B 向上遍历找交汇点
+    let commonAncestor: string | null = null
+    currentCp = checkpointB
+    while (currentCp) {
+      if (ancestorsA.has(currentCp)) {
+        commonAncestor = currentCp
+        break
+      }
+      const parent = cpMap.get(currentCp)
+      if (!parent) break
+      currentCp = parent
+    }
+
+    return {
+      branchA: {
+        checkpointId: checkpointA,
+        messages: transformMessages(historyA.messages),
+      },
+      branchB: {
+        checkpointId: checkpointB,
+        messages: transformMessages(historyB.messages),
+      },
+      commonAncestor,
+    }
   }
 }

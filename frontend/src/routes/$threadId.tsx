@@ -53,7 +53,7 @@ function ThreadPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <ChatHeader />
+      <ChatHeader sessionId={threadId} />
 
       <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col p-4 min-h-0">
         <MessageList />
