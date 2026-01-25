@@ -21,7 +21,7 @@ export function LoadingIndicator() {
         transition={{ delay: 0.2 }}
         className="text-sm text-muted-foreground"
       >
-        正在思考...
+        正在思考…
       </motion.span>
     </div>
   )

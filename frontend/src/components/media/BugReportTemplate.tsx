@@ -165,14 +165,22 @@ export function BugReportTemplate({
       <form className="report-form">
         {/* TODO: 标题 */}
         <div className="field">
-          <label>标题 *</label>
-          <input value={report.title} onChange={(e) => updateField('title', e.target.value)} />
+          <label htmlFor="bug-title">标题 *</label>
+          <input
+            id="bug-title"
+            name="title"
+            value={report.title}
+            onChange={(e) => updateField('title', e.target.value)}
+            autoComplete="off"
+          />
         </div>
 
         {/* TODO: 描述 */}
         <div className="field">
-          <label>描述</label>
+          <label htmlFor="bug-description">描述</label>
           <textarea
+            id="bug-description"
+            name="description"
             value={report.description}
             onChange={(e) => updateField('description', e.target.value)}
           />
@@ -180,15 +188,17 @@ export function BugReportTemplate({
 
         {/* TODO: 复现步骤（动态列表） */}
         <div className="field">
-          <label>复现步骤</label>
-          {report.stepsToReproduce.map((step, index) => (
-            <div key={index} className="step-row">
-              {/* TODO: 步骤序号 */}
-              {/* TODO: 输入框 */}
-              {/* TODO: 删除按钮 */}
-              <span>{step}</span>
-            </div>
-          ))}
+          <span id="steps-label">复现步骤</span>
+          <div aria-labelledby="steps-label">
+            {report.stepsToReproduce.map((step, index) => (
+              <div key={index} className="step-row">
+                {/* TODO: 步骤序号 */}
+                {/* TODO: 输入框 */}
+                {/* TODO: 删除按钮 */}
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
           {/* TODO: 添加步骤按钮 */}
         </div>
 

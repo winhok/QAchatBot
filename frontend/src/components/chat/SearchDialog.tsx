@@ -133,12 +133,16 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps): React.R
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="搜索会话..."
+            placeholder="搜索会话…"
             className="border-0 p-0 h-auto text-base focus-visible:ring-0 focus-visible:ring-offset-0"
             autoFocus
           />
           {query && (
-            <button onClick={() => setQuery('')} className="p-1 hover:bg-muted rounded">
+            <button
+              onClick={() => setQuery('')}
+              className="p-1 hover:bg-muted rounded"
+              aria-label="清空搜索"
+            >
               <X className="h-4 w-4 text-muted-foreground" />
             </button>
           )}

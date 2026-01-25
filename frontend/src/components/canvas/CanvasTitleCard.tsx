@@ -12,14 +12,15 @@ export function CanvasTitleCard({ artifact, onOpen }: CanvasTitleCardProps) {
   }
 
   return (
-    <div
-      className="canvas-title-card my-3 p-4 bg-muted/30 border border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 transition-all duration-200 group w-full"
+    <button
+      type="button"
+      className="canvas-title-card my-3 p-4 bg-muted/30 border border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 transition-all duration-200 group w-full text-left"
       onClick={handleClick}
     >
       <div className="flex items-center gap-3">
         {/* 图标 */}
         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
-          <FileCode className="w-5 h-5" />
+          <FileCode className="w-5 h-5" aria-hidden="true" />
         </div>
 
         {/* 标题和版本 */}
@@ -51,6 +52,6 @@ export function CanvasTitleCard({ artifact, onOpen }: CanvasTitleCardProps) {
           )}
         </div>
       </div>
-    </div>
+    </button>
   )
 }

@@ -69,6 +69,8 @@ export function ApiResultBlock({ data }: ApiResultBlockProps) {
               ? 'text-foreground border-b-2 border-emerald-500'
               : 'text-muted-foreground hover:text-foreground',
           )}
+          role="tab"
+          aria-selected={activeTab === 'body'}
         >
           Response Body
         </button>
@@ -81,6 +83,8 @@ export function ApiResultBlock({ data }: ApiResultBlockProps) {
                 ? 'text-foreground border-b-2 border-emerald-500'
                 : 'text-muted-foreground hover:text-foreground',
             )}
+            role="tab"
+            aria-selected={activeTab === 'headers'}
           >
             Headers
           </button>
@@ -91,6 +95,7 @@ export function ApiResultBlock({ data }: ApiResultBlockProps) {
         <button
           onClick={handleCopy}
           className="absolute top-2 right-2 p-1.5 rounded bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          aria-label={copied ? '已复制' : '复制响应内容'}
         >
           {copied ? (
             <Check className="h-3.5 w-3.5 text-emerald-400" />

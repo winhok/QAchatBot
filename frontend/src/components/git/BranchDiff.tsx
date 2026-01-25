@@ -28,7 +28,7 @@ export function BranchDiff({ sessionId, checkpointA, checkpointB, onClose }: Bra
       {/* Header */}
       <header className="absolute top-0 left-0 right-0 h-12 px-6 flex items-center justify-between border-b border-slate-800 bg-slate-900/80">
         <h2 className="text-sm font-mono text-slate-300">分支对比</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="关闭">
           <X className="w-4 h-4" />
         </Button>
       </header>

@@ -256,6 +256,15 @@ export function FileUploadArea({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            handleClick()
+          }
+        }}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-label="上传文件"
         className={cn(
           'relative flex flex-col items-center justify-center gap-2',
           'rounded-lg border-2 border-dashed p-6',

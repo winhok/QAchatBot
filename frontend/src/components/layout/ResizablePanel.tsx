@@ -111,6 +111,7 @@ export function ResizablePanel({
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
           title="拖拽调整大小"
+          aria-label="调整面板大小"
         >
           <div
             className={`

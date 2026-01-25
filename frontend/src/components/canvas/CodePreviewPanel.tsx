@@ -228,6 +228,7 @@ export function CodePreviewPanel({
             <button
               onClick={() => setKey((k) => k + 1)}
               className="mt-4 text-xs bg-destructive text-destructive-foreground px-3 py-1 rounded"
+              aria-label="重试执行"
             >
               Retry
             </button>
@@ -248,7 +249,7 @@ export function CodePreviewPanel({
       />
       {!isReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-          <span className="animate-pulse">Loading preview...</span>
+          <span className="animate-pulse">Loading preview…</span>
         </div>
       )}
     </div>

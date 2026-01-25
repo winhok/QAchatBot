@@ -38,7 +38,8 @@ export function TreeNode({ node, isSelected, onClick, isFirst = false }: TreeNod
   }
 
   return (
-    <motion.div
+    <motion.button
+      type="button"
       className="relative flex flex-col items-center cursor-pointer group"
       onClick={onClick}
       whileHover={{ scale: 1.05 }}
@@ -92,6 +93,6 @@ export function TreeNode({ node, isSelected, onClick, isFirst = false }: TreeNod
           minute: '2-digit',
         })}
       </div>
-    </motion.div>
+    </motion.button>
   )
 }

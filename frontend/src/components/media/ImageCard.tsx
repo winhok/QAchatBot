@@ -52,7 +52,7 @@ export function ImageCard({ status, src, download, alt, prompt, aspectRatio }: I
         <button
           onClick={() => setIsZoomed(true)}
           className="absolute top-3 right-3 p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
-          title="查看大图"
+          aria-label="查看大图"
         >
           <Maximize2 className="w-4 h-4" />
         </button>
@@ -90,6 +90,10 @@ export function ImageCard({ status, src, download, alt, prompt, aspectRatio }: I
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
           onClick={() => setIsZoomed(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setIsZoomed(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="图片预览"
         >
           <div className="relative max-w-[90vw] max-h-[90vh]">
             <img

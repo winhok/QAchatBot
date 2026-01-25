@@ -19,7 +19,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
           <div className="h-12 w-12 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
           <div className="absolute inset-0 h-12 w-12 rounded-full border-2 border-primary/10 animate-pulse" />
         </div>
-        <div className="text-xs tracking-[0.2em] animate-pulse">系统初始化中...</div>
+        <div className="text-xs tracking-[0.2em] animate-pulse">系统初始化中…</div>
       </div>
     )
   }

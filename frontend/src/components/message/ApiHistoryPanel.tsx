@@ -172,13 +172,17 @@ export function ApiHistoryPanel({ sessionId, onReplay }: ApiHistoryPanelProps) {
           filteredRecords.map((record) => (
             <div key={record.id} className="history-item">
               {/* TODO: 摘要行（点击展开） */}
-              <div onClick={() => setExpandedId(expandedId === record.id ? null : record.id)}>
+              <button
+                type="button"
+                className="history-item-header"
+                onClick={() => setExpandedId(expandedId === record.id ? null : record.id)}
+              >
                 {/* TODO: 方法标签（带颜色） */}
                 {/* TODO: URL（截断显示） */}
                 {/* TODO: 状态码（带颜色） */}
                 {/* TODO: 耗时 */}
                 {/* TODO: 时间戳 */}
-              </div>
+              </button>
 
               {/* TODO: 展开详情 */}
               {expandedId === record.id && (

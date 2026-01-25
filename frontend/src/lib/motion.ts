@@ -74,6 +74,28 @@ export const scaleIn: Variants = {
   exit: { opacity: 0, scale: 0.95 },
 }
 
+// Fade in with smaller scale (used for menus, dropdowns)
+export const fadeInScale: Variants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.15 },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: { duration: 0.15 },
+  },
+}
+
+// Loading indicator fade
+export const loadingFadeIn: Variants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0 },
+  exit: { opacity: 0 },
+}
+
 export const slideInFromLeft: Variants = {
   hidden: { x: '-100%', opacity: 0 },
   visible: { x: 0, opacity: 1 },

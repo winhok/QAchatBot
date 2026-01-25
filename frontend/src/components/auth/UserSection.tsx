@@ -21,7 +21,7 @@ export function UserSection() {
         size="icon"
         onClick={signOut}
         className="flex-shrink-0 text-muted-foreground hover:text-destructive"
-        title="登出"
+        aria-label="登出"
       >
         <LogOut className="h-4 w-4" />
       </Button>

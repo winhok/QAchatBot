@@ -23,7 +23,7 @@ export function ChatHeader({ sessionId }: ChatHeaderProps) {
           size="icon"
           onClick={toggleSidebar}
           className="h-9 w-9 border-2 border-foreground hover:bg-muted"
-          title={sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'}
+          aria-label={sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'}
         >
           {sidebarCollapsed ? (
             <PanelLeft className="h-5 w-5" />
@@ -40,7 +40,7 @@ export function ChatHeader({ sessionId }: ChatHeaderProps) {
               size="icon"
               onClick={() => setShowTree(true)}
               className="h-9 w-9 border-2 border-foreground hover:bg-muted"
-              title="对话树"
+              aria-label="对话树"
             >
               <GitBranch className="h-5 w-5" />
             </Button>

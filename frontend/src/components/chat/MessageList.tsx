@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Bot } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { EditMessageDialog } from '@/components/message/EditMessageDialog'
 import { LoadingIndicator } from '@/components/common/LoadingIndicator'
 import { MessageBubble } from '@/components/chat/MessageBubble'
@@ -8,8 +8,8 @@ import { RegenerateDialog } from '@/components/message/RegenerateDialog'
 import { StopGenerationButton } from '@/components/chat/StopGenerationButton'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { fadeInUp, staggerContainer } from '@/lib/motion'
-import { useChatStore } from '@/stores/chat'
+import { fadeInUp, loadingFadeIn, staggerContainer } from '@/lib/motion'
+import { getChatStoreState, useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 import { extractTextContent } from '@/utils/message'
 
@@ -24,59 +24,79 @@ export function MessageList() {
   const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null)
   const regeneratingMessage = messages.find((m) => m.id === regeneratingMessageId)
 
-  const handleEdit = (messageId: string) => {
+  // Ref for scroll-into-view (avoids inline function recreation)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll when messages change
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages.length])
+
+  // Stable callback - no dependencies needed
+  const handleEdit = useCallback((messageId: string) => {
     setEditingMessageId(messageId)
-  }
+  }, [])
 
-  const handleEditSubmit = (content: string, messageId: string) => {
-    setEditingMessageId(null)
+  // Use getChatStoreState() to get fresh state, avoiding stale closure
+  const handleEditSubmit = useCallback(
+    (content: string, messageId: string) => {
+      setEditingMessageId(null)
 
-    const msg = messages.find((m) => m.id === messageId)
-    const targetCheckpointId = msg?.parentCheckpointId
+      const currentMessages = getChatStoreState().messages
+      const msg = currentMessages.find((m) => m.id === messageId)
+      const targetCheckpointId = msg?.parentCheckpointId
 
-    if (targetCheckpointId) {
-      console.log(
-        '[MessageList] Editing message, forking from parent checkpoint:',
-        targetCheckpointId,
-      )
-      sendMessage(content, undefined, undefined, { checkpointId: targetCheckpointId })
-    } else {
-      console.warn('[MessageList] No parentCheckpointId available for message:', messageId)
-      sendMessage(content)
-    }
-  }
+      if (targetCheckpointId) {
+        console.log(
+          '[MessageList] Editing message, forking from parent checkpoint:',
+          targetCheckpointId,
+        )
+        sendMessage(content, undefined, undefined, { checkpointId: targetCheckpointId })
+      } else {
+        console.warn('[MessageList] No parentCheckpointId available for message:', messageId)
+        sendMessage(content)
+      }
+    },
+    [sendMessage],
+  )
 
-  const handleRegenerate = (messageId: string) => {
+  // Stable callback - no dependencies needed
+  const handleRegenerate = useCallback((messageId: string) => {
     setRegeneratingMessageId(messageId)
-  }
+  }, [])
 
-  const handleRegenerateConfirm = (messageId: string) => {
-    setRegeneratingMessageId(null)
+  // Use getChatStoreState() to get fresh state, avoiding stale closure
+  const handleRegenerateConfirm = useCallback(
+    (messageId: string) => {
+      setRegeneratingMessageId(null)
 
-    const aiMsgIndex = messages.findIndex((m) => m.id === messageId)
-    if (aiMsgIndex < 0) {
-      console.warn('[MessageList] AI message not found:', messageId)
-      return
-    }
+      const currentMessages = getChatStoreState().messages
+      const aiMsgIndex = currentMessages.findIndex((m) => m.id === messageId)
+      if (aiMsgIndex < 0) {
+        console.warn('[MessageList] AI message not found:', messageId)
+        return
+      }
 
-    const aiMsg = messages[aiMsgIndex]
-    const userMsg = aiMsgIndex > 0 ? messages[aiMsgIndex - 1] : undefined
+      const aiMsg = currentMessages[aiMsgIndex]
+      const userMsg = aiMsgIndex > 0 ? currentMessages[aiMsgIndex - 1] : undefined
 
-    if (!userMsg || userMsg.role !== 'user') {
-      console.warn('[MessageList] Cannot find user message before AI message:', messageId)
-      return
-    }
+      if (!userMsg || userMsg.role !== 'user') {
+        console.warn('[MessageList] Cannot find user message before AI message:', messageId)
+        return
+      }
 
-    const targetCheckpointId = aiMsg.parentCheckpointId
-    if (!targetCheckpointId) {
-      console.warn('[MessageList] No parentCheckpointId available for AI message:', messageId)
-      return
-    }
+      const targetCheckpointId = aiMsg.parentCheckpointId
+      if (!targetCheckpointId) {
+        console.warn('[MessageList] No parentCheckpointId available for AI message:', messageId)
+        return
+      }
 
-    console.log('[MessageList] Regenerating AI, forking from checkpoint:', targetCheckpointId)
-    const userContent = extractTextContent(userMsg.content)
-    sendMessage(userContent, undefined, undefined, { checkpointId: targetCheckpointId })
-  }
+      console.log('[MessageList] Regenerating AI, forking from checkpoint:', targetCheckpointId)
+      const userContent = extractTextContent(userMsg.content)
+      sendMessage(userContent, undefined, undefined, { checkpointId: targetCheckpointId })
+    },
+    [sendMessage],
+  )
 
   if (messages.length === 0) {
     return <ScrollArea className="flex-1 px-4" />
@@ -122,16 +142,17 @@ export function MessageList() {
 
           {isLoading && (
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+              variants={loadingFadeIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
               className="flex justify-center py-2"
             >
               <StopGenerationButton onStop={abortCurrent} isGenerating={isLoading} />
             </motion.div>
           )}
 
-          <div ref={(node) => node?.scrollIntoView({ behavior: 'smooth' })} />
+          <div ref={scrollRef} />
         </motion.div>
       </ScrollArea>
 

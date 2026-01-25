@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useBranchCount } from '@/hooks/useBranchCount'
 import { cn } from '@/lib/utils'
+import { fadeInScale } from '@/lib/motion'
 import { getSessionTitle } from '@/utils/session'
 
 interface DraggableSessionItemProps {
@@ -105,10 +106,10 @@ export function DraggableSessionItem({
       <AnimatePresence>
         {(isHovered || isMenuOpen) && !isDragging && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.15 }}
+            variants={fadeInScale}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="absolute right-2 top-1/2 -translate-y-1/2"
           >
             <DropdownMenu
@@ -116,7 +117,10 @@ export function DraggableSessionItem({
               onOpenChange={(open) => onMenuOpenChange(open ? session.id : null)}
             >
               <DropdownMenuTrigger asChild>
-                <button className="rounded-sm p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-primary transition-colors">
+                <button
+                  className="rounded-sm p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-primary transition-colors"
+                  aria-label="会话菜单"
+                >
                   <MoreHorizontal className="h-3 w-3" />
                 </button>
               </DropdownMenuTrigger>

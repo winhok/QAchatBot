@@ -62,7 +62,11 @@ export function CanvasSidebar() {
             v{activeArtifact.currentVersion}
           </div>
         </div>
-        <button onClick={() => setIsCanvasVisible(false)} className="p-2 hover:bg-muted rounded-md">
+        <button
+          onClick={() => setIsCanvasVisible(false)}
+          className="p-2 hover:bg-muted rounded-md"
+          aria-label="关闭面板"
+        >
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -87,7 +91,7 @@ export function CanvasSidebar() {
           <button
             onClick={() => navigator.clipboard.writeText(code)}
             className="p-2 hover:bg-muted rounded-md"
-            title="Copy"
+            aria-label="复制代码"
           >
             <Copy className="w-4 h-4" />
           </button>
@@ -102,6 +106,7 @@ export function CanvasSidebar() {
             value={code}
             onChange={(e) => handleCodeChange(e.target.value)}
             spellCheck={false}
+            aria-label="代码编辑器"
           />
         ) : (
           <CodePreviewPanel

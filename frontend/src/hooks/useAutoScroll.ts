@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface UseAutoScrollOptions {
   /** 距离底部多少像素内算作"在底部"，默认 100 */
   threshold?: number
   /** 是否平滑滚动，默认 true */
   smooth?: boolean
-  /** 依赖项变化时触发自动滚动检查 */
-  dependencies?: Array<unknown>
+  /** 依赖项变化时触发自动滚动检查 (use stable reference or primitive) */
+  dependencyKey?: string | number
 }
 
 interface UseAutoScrollReturn {
@@ -23,7 +23,7 @@ interface UseAutoScrollReturn {
 }
 
 export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScrollReturn {
-  const { threshold = 100, smooth = true, dependencies = [] } = options
+  const { threshold = 100, smooth = true, dependencyKey } = options
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
@@ -33,18 +33,18 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
   const isScrollingProgrammatically = useRef(false)
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // 检查是否在底部
-  const checkIfAtBottom = () => {
+  // 检查是否在底部 - memoized to prevent recreation
+  const checkIfAtBottom = useCallback(() => {
     const container = containerRef.current
     if (!container) return true
 
     const { scrollTop, scrollHeight, clientHeight } = container
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight
     return distanceFromBottom <= threshold
-  }
+  }, [threshold])
 
-  // 滚动到底部
-  const scrollToBottom = () => {
+  // 滚动到底部 - memoized with stable dependencies
+  const scrollToBottom = useCallback(() => {
     const container = containerRef.current
     if (!container) return
 
@@ -67,7 +67,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
       },
       smooth ? 300 : 50,
     )
-  }
+  }, [smooth])
 
   // 监听滚动事件
   useEffect(() => {
@@ -98,9 +98,10 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
         clearTimeout(scrollTimeoutRef.current)
       }
     }
-  }, [threshold])
+  }, [checkIfAtBottom])
 
   // 依赖项变化时，如果应该自动滚动，则滚动到底部
+  // Uses dependencyKey (primitive) instead of spreading array
   useEffect(() => {
     if (shouldAutoScroll) {
       // 使用 requestAnimationFrame 确保 DOM 已更新
@@ -108,7 +109,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
         scrollToBottom()
       })
     }
-  }, [shouldAutoScroll, smooth, ...dependencies])
+  }, [shouldAutoScroll, scrollToBottom, dependencyKey])
 
   return {
     containerRef,

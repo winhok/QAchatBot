@@ -6,6 +6,10 @@ import { defineConfig } from 'vite'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
+  // Optimize barrel file imports for faster dev/build
+  optimizeDeps: {
+    include: ['lucide-react'],
+  },
   plugins: [
     devtools(),
     viteTsConfigPaths({

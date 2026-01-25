@@ -69,7 +69,7 @@ export function FolderDialog({
   }
 
   function getSubmitButtonText(): string {
-    if (isLoading) return '保存中...'
+    if (isLoading) return '保存中…'
     return isEditing ? '保存' : '创建'
   }
 
@@ -91,7 +91,7 @@ export function FolderDialog({
                 id="folder-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="输入文件夹名称..."
+                placeholder="输入文件夹名称…"
                 className="font-mono"
                 autoFocus
               />
@@ -112,7 +112,7 @@ export function FolderDialog({
                         : 'border-transparent hover:border-muted-foreground/30',
                     )}
                     style={{ backgroundColor: c.value }}
-                    title={c.name}
+                    aria-label={`选择${c.name}颜色`}
                   />
                 ))}
               </div>
@@ -124,7 +124,7 @@ export function FolderDialog({
                 id="folder-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="添加描述..."
+                placeholder="添加描述…"
                 className="font-mono"
               />
             </div>

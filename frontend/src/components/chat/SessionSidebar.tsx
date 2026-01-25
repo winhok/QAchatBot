@@ -317,8 +317,9 @@ export default function SessionSidebar() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索..."
+              placeholder="搜索…"
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-sidebar-foreground/40"
+              aria-label="搜索会话"
             />
           </div>
         </div>
@@ -336,7 +337,7 @@ export default function SessionSidebar() {
             variant="outline"
             size="icon"
             className="shrink-0 border-2 border-sidebar-border bg-sidebar hover:bg-sidebar-accent"
-            title="新建文件夹"
+            aria-label="新建文件夹"
           >
             <FolderPlus className="h-4 w-4" />
           </Button>
@@ -431,7 +432,7 @@ export default function SessionSidebar() {
             <Input
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
-              placeholder="新名称..."
+              placeholder="新名称…"
               onKeyDown={(e) => e.key === 'Enter' && renameId && handleRename(renameId)}
               autoFocus
             />

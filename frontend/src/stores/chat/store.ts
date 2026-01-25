@@ -23,13 +23,12 @@ export interface ChatStoreAction extends MessageAction, StreamAction, ToolCallAc
 export type ChatStore = ChatStoreAction & ChatStoreState
 
 /**
- * 检查是否启用 DevTools
+ * 检查是否启用 DevTools (IIFE - runs once at module load)
  */
-const isDevtoolsEnabled = () => {
+const isDevtoolsEnabled = (() => {
   if (typeof window === 'undefined') return false
-  const url = new URL(window.location.href)
-  return url.searchParams.get('debug')?.includes('chat') ?? false
-}
+  return new URL(window.location.href).searchParams.get('debug')?.includes('chat') ?? false
+})()
 
 /**
  * 创建 Store
@@ -51,7 +50,7 @@ export const useChatStore = createWithEqualityFn<ChatStore>()(
   subscribeWithSelector(
     devtools(createStore, {
       name: 'QABot_chat',
-      enabled: isDevtoolsEnabled(),
+      enabled: isDevtoolsEnabled,
     }),
   ),
   shallow,

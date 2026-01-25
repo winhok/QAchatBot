@@ -49,7 +49,7 @@ export function MergeDialog({ sessionId, checkpointA, checkpointB, onClose }: Me
             <GitMerge className="w-5 h-5 text-orange-500" />
             <h2 className="font-mono text-lg text-slate-200">合并分支</h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="关闭">
             <X className="w-4 h-4" />
           </Button>
         </header>
@@ -77,7 +77,7 @@ export function MergeDialog({ sessionId, checkpointA, checkpointB, onClose }: Me
               <Textarea
                 value={instruction}
                 onChange={(e) => setInstruction(e.target.value)}
-                placeholder="例如：重点保留分支 A 的技术细节，同时融入分支 B 的创意..."
+                placeholder="例如：重点保留分支 A 的技术细节，同时融入分支 B 的创意…"
                 className="bg-slate-800 border-slate-700 font-mono text-sm resize-none"
                 rows={3}
               />

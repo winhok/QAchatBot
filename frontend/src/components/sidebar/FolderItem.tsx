@@ -61,10 +61,11 @@ export function FolderItem({
   return (
     <div className="mb-1">
       {/* Folder header */}
-      <div
+      <button
+        type="button"
         ref={setNodeRef}
         className={cn(
-          'flex items-center gap-1.5 px-2 py-1.5 rounded-sm cursor-pointer transition-all',
+          'flex w-full items-center gap-1.5 px-2 py-1.5 rounded-sm cursor-pointer transition-all text-left',
           'hover:bg-sidebar-accent group',
           isOver && 'bg-primary/10 ring-1 ring-primary/30',
         )}
@@ -103,7 +104,10 @@ export function FolderItem({
             >
               <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                  <button className="rounded-sm p-0.5 text-muted-foreground hover:bg-sidebar-accent hover:text-primary transition-colors">
+                  <button
+                    className="rounded-sm p-0.5 text-muted-foreground hover:bg-sidebar-accent hover:text-primary transition-colors"
+                    aria-label="文件夹菜单"
+                  >
                     <MoreHorizontal className="h-3 w-3" />
                   </button>
                 </DropdownMenuTrigger>
@@ -124,7 +128,7 @@ export function FolderItem({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </button>
 
       {/* Sessions list */}
       <AnimatePresence initial={false}>

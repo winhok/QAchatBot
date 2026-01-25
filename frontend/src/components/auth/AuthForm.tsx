@@ -119,6 +119,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required={!isLogin}
+                  autoComplete="name"
                   className="w-full pl-10 pr-4 py-2.5 bg-background/50 border border-white/10 focus:border-primary/50 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm font-mono text-foreground transition-all placeholder:text-muted-foreground/30"
                   placeholder="USER_ID"
                 />
@@ -138,6 +139,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 className="w-full pl-10 pr-4 py-2.5 bg-background/50 border border-white/10 focus:border-primary/50 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm font-mono text-foreground transition-all placeholder:text-muted-foreground/30"
                 placeholder="user@system.net"
               />
@@ -157,6 +159,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                autoComplete={isLogin ? 'current-password' : 'new-password'}
                 className="w-full pl-10 pr-12 py-2.5 bg-background/50 border border-white/10 focus:border-primary/50 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm font-mono text-foreground transition-all placeholder:text-muted-foreground/30"
                 placeholder={isLogin ? '******' : 'MIN_LENGTH: 6'}
               />
@@ -164,6 +167,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-primary transition-colors"
+                aria-label={showPassword ? '隐藏密码' : '显示密码'}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -183,6 +187,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  autoComplete="new-password"
                   className="w-full pl-10 pr-4 py-2.5 bg-background/50 border border-white/10 focus:border-primary/50 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm font-mono text-foreground transition-all placeholder:text-muted-foreground/30"
                   placeholder="CONFIRM_KEY"
                 />

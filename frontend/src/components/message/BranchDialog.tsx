@@ -66,7 +66,7 @@ export function BranchDialog({ open, onOpenChange, message, onSubmit }: BranchDi
         <div className="space-y-2">
           <span className="text-xs text-muted-foreground">新消息</span>
           <Textarea
-            placeholder="输入新的消息内容..."
+            placeholder="输入新的消息内容…"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}

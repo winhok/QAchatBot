@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Bot, User } from 'lucide-react'
+import { useMemo } from 'react'
 import type { Message } from '@/schemas'
 import { ApiResultBlock } from '@/components/message/ApiResultBlock'
 import { MarkdownRenderer } from '@/components/media/MarkdownRenderer'
@@ -24,10 +25,16 @@ interface MessageBubbleProps {
 export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubbleProps) {
   const isUser = message.role === 'user'
 
-  const textContent = extractTextContent(message.content)
-  const imageUrls = extractImageUrls(message.content)
-  const mediaUrls = extractMediaUrls(message.content)
-  const documentUrls = extractDocumentUrls(message.content)
+  // Memoize content extraction to prevent recalculation on every render
+  const { textContent, imageUrls, mediaUrls, documentUrls } = useMemo(
+    () => ({
+      textContent: extractTextContent(message.content),
+      imageUrls: extractImageUrls(message.content),
+      mediaUrls: extractMediaUrls(message.content),
+      documentUrls: extractDocumentUrls(message.content),
+    }),
+    [message.content],
+  )
   const hasContent =
     textContent || imageUrls.length > 0 || mediaUrls.length > 0 || documentUrls.length > 0
 

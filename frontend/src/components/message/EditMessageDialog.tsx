@@ -68,7 +68,7 @@ export function EditMessageDialog({
         {/* 编辑消息 */}
         <div className="space-y-2">
           <Textarea
-            placeholder="输入消息内容..."
+            placeholder="输入消息内容…"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
