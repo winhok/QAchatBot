@@ -42,6 +42,8 @@ export interface MCPToolConfig {
   command: string
   /** 命令参数 */
   args: string[]
+  /** 工作目录 */
+  cwd?: string
   /** 传输协议 */
   transport: 'stdio' | 'sse'
 }

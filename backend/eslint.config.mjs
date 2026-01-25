@@ -12,6 +12,7 @@ export default tseslint.config(
       'dist/**',
       'coverage/**',
       'generated/**',
+      'src/mcp-servers/**/dist/**',
       '*.js',
       '*.d.ts',
     ],

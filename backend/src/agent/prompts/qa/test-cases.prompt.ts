@@ -1,5 +1,9 @@
 /**
  * QA 测试用例生成提示词
+ *
+ * @deprecated 此文件已迁移至 MCP 模板服务器
+ * 新位置: backend/src/mcp-servers/qa-templates/templates/test-cases.md
+ * 此文件保留作为降级后备使用
  */
 
 export const QA_TEST_CASES_PROMPT = `你是一个专业的QA测试专家。请根据以下测试点，生成**CSV格式的测试用例**。

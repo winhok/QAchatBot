@@ -11,7 +11,7 @@ import {
   reviewTestCasesTool,
   videoGenerationTool,
 } from '../builtin'
-import type { UnifiedToolConfig } from '../types'
+import type { ToolType, UnifiedToolConfig } from '../types'
 
 /**
  * 统一工具配置
@@ -178,34 +178,58 @@ export const unifiedToolsConfig: UnifiedToolConfig[] = [
       transport: 'stdio',
     },
   },
+  {
+    id: 'qa-templates',
+    name: 'QA 模板资源',
+    description: '提供测试点、测试用例、评审等模板资源',
+    icon: '📝',
+    enabled: true,
+    type: 'mcp',
+    mcpConfig: {
+      server: 'qa-templates',
+      command: 'node',
+      args: ['dist/index.js'],
+      cwd: 'src/mcp-servers/qa-templates',
+      transport: 'stdio',
+    },
+  },
 ]
+
+/**
+ * 按类型过滤启用的工具
+ */
+function filterEnabledByType(type?: ToolType): UnifiedToolConfig[] {
+  return unifiedToolsConfig.filter(
+    (tool) => tool.enabled && (type === undefined || tool.type === type),
+  )
+}
 
 /**
  * 获取所有启用的工具配置
  */
 export function getEnabledToolConfigs(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter((tool) => tool.enabled)
+  return filterEnabledByType()
 }
 
 /**
  * 获取自定义工具配置
  */
 export function getCustomToolConfigs(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter((tool) => tool.type === 'custom' && tool.enabled)
+  return filterEnabledByType('custom')
 }
 
 /**
  * 获取 LangChain 工具配置
  */
 export function getLangChainToolConfigs(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter((tool) => tool.type === 'langchain' && tool.enabled)
+  return filterEnabledByType('langchain')
 }
 
 /**
  * 获取 MCP 工具配置
  */
 export function getMCPToolConfigs(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter((tool) => tool.type === 'mcp' && tool.enabled)
+  return filterEnabledByType('mcp')
 }
 
 /**
@@ -223,19 +247,19 @@ export function getMCPServersConfig(): Record<
   { command: string; args: string[]; transport: 'stdio' | 'sse' }
 > {
   const mcpTools = getMCPToolConfigs()
-  const config: Record<string, { command: string; args: string[]; transport: 'stdio' | 'sse' }> = {}
 
-  for (const tool of mcpTools) {
-    if (tool.mcpConfig) {
-      config[tool.mcpConfig.server] = {
-        command: tool.mcpConfig.command,
-        args: tool.mcpConfig.args,
-        transport: tool.mcpConfig.transport,
-      }
-    }
-  }
-
-  return config
+  return Object.fromEntries(
+    mcpTools
+      .filter((tool) => tool.mcpConfig)
+      .map((tool) => [
+        tool.mcpConfig!.server,
+        {
+          command: tool.mcpConfig!.command,
+          args: tool.mcpConfig!.args,
+          transport: tool.mcpConfig!.transport,
+        },
+      ]),
+  )
 }
 
 /**

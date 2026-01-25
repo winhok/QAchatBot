@@ -1,10 +1,12 @@
 packages:
   - backend
   - frontend
+  - backend/src/mcp-servers/*
 
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@prisma/engines'
   - esbuild
   - prisma
+  - protobufjs
   - unrs-resolver

@@ -1,5 +1,9 @@
 /**
  * QA 用例评审提示词
+ *
+ * @deprecated 此文件已迁移至 MCP 模板服务器
+ * 新位置: backend/src/mcp-servers/qa-templates/templates/review.md
+ * 此文件保留作为降级后备使用
  */
 
 export const QA_REVIEW_PROMPT = `你是一个专业的QA测试专家。请对以下测试用例进行**评审和优化**，输出最终版本。

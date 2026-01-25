@@ -1,11 +1,43 @@
 /**
  * QA 测试工具集
  * 将原 qa-chatbot 工作流的能力转化为可调用的工具
+ *
+ * 支持两种模式：
+ * 1. MCP 模式：从 qa-templates MCP 服务器动态加载模板
+ * 2. 降级模式：使用内置硬编码提示词
  */
 import { QA_REVIEW_PROMPT, QA_TEST_CASES_PROMPT, QA_TEST_POINTS_PROMPT } from '@/agent/prompts'
+import { TemplateService } from '@/agent/templates'
 import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
 import type { ToolDefinition } from '../types'
+
+// Template service instance (lazy initialized)
+let templateService: TemplateService | null = null
+
+/**
+ * Set the template service instance (called from NestJS module)
+ */
+export function setTemplateService(service: TemplateService): void {
+  templateService = service
+}
+
+/**
+ * Get template with fallback to hardcoded prompts
+ */
+function getTemplateWithFallback(toolName: string, fallbackPrompt: string): string {
+  if (!templateService?.isReady()) {
+    return fallbackPrompt
+  }
+
+  try {
+    const template = templateService.getTemplatesForNode(toolName)
+    return template || fallbackPrompt
+  } catch {
+    console.warn(`Failed to load template for ${toolName}, using fallback`)
+    return fallbackPrompt
+  }
+}
 
 /**
  * 获取 QA 专用的 LLM 实例
@@ -20,6 +52,23 @@ function getQaModel(): ChatOpenAI {
   })
 }
 
+/**
+ * 构建 QA 系统提示词
+ */
+function buildSystemPrompt(toolName: string, fallbackPrompt: string): string {
+  const template = getTemplateWithFallback(toolName, fallbackPrompt)
+  return `你是一个专业的QA测试专家。\n\n${template}`
+}
+
+/**
+ * 格式标签映射
+ */
+const FORMAT_LABELS: Record<string, string> = {
+  csv: 'CSV 格式',
+  table: '表格格式',
+  markdown: 'Markdown 格式',
+}
+
 // ==================== 工具 1: 测试点分析 ====================
 
 export const analyzeTestPointsTool: ToolDefinition<{ prdContent: string }> = {
@@ -31,7 +80,7 @@ export const analyzeTestPointsTool: ToolDefinition<{ prdContent: string }> = {
   }),
   handler: async ({ prdContent }) => {
     const model = getQaModel()
-    const systemPrompt = `你是一个专业的QA测试专家。\n\n${QA_TEST_POINTS_PROMPT}`
+    const systemPrompt = buildSystemPrompt('analyze_test_points', QA_TEST_POINTS_PROMPT)
 
     const response = await model.invoke([
       { role: 'system', content: systemPrompt },
@@ -57,13 +106,14 @@ export const generateTestCasesTool: ToolDefinition<{
   }),
   handler: async ({ testPoints, format = 'csv' }) => {
     const model = getQaModel()
-    const systemPrompt = `你是一个专业的QA测试专家。\n\n${QA_TEST_CASES_PROMPT}`
+    const systemPrompt = buildSystemPrompt('generate_test_cases', QA_TEST_CASES_PROMPT)
+    const formatLabel = FORMAT_LABELS[format] || FORMAT_LABELS.csv
 
     const userContent = `请根据以下测试点生成测试用例：
 
 ${testPoints}
 
-输出格式要求：${format === 'csv' ? 'CSV 格式' : format === 'table' ? '表格格式' : 'Markdown 格式'}`
+输出格式要求：${formatLabel}`
 
     const response = await model.invoke([
       { role: 'system', content: systemPrompt },
@@ -89,7 +139,7 @@ export const reviewTestCasesTool: ToolDefinition<{
   }),
   handler: async ({ testCases, feedback }) => {
     const model = getQaModel()
-    const systemPrompt = `你是一个专业的QA测试专家。\n\n${QA_REVIEW_PROMPT}`
+    const systemPrompt = buildSystemPrompt('review_test_cases', QA_REVIEW_PROMPT)
 
     const userContent = feedback
       ? `请评审以下测试用例，并根据用户反馈进行优化：
