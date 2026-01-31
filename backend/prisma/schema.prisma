@@ -39,6 +39,7 @@ model Session {
 
   messages   Message[]
   reasonings Reasoning[]
+  feedbacks  Feedback[]
 
   @@index([userId])
   @@index([userId, status])
@@ -135,4 +136,75 @@ model Document {
   @@index([userId, collection])
   @@index([collection])
   @@map("documents")
+}
+
+/// 索引记录 - 用于跟踪已索引的文档，避免重复 embedding
+model IndexedRecord {
+  id          String   @id @default(cuid())
+  sourceId    String   @map("source_id")   // 文档来源标识符
+  contentHash String   @map("content_hash") // 内容哈希，用于检测变更
+  collection  String   @default("default")
+  indexedAt   DateTime @default(now()) @map("indexed_at")
+
+  @@unique([sourceId, collection])
+  @@index([collection])
+  @@index([contentHash])
+  @@map("indexed_records")
+}
+
+/// 用户反馈 - 收集对 AI 回答的评价
+model Feedback {
+  id        String   @id @default(cuid())
+  messageId String   @map("message_id")   // 关联的消息 ID
+  sessionId String   @map("session_id")
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  score     Int                           // 1 = 👍, -1 = 👎
+  comment   String?  @db.Text             // 可选的用户评论
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([messageId])
+  @@index([score])
+  @@index([createdAt])
+  @@map("feedbacks")
+}
+
+/// 用户档案 - 长期记忆 (Patch 模式)
+/// 单一文档持续更新，存储用户偏好、特征等
+model UserProfile {
+  id                      String    @id @default(cuid())
+  userId                  String    @unique @map("user_id")
+  preferredName           String?   @map("preferred_name")
+  age                     Int?
+  interests               String[]
+  occupation              String?
+  location                String?
+  conversationPreferences String[]  @map("conversation_preferences")
+  relationships           Json?     // Array<{name, relation, notes}>
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("user_profiles")
+}
+
+/// 中期记忆 - 情景记忆 (Insert 模式)
+/// 存储会话摘要、关键事件、交互片段等，支持语义检索
+/// 注意：向量存储通过 VectorStoreService 单独处理，使用 id 作为关联
+model EpisodicMemory {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  sessionId  String?   @map("session_id")
+  type       String    // 'summary' | 'event' | 'interaction' | 'note' | 'relationship'
+  content    String    @db.Text
+  context    String    @db.Text  // 情境描述
+  importance Float     @default(0.5)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  expiresAt  DateTime? @map("expires_at")
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([sessionId])
+  @@index([expiresAt])
+  @@map("episodic_memories")
 }

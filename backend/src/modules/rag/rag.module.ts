@@ -11,6 +11,6 @@ import { DocumentService, EmbeddingsService, RagService, VectorStoreService } fr
   imports: [PrismaModule],
   controllers: [RagController],
   providers: [EmbeddingsService, VectorStoreService, DocumentService, RagService],
-  exports: [DocumentService, RagService, VectorStoreService],
+  exports: [DocumentService, RagService, VectorStoreService, EmbeddingsService],
 })
 export class RagModule {}

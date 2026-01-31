@@ -1,35 +1,93 @@
-// TODO: 反馈服务
-// 功能需求：
-// 1. 存储反馈到数据库
-// 2. 或发送到分析服务（如 PostHog, Mixpanel）
-// 3. 或写入日志文件
-
-import { Injectable } from '@nestjs/common'
-
-export interface FeedbackPayload {
-  messageId: string
-  sessionId: string
-  type: 'positive' | 'negative'
-  reason?: string // 负面反馈原因
-  content?: string // 消息内容（用于分析）
-}
+import { PrismaService } from '@/infrastructure/database/prisma.service'
+import { Injectable, Logger } from '@nestjs/common'
+import { CreateFeedbackDto, FeedbackStatsDto } from './dto/feedback.dto'
 
 @Injectable()
 export class FeedbackService {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  submit(dto: FeedbackPayload) {
-    // TODO: 存储反馈
-    // - 可以存到数据库
-    // - 或发送到分析服务（如 PostHog, Mixpanel）
-    // - 或写入日志文件
+  private readonly logger = new Logger(FeedbackService.name)
 
-    return { success: true }
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * 创建反馈
+   */
+  async create(dto: CreateFeedbackDto) {
+    this.logger.log({
+      event: 'feedback_created',
+      messageId: dto.messageId,
+      sessionId: dto.sessionId,
+      score: dto.score,
+    })
+
+    const feedback = await this.prisma.feedback.create({
+      data: {
+        messageId: dto.messageId,
+        sessionId: dto.sessionId,
+        score: dto.score,
+        comment: dto.comment,
+      },
+    })
+
+    return { success: true, feedback }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  get(messageId?: string) {
-    // TODO: 查询反馈记录
+  /**
+   * 获取消息的反馈
+   */
+  async getByMessageId(messageId: string) {
+    const feedback = await this.prisma.feedback.findFirst({
+      where: { messageId },
+      orderBy: { createdAt: 'desc' },
+    })
 
-    return { feedback: null }
+    return { feedback }
+  }
+
+  /**
+   * 获取反馈统计
+   */
+  async getStats(query: FeedbackStatsDto) {
+    const where: Record<string, unknown> = {}
+
+    if (query.sessionId) {
+      where.sessionId = query.sessionId
+    }
+
+    if (query.startDate || query.endDate) {
+      where.createdAt = {
+        ...(query.startDate && { gte: new Date(query.startDate) }),
+        ...(query.endDate && { lte: new Date(query.endDate) }),
+      }
+    }
+
+    const [total, positive, negative] = await Promise.all([
+      this.prisma.feedback.count({ where }),
+      this.prisma.feedback.count({ where: { ...where, score: 1 } }),
+      this.prisma.feedback.count({ where: { ...where, score: -1 } }),
+    ])
+
+    const positiveRate = total > 0 ? (positive / total) * 100 : 0
+
+    return {
+      total,
+      positive,
+      negative,
+      positiveRate: Math.round(positiveRate * 10) / 10,
+    }
+  }
+
+  /**
+   * 获取最近的反馈列表
+   */
+  async getRecent(limit: number = 20) {
+    return this.prisma.feedback.findMany({
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        session: {
+          select: { name: true },
+        },
+      },
+    })
   }
 }

@@ -1,38 +1,108 @@
 import { useState } from 'react'
+import { ThumbsDown, ThumbsUp } from 'lucide-react'
 
-// TODO: 反馈按钮组件（点赞/点踩）
-// 功能需求：
-// 1. 点赞/点踩按钮
-// 2. 点击后发送反馈到后端
-// 3. 已反馈状态的视觉区分
-// 4. 可选：点踩时弹出反馈原因选择
-// 5. 参考 ChatGPT/Claude 的反馈机制
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 
 interface FeedbackButtonsProps {
   messageId: string
-  onFeedback: (messageId: string, type: 'positive' | 'negative', reason?: string) => void
+  sessionId: string
+  className?: string
 }
 
-export function FeedbackButtons({ messageId, onFeedback }: FeedbackButtonsProps) {
-  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null)
+/**
+ * 消息反馈按钮组件
+ * 只在最后一条 AI 消息显示，点击后显示已选择状态
+ */
+export function FeedbackButtons({
+  messageId,
+  sessionId,
+  className,
+}: FeedbackButtonsProps): React.ReactElement {
+  const [feedback, setFeedback] = useState<'good' | 'bad' | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleFeedback = (type: 'positive' | 'negative') => {
-    // TODO: 实现反馈逻辑
-    // - 更新本地状态
-    // - 调用 onFeedback 回调
-    // - 如果是 negative，可选弹出原因选择
-    setFeedback(type)
-    onFeedback(messageId, type)
+  const sendFeedback = async (score: number) => {
+    if (isSubmitting) return
+
+    setIsSubmitting(true)
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, sessionId, score }),
+      })
+
+      if (res.ok) {
+        setFeedback(score === 1 ? 'good' : 'bad')
+      } else {
+        console.error('Failed to send feedback:', await res.text())
+      }
+    } catch (error) {
+      console.error('Failed to send feedback:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  // Suppress unused variable warning
-  void handleFeedback
-  void feedback
+  // 已反馈：显示选中状态
+  if (feedback) {
+    return (
+      <div className={cn('flex items-center gap-2 mt-2', className)}>
+        {feedback === 'good' ? (
+          <ThumbsUp className="h-4 w-4 fill-green-500 text-green-500" />
+        ) : (
+          <ThumbsDown className="h-4 w-4 fill-red-500 text-red-500" />
+        )}
+        <span className="text-xs text-muted-foreground">感谢反馈</span>
+      </div>
+    )
+  }
 
+  // 未反馈：显示按钮（hover 时才完全显示）
   return (
-    <div className="flex items-center gap-1">
-      {/* TODO: 点赞按钮 (ThumbsUp) */}
-      {/* TODO: 点踩按钮 (ThumbsDown) */}
-    </div>
+    <TooltipProvider>
+      <div
+        className={cn(
+          'flex items-center gap-1 mt-2 opacity-0 transition-opacity group-hover:opacity-100',
+          className,
+        )}
+      >
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={isSubmitting}
+              onClick={() => sendFeedback(1)}
+            >
+              <ThumbsUp className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            好的回答
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={isSubmitting}
+              onClick={() => sendFeedback(-1)}
+            >
+              <ThumbsDown className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            需要改进
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   )
 }

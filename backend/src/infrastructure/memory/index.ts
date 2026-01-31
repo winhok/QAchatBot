@@ -1,3 +1,5 @@
-export * from './memory.module'
-export * from './memory-store.service'
 export * from './history-optimizer.service'
+export * from './memory-extraction.service'
+export * from './memory-store.service'
+export * from './memory.module'
+export * from './unified-memory.service'

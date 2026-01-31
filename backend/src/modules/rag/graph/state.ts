@@ -1,5 +1,6 @@
 import { Document } from '@langchain/core/documents'
 import { Annotation } from '@langchain/langgraph'
+import { reduceDocs } from '../utils'
 
 /**
  * RAG 工作流状态定义
@@ -37,3 +38,52 @@ export const RagState = Annotation.Root({
 })
 
 export type RagStateType = typeof RagState.State
+
+/**
+ * 查询状态 - 用于并行检索节点
+ */
+export interface QueryState {
+  query: string
+  queryIndex: number
+}
+
+/**
+ * Researcher Graph 状态定义
+ * 用于多查询并行检索工作流
+ */
+export const ResearcherStateAnnotation = Annotation.Root({
+  /** 原始问题 */
+  question: Annotation<string>(),
+
+  /** 生成的多角度查询列表 */
+  queries: Annotation<string[]>({
+    reducer: (_, update) => update,
+    default: () => [],
+  }),
+
+  /** 检索到的文档（使用 reduceDocs 去重合并） */
+  documents: Annotation<Document[]>({
+    reducer: reduceDocs,
+    default: () => [],
+  }),
+
+  /** 检索完成的查询索引 */
+  completedQueries: Annotation<number[]>({
+    reducer: (existing, update) => [...(existing ?? []), ...update],
+    default: () => [],
+  }),
+
+  /** collection 名称 */
+  collection: Annotation<string>({
+    reducer: (_, update) => update,
+    default: () => 'default',
+  }),
+
+  /** 每个查询返回的文档数 */
+  topK: Annotation<number>({
+    reducer: (_, update) => update,
+    default: () => 3,
+  }),
+})
+
+export type ResearcherState = typeof ResearcherStateAnnotation.State

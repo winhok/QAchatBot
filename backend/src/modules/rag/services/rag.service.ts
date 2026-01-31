@@ -1,4 +1,5 @@
 import { Document } from '@langchain/core/documents'
+import type { BaseMessage } from '@langchain/core/messages'
 import { ChatOpenAI } from '@langchain/openai'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -20,6 +21,8 @@ export interface RagQueryOptions {
   collection?: string
   topK?: number
   relevanceThreshold?: number
+  /** 对话历史，用于智能查询重写 */
+  chatHistory?: BaseMessage[]
 }
 
 /**
@@ -48,18 +51,29 @@ export class RagService {
    * 执行 RAG 查询
    */
   async query(question: string, options: RagQueryOptions = {}): Promise<RagQueryResult> {
-    const { collection = 'default', topK = 5, relevanceThreshold = 0.3 } = options
+    const { collection = 'default', topK = 5, relevanceThreshold = 0.3, chatHistory } = options
 
     this.logger.log({ event: 'rag_query_start', question, collection, topK })
 
-    // 1. 检索相关文档（带分数）
+    // 1. 如果有对话历史，重写查询为独立问题
+    let searchQuery = question
+    if (chatHistory && chatHistory.length > 0) {
+      searchQuery = await this.rewriteFollowUpQuery(question, chatHistory)
+      this.logger.debug({
+        event: 'query_rewritten',
+        original: question,
+        rewritten: searchQuery,
+      })
+    }
+
+    // 2. 检索相关文档（带分数）
     const searchResults = await this.vectorStore.similaritySearchWithScore(
-      question,
+      searchQuery,
       topK,
       collection,
     )
 
-    // 2. 过滤低相关性文档
+    // 3. 过滤低相关性文档
     const filteredResults = searchResults.filter(([, score]) => score >= relevanceThreshold)
 
     const sources = filteredResults.map(([doc]) => doc)
@@ -72,7 +86,7 @@ export class RagService {
       scores: relevanceScores,
     })
 
-    // 3. 如果没有相关文档，返回默认回答
+    // 4. 如果没有相关文档，返回默认回答
     if (sources.length === 0) {
       return {
         answer: '抱歉，我没有找到相关的信息来回答您的问题。',
@@ -81,12 +95,10 @@ export class RagService {
       }
     }
 
-    // 4. 构建上下文
-    const context = sources
-      .map((doc, index) => `文档 ${index + 1}:\n${doc.pageContent}`)
-      .join('\n\n---\n\n')
+    // 5. 构建 XML 格式上下文
+    const context = this.formatDocsAsXml(sources)
 
-    // 5. 生成回答
+    // 6. 生成回答
     const answer = await this.generateAnswer(question, context)
 
     this.logger.log({
@@ -100,6 +112,26 @@ export class RagService {
       sources,
       relevanceScores,
     }
+  }
+
+  /**
+   * 将文档格式化为 XML 结构
+   * 让 LLM 更容易区分不同来源的上下文
+   */
+  private formatDocsAsXml(docs: Document[]): string {
+    if (docs.length === 0) return '<documents></documents>'
+
+    const formatted = docs
+      .map((doc) => {
+        const meta = Object.entries(doc.metadata || {})
+          .filter(([k]) => ['source', 'title', 'uuid'].includes(k))
+          .map(([k, v]) => ` ${k}="${String(v).replace(/"/g, '&quot;')}"`)
+          .join('')
+        return `<document${meta}>\n${doc.pageContent}\n</document>`
+      })
+      .join('\n')
+
+    return `<documents>\n${formatted}\n</documents>`
   }
 
   /**
@@ -158,23 +190,55 @@ ${context}
   }
 
   /**
-   * 重写查询（用于提高检索效果）
+   * History-Aware 查询重写
+   * 将跟进问题结合对话历史重写为独立问题，提高检索精准度
+   *
+   * @param originalQuery 用户原始查询
+   * @param chatHistory 对话历史消息
+   * @returns 重写后的独立问题
    */
-  async rewriteQuery(originalQuery: string): Promise<string> {
-    const rewritePrompt = `原始查询: ${originalQuery}
+  async rewriteFollowUpQuery(originalQuery: string, chatHistory: BaseMessage[]): Promise<string> {
+    // 首次问题：跳过重写以提升响应速度
+    if (chatHistory.length === 0) {
+      return originalQuery
+    }
 
-请重写这个查询以提高检索效果，使其更具体、更清晰：
+    // 只取最近 6 条消息以控制 token 使用
+    const recentHistory = chatHistory.slice(-6)
+    const historyText = recentHistory
+      .map((m) => {
+        const role = m._getType() === 'human' ? 'Human' : 'Assistant'
+        const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
+        return `${role}: ${content.slice(0, 500)}`
+      })
+      .join('\n')
 
-重写后的查询:`
+    const prompt = `Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
+
+Chat History:
+${historyText}
+
+Follow Up Input: ${originalQuery}
+
+Standalone Question:`
 
     const response = await this.llm.invoke([
       {
         role: 'system',
-        content: '你是一个查询优化专家，擅长重写查询以提高信息检索的效果。',
+        content:
+          'You are an expert at rephrasing follow-up questions into standalone questions. Output only the rephrased question, nothing else.',
       },
-      { role: 'user', content: rewritePrompt },
+      { role: 'user', content: prompt },
     ])
 
-    return response.content as string
+    const rewritten = (response.content as string).trim()
+    this.logger.debug({
+      event: 'follow_up_rewritten',
+      original: originalQuery,
+      rewritten,
+      historyLength: chatHistory.length,
+    })
+
+    return rewritten || originalQuery
   }
 }

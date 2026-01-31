@@ -10,6 +10,11 @@ import { ModelFactory } from '@/agent/utils'
 import { getDatabaseUrl } from '@/config/database-url'
 import { HistoryOptimizerService } from '@/infrastructure/memory/history-optimizer.service'
 import { MemoryStoreService, type MergedMemory } from '@/infrastructure/memory/memory-store.service'
+import {
+  UnifiedMemoryService,
+  type MemoryContext,
+} from '@/infrastructure/memory/unified-memory.service'
+import { RagService } from '@/modules/rag/services'
 import type { ChatMessageContentBlock } from '@/shared/schemas/content-blocks'
 import type { ChatMessageContent } from '@/shared/schemas/requests'
 import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages'
@@ -17,7 +22,7 @@ import type { RunnableConfig } from '@langchain/core/runnables'
 import { END, MessagesAnnotation, START, StateGraph } from '@langchain/langgraph'
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres'
 import { ToolNode } from '@langchain/langgraph/prebuilt'
-import { Injectable, OnModuleInit } from '@nestjs/common'
+import { Injectable, OnModuleInit, Optional } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 /** LangGraph message structure with checkpoint metadata */
@@ -47,12 +52,28 @@ export class ChatbotService implements OnModuleInit {
   private appCache = new Map<string, ReturnType<typeof this.compileWorkflow>>()
   private currentPersona: Partial<PersonaConfig> = {}
 
+  /**
+   * FIFO 缓存淘汰
+   * 当缓存达到上限时，删除最早的条目
+   */
+  private evictCacheIfNeeded(): void {
+    if (this.appCache.size >= this.MAX_CACHE_SIZE) {
+      const firstKey = this.appCache.keys().next().value as string | undefined
+      if (firstKey) {
+        this.appCache.delete(firstKey)
+        console.log(`[ChatbotService] Cache evicted: ${firstKey}`)
+      }
+    }
+  }
+
   constructor(
     private readonly config: ConfigService,
     private readonly tools: ToolsService,
     private readonly memoryStore: MemoryStoreService,
     private readonly historyOptimizer: HistoryOptimizerService,
     private readonly modelFactory: ModelFactory,
+    private readonly unifiedMemory: UnifiedMemoryService,
+    @Optional() private readonly ragService?: RagService,
   ) {}
 
   async onModuleInit() {
@@ -97,7 +118,7 @@ export class ChatbotService implements OnModuleInit {
   }
 
   /**
-   * Build enhanced system prompt with layered memory
+   * Build enhanced system prompt with layered memory (legacy method)
    */
   private buildEnhancedSystemPrompt(memory: MergedMemory): string {
     const parts: string[] = [this.getBaseSystemPrompt()]
@@ -124,6 +145,24 @@ export class ChatbotService implements OnModuleInit {
     // Domain knowledge
     if (hasEntries(memory.knowledge)) {
       parts.push('\n## 领域知识', JSON.stringify(memory.knowledge, null, 2))
+    }
+
+    // Canvas system prompt
+    parts.push(getCanvasSystemPrompt(generateArtifactId()))
+
+    return parts.join('\n')
+  }
+
+  /**
+   * Build enhanced system prompt with three-tier memory context
+   */
+  private buildEnhancedSystemPromptV2(memoryContext: MemoryContext): string {
+    const parts: string[] = [this.getBaseSystemPrompt()]
+
+    // Add formatted memory context from unified memory service
+    const formattedMemory = this.unifiedMemory.formatMemoryContext(memoryContext)
+    if (formattedMemory) {
+      parts.push(formattedMemory)
     }
 
     // Canvas system prompt
@@ -165,7 +204,7 @@ export class ChatbotService implements OnModuleInit {
   }
 
   /**
-   * 编译带工具的工作流
+   * 编译带工具的工作流（使用三层记忆架构）
    */
   private compileWorkflow(modelId: string) {
     const allTools = this.tools.getAllTools()
@@ -173,8 +212,107 @@ export class ChatbotService implements OnModuleInit {
     const toolNode = new ToolNode(allTools)
 
     // 创建闭包引用
+    const unifiedMemory = this.unifiedMemory
+    const historyOptimizer = this.historyOptimizer
+    const buildEnhancedSystemPromptV2 = (memoryContext: MemoryContext) =>
+      this.buildEnhancedSystemPromptV2(memoryContext)
+
+    const chatbotNode = async (state: typeof MessagesAnnotation.State, config: RunnableConfig) => {
+      const threadId = config.configurable?.thread_id as string
+      const userId = config.configurable?.user_id as string | undefined
+
+      // 1. 提取查询用于语义检索
+      const lastHumanMessage = [...state.messages].reverse().find((m) => m._getType() === 'human')
+      const query = lastHumanMessage
+        ? typeof lastHumanMessage.content === 'string'
+          ? lastHumanMessage.content
+          : JSON.stringify(lastHumanMessage.content)
+        : ''
+
+      // 2. 获取三层记忆上下文 (Redis + pgvector + PostgreSQL)
+      const memoryContext = await unifiedMemory.getMemoryContext(
+        threadId,
+        userId || 'anonymous',
+        query,
+      )
+
+      // 3. 构建增强系统提示
+      const enhancedPrompt = buildEnhancedSystemPromptV2(memoryContext)
+
+      // 4. 优化历史记录
+      let messagesToSend = await historyOptimizer.optimize(state.messages)
+
+      // 5. 检查是否已有 SystemMessage（避免重复注入）
+      const hasSystemMessage = messagesToSend.some((msg) => msg._getType() === 'system')
+
+      if (!hasSystemMessage) {
+        // 首次对话，注入系统指令
+        messagesToSend = [new SystemMessage(enhancedPrompt), ...messagesToSend]
+      }
+
+      console.log(
+        '[ChatbotService] Invoking model with',
+        messagesToSend.length,
+        'messages (3-tier memory)',
+      )
+
+      try {
+        const res = await model.invoke(messagesToSend)
+        console.log('[ChatbotService] Model response received')
+
+        // 6. 调度后台记忆更新（带 Debounce）
+        if (userId) {
+          unifiedMemory.scheduleMemoryUpdate(threadId, userId, state.messages).catch((err) => {
+            console.warn('[ChatbotService] Failed to schedule memory update:', err)
+          })
+        }
+
+        return { messages: [res] }
+      } catch (error) {
+        console.error('[ChatbotService] Model invoke error:', error)
+        throw error
+      }
+    }
+
+    const shouldContinue = (state: typeof MessagesAnnotation.State) => {
+      const lastMessage = state.messages[state.messages.length - 1] as AIMessage
+      if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
+        return 'tools'
+      }
+      return END
+    }
+
+    const workflow = new StateGraph(MessagesAnnotation)
+      .addNode('chatbot', chatbotNode)
+      .addNode('tools', toolNode)
+      .addEdge(START, 'chatbot')
+      .addConditionalEdges('chatbot', shouldContinue, ['tools', END])
+      .addEdge('tools', 'chatbot')
+
+    return workflow.compile({ checkpointer: this.checkpointer })
+  }
+
+  /**
+   * 编译带 RAG 增强的工作流
+   * 在模型调用前先检索相关文档作为上下文
+   *
+   * @param modelId 模型 ID
+   * @param collection RAG 文档集合名称
+   */
+  private compileRagWorkflow(modelId: string, collection: string = 'default') {
+    if (!this.ragService) {
+      console.warn('[ChatbotService] RagService not available, falling back to standard workflow')
+      return this.compileWorkflow(modelId)
+    }
+
+    const allTools = this.tools.getAllTools()
+    const model = this.createModelInstance(modelId).bindTools(allTools)
+    const toolNode = new ToolNode(allTools)
+
+    // 创建闭包引用
     const memoryStore = this.memoryStore
     const historyOptimizer = this.historyOptimizer
+    const ragService = this.ragService
     const buildEnhancedSystemPrompt = (memory: MergedMemory) =>
       this.buildEnhancedSystemPrompt(memory)
 
@@ -186,27 +324,71 @@ export class ChatbotService implements OnModuleInit {
       const mergedMemory = await memoryStore.getMergedMemoryForSession(threadId, userId)
 
       // 2. 构建增强系统提示
-      const enhancedPrompt = buildEnhancedSystemPrompt(mergedMemory)
+      let enhancedPrompt = buildEnhancedSystemPrompt(mergedMemory)
 
       // 3. 优化历史记录
       let messagesToSend = await historyOptimizer.optimize(state.messages)
 
-      // 4. 检查是否已有 SystemMessage（避免重复注入）
+      // 4. 提取最后一条用户消息用于 RAG 检索
+      const lastHumanMessage = [...messagesToSend]
+        .reverse()
+        .find((msg) => msg._getType() === 'human')
+
+      if (lastHumanMessage) {
+        const query =
+          typeof lastHumanMessage.content === 'string'
+            ? lastHumanMessage.content
+            : JSON.stringify(lastHumanMessage.content)
+
+        try {
+          // 5. 使用 RAG 服务检索相关文档（带对话历史）
+          const chatHistory = messagesToSend.filter((msg) =>
+            ['human', 'ai'].includes(msg._getType()),
+          )
+          const ragResult = await ragService.query(query, {
+            collection,
+            topK: 5,
+            chatHistory,
+          })
+
+          if (ragResult.sources.length > 0) {
+            // 6. 将 RAG 上下文注入系统提示
+            const ragContext = ragResult.sources
+              .map(
+                (doc) =>
+                  `<document source="${doc.metadata?.source || 'unknown'}">\n${doc.pageContent}\n</document>`,
+              )
+              .join('\n')
+
+            enhancedPrompt += `\n\n## 相关文档参考\n请基于以下检索到的文档回答问题，如果文档中没有相关信息，请说明。\n<documents>\n${ragContext}\n</documents>`
+
+            console.log(
+              `[ChatbotService:RAG] Retrieved ${ragResult.sources.length} documents for context`,
+            )
+          }
+        } catch (error) {
+          console.warn(
+            '[ChatbotService:RAG] Retrieval failed, continuing without RAG context:',
+            error,
+          )
+        }
+      }
+
+      // 7. 检查是否已有 SystemMessage（避免重复注入）
       const hasSystemMessage = messagesToSend.some((msg) => msg._getType() === 'system')
 
       if (!hasSystemMessage) {
-        // 首次对话，注入系统指令
         messagesToSend = [new SystemMessage(enhancedPrompt), ...messagesToSend]
       }
 
-      console.log('[ChatbotService] Invoking model with', messagesToSend.length, 'messages')
+      console.log('[ChatbotService:RAG] Invoking model with', messagesToSend.length, 'messages')
 
       try {
         const res = await model.invoke(messagesToSend)
-        console.log('[ChatbotService] Model response received')
+        console.log('[ChatbotService:RAG] Model response received')
         return { messages: [res] }
       } catch (error) {
-        console.error('[ChatbotService] Model invoke error:', error)
+        console.error('[ChatbotService:RAG] Model invoke error:', error)
         throw error
       }
     }
@@ -243,17 +425,29 @@ export class ChatbotService implements OnModuleInit {
     const cacheKey = `${modelId}-${(toolIds || []).sort().join(',')}`
 
     if (!this.appCache.has(cacheKey)) {
-      // FIFO 淘汰策略
-      if (this.appCache.size >= this.MAX_CACHE_SIZE) {
-        const firstKey = this.appCache.keys().next().value as string | undefined
-        if (firstKey) {
-          this.appCache.delete(firstKey)
-          console.log(`[ChatbotService] Cache evicted: ${firstKey}`)
-        }
-      }
-
+      this.evictCacheIfNeeded()
       console.log(`[ChatbotService] Creating app for: ${cacheKey}`)
       this.appCache.set(cacheKey, this.compileWorkflow(modelId))
+    }
+    return this.appCache.get(cacheKey)!
+  }
+
+  /**
+   * 获取 RAG 增强的 App 实例（带缓存）
+   * 在普通聊天基础上增加文档检索上下文
+   *
+   * @param modelId 模型 ID
+   * @param collection RAG 文档集合名称
+   * @param toolIds 可选的工具 ID 列表
+   */
+  getRagApp(modelId: string = 'gpt-4o', collection: string = 'default', toolIds?: string[]) {
+    // RAG 模式使用独立的缓存 key
+    const cacheKey = `rag:${collection}:${modelId}-${(toolIds || []).sort().join(',')}`
+
+    if (!this.appCache.has(cacheKey)) {
+      this.evictCacheIfNeeded()
+      console.log(`[ChatbotService] Creating RAG app for: ${cacheKey}`)
+      this.appCache.set(cacheKey, this.compileRagWorkflow(modelId, collection))
     }
     return this.appCache.get(cacheKey)!
   }

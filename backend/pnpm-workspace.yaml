@@ -1,6 +1,7 @@
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@prisma/engines'
+  - msgpackr-extract
   - prisma
   - protobufjs
   - unrs-resolver
