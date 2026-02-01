@@ -208,3 +208,66 @@ model EpisodicMemory {
   @@index([expiresAt])
   @@map("episodic_memories")
 }
+
+/// 核心记忆块 - Agent 可编辑的上下文内记忆
+/// 参考 Letta 的 Block 设计，支持 persona/human 等标签
+model MemoryBlock {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  agentId     String?   @map("agent_id")
+  label       String                        // 'persona' | 'human' | custom
+  value       String    @db.Text @default("")
+  limit       Int       @default(20000)     // 字符限制
+  readonly    Boolean   @default(false)     // 是否只读
+  description String?   @db.Text
+  metadata    Json?                         // 扩展元数据
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  history     MemoryBlockHistory[]
+
+  @@unique([userId, label])
+  @@index([userId])
+  @@index([agentId])
+  @@map("memory_blocks")
+}
+
+/// 记忆历史 - 追踪所有记忆变更
+/// 支持 episodic/block/store 三种类型的记忆历史
+model MemoryHistory {
+  id            String   @id @default(cuid())
+  memoryId      String   @map("memory_id")
+  memoryType    String   @map("memory_type") // 'episodic' | 'block' | 'store'
+  userId        String   @map("user_id")
+  event         String   // 'ADD' | 'UPDATE' | 'DELETE' | 'NONE'
+  previousValue String?  @db.Text @map("previous_value")
+  newValue      String?  @db.Text @map("new_value")
+  actorId       String?  @map("actor_id") // 'user' | 'agent' | 'system'
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([memoryId])
+  @@index([userId])
+  @@index([userId, memoryType])
+  @@index([createdAt])
+  @@map("memory_history")
+}
+
+/// 记忆块变更历史 - 追踪 Core Memory 的所有编辑
+model MemoryBlockHistory {
+  id            String      @id @default(cuid())
+  blockId       String      @map("block_id")
+  block         MemoryBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  userId        String      @map("user_id")
+  label         String
+  event         String      // 'APPEND' | 'REPLACE' | 'RETHINK' | 'DELETE'
+  previousValue String      @db.Text @map("previous_value")
+  newValue      String      @db.Text @map("new_value")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@index([blockId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("memory_block_history")
+}
+

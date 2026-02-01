@@ -1,10 +1,14 @@
+import { Global, Module, forwardRef } from '@nestjs/common'
+
 import { RedisModule } from '@/infrastructure/redis/redis.module'
 import { RagModule } from '@/modules/rag/rag.module'
-import { Global, Module, forwardRef } from '@nestjs/common'
+
 import { HistoryOptimizerService } from './history-optimizer.service'
+import { MemoryBlockService } from './memory-block.service'
 import { MemoryExtractionProcessor } from './memory-extraction.processor'
 import { MemoryExtractionService } from './memory-extraction.service'
 import { MemoryStoreService } from './memory-store.service'
+import { SummarizerService } from './summarizer.service'
 import { UnifiedMemoryService } from './unified-memory.service'
 
 @Global()
@@ -19,12 +23,16 @@ import { UnifiedMemoryService } from './unified-memory.service'
     MemoryExtractionService,
     MemoryExtractionProcessor,
     UnifiedMemoryService,
+    MemoryBlockService,
+    SummarizerService,
   ],
   exports: [
     MemoryStoreService,
     HistoryOptimizerService,
     MemoryExtractionService,
     UnifiedMemoryService,
+    MemoryBlockService,
+    SummarizerService,
   ],
 })
 export class MemoryModule {}
