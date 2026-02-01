@@ -29,7 +29,7 @@ export function ScrollToBottom() {
         onClick={() => scrollToBottom()}
         className="border-2 border-foreground shadow-[2px_2px_0_0_hsl(var(--foreground))] hover:shadow-[4px_4px_0_0_hsl(var(--foreground))] hover:-translate-x-[1px] hover:-translate-y-[1px] transition-all"
       >
-        <ArrowDown className="h-4 w-4 mr-2" />
+        <ArrowDown className="h-4 w-4 mr-2" aria-hidden="true" />
         滚动到底部
       </Button>
     </motion.div>

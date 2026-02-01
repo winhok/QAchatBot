@@ -10,6 +10,16 @@ export interface ChatSearchParams {
 }
 
 /**
+ * Validate and parse search params for chat routes
+ * Ensures type safety without runtime type assertions
+ */
+export function validateChatSearch(search: Record<string, unknown>): ChatSearchParams {
+  return {
+    hideToolCalls: search.hideToolCalls === true || search.hideToolCalls === 'true',
+  }
+}
+
+/**
  * Hook to read and update search params using Tanstack Router
  * Provides type-safe access to URL query parameters
  * Note: Routes must define validateSearch for type safety
@@ -18,7 +28,7 @@ export function useChatSearchParams() {
   const navigate = useNavigate()
   // Search params are validated by route's validateSearch function
   // Using strict: false allows this hook to work across all routes
-  const search = useSearch({ strict: false }) as ChatSearchParams
+  const search = useSearch({ strict: false })
 
   // Use ref to avoid callback dependency on search value (rerender-functional-setstate pattern)
   const searchRef = useRef(search)

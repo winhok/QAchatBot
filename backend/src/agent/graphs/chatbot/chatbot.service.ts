@@ -500,6 +500,59 @@ export class ChatbotService implements OnModuleInit {
     }
   }
 
+  /**
+   * Get full thread history with state and parent checkpoint relationships
+   * This mimics the LangGraph SDK's getHistory returning ThreadState[]
+   */
+  async getThreadHistory(threadId: string, limit: number = 20) {
+    const config = { configurable: { thread_id: threadId } }
+    const history: Array<{
+      values: unknown
+      checkpoint: { thread_id: string; checkpoint_id: string; checkpoint_ns: string }
+      parent_checkpoint?: { thread_id: string; checkpoint_id: string; checkpoint_ns: string }
+      metadata: unknown
+      created_at: string | undefined
+      tasks: unknown[]
+      next: string[]
+    }> = []
+
+    const app = this.getApp() // Get default app to access history
+
+    // Using the graph's history method - returns AsyncIterableIterator
+    const stateHistory = app.getStateHistory(config, { limit })
+
+    for await (const snapshot of stateHistory) {
+      const checkpoint = snapshot.config.configurable
+      if (!checkpoint?.checkpoint_id) continue
+
+      const parentCheckpointId = snapshot.parentConfig?.configurable?.checkpoint_id as
+        | string
+        | undefined
+
+      history.push({
+        values: snapshot.values,
+        checkpoint: {
+          thread_id: threadId,
+          checkpoint_id: checkpoint.checkpoint_id as string,
+          checkpoint_ns: (checkpoint.checkpoint_ns as string) || '',
+        },
+        parent_checkpoint: parentCheckpointId
+          ? {
+              thread_id: threadId,
+              checkpoint_id: parentCheckpointId,
+              checkpoint_ns: (checkpoint.checkpoint_ns as string) || '',
+            }
+          : undefined,
+        metadata: snapshot.metadata,
+        created_at: snapshot.createdAt,
+        tasks: snapshot.tasks,
+        next: snapshot.next,
+      })
+    }
+
+    return history
+  }
+
   private async buildMessageCheckpointMap(
     app: ReturnType<typeof this.compileWorkflow>,
     config: { configurable: { thread_id: string; checkpoint_id?: string } },

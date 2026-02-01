@@ -100,23 +100,37 @@ export function MessageBubble({
               {/* 渲染视频/音频 */}
               {mediaUrls.length > 0 && (
                 <div className="space-y-2 mb-3">
-                  {mediaUrls.map((media, idx) =>
-                    media.mimeType.startsWith('video/') ? (
-                      <video
-                        key={idx}
-                        controls
-                        width={448}
-                        height={252}
-                        className="max-w-md rounded-lg"
-                      >
-                        <source src={media.url} type={media.mimeType} />
-                      </video>
-                    ) : media.mimeType.startsWith('audio/') ? (
-                      <audio key={idx} controls className="w-full max-w-md">
-                        <source src={media.url} type={media.mimeType} />
-                      </audio>
-                    ) : null,
-                  )}
+                  {mediaUrls.map((media, idx) => {
+                    if (media.mimeType.startsWith('video/')) {
+                      return (
+                        <video
+                          key={idx}
+                          controls
+                          width={448}
+                          height={252}
+                          className="max-w-md rounded-lg"
+                          aria-label={`视频 ${idx + 1}`}
+                        >
+                          <source src={media.url} type={media.mimeType} />
+                          您的浏览器不支持视频播放
+                        </video>
+                      )
+                    }
+                    if (media.mimeType.startsWith('audio/')) {
+                      return (
+                        <audio
+                          key={idx}
+                          controls
+                          className="w-full max-w-md"
+                          aria-label={`音频 ${idx + 1}`}
+                        >
+                          <source src={media.url} type={media.mimeType} />
+                          您的浏览器不支持音频播放
+                        </audio>
+                      )
+                    }
+                    return null
+                  })}
                 </div>
               )}
 

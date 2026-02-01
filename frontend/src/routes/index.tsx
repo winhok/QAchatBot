@@ -1,25 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { validateChatSearch } from '@/lib/searchParams'
 import { ChatHeader } from '@/components/chat/ChatHeader'
 import { ChatInput } from '@/components/chat/ChatInput'
 import { WelcomeScreen } from '@/components/chat/WelcomeScreen'
 import { useInvalidateSessions, useRegisterChatHotkeys } from '@/hooks'
-import type { ChatSearchParams } from '@/lib/searchParams'
 import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 
-/**
- * Validate and parse search params for chat routes
- * Ensures type safety without runtime type assertions
- */
-function validateSearch(search: Record<string, unknown>): ChatSearchParams {
-  return {
-    hideToolCalls: search.hideToolCalls === true || search.hideToolCalls === 'true',
-  }
-}
-
 export const Route = createFileRoute('/')({
   component: HomePage,
-  validateSearch,
+  validateSearch: validateChatSearch,
 })
 
 function HomePage() {

@@ -19,7 +19,9 @@
   text-decoration: none;
   font-weight: 500;
   border-bottom: 2px solid currentColor;
-  transition: color 0.15s ease, border-bottom-width 0.15s ease;
+  transition:
+    color 0.15s ease,
+    border-bottom-width 0.15s ease;
 }
 
 .markdown-body a:hover {

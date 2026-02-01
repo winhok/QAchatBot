@@ -77,8 +77,9 @@ export function FeedbackButtons({
               className="h-7 w-7"
               disabled={isSubmitting}
               onClick={() => sendFeedback(1)}
+              aria-label="好的回答"
             >
-              <ThumbsUp className="h-3.5 w-3.5" />
+              <ThumbsUp className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="text-xs">
@@ -94,8 +95,9 @@ export function FeedbackButtons({
               className="h-7 w-7"
               disabled={isSubmitting}
               onClick={() => sendFeedback(-1)}
+              aria-label="需要改进"
             >
-              <ThumbsDown className="h-3.5 w-3.5" />
+              <ThumbsDown className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="text-xs">

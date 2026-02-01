@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Bot } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { StickToBottom } from 'use-stick-to-bottom'
 import { MessageBubble } from '@/components/chat/MessageBubble'
 import { ScrollToBottom } from '@/components/chat/ScrollToBottom'
@@ -15,11 +15,22 @@ import { getChatStoreState, useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 import { extractTextContent } from '@/utils/message'
 
+// TODO: Consider virtualization with @tanstack/react-virtual for conversations >50 messages
+// This would require careful integration with use-stick-to-bottom for auto-scroll behavior
+const MAX_VISIBLE_MESSAGES = 100
+
 export function MessageList() {
   const messages = useChatStore((state) => state.messages)
   const isLoading = useChatStore((state) => state.isLoading)
   const { sendMessage, abortCurrent } = useSendMessage()
   const { hideToolCalls } = useChatSearchParams()
+
+  // Limit rendered messages for performance (show most recent)
+  const visibleMessages = useMemo(
+    () =>
+      messages.length > MAX_VISIBLE_MESSAGES ? messages.slice(-MAX_VISIBLE_MESSAGES) : messages,
+    [messages],
+  )
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
   const editingMessage = messages.find((m) => m.id === editingMessageId)
@@ -110,7 +121,7 @@ export function MessageList() {
             className="space-y-8"
           >
             <AnimatePresence mode="popLayout">
-              {messages.map((message) => (
+              {visibleMessages.map((message) => (
                 <MessageBubble
                   key={message.id}
                   message={message}

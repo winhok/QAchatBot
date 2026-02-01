@@ -26,6 +26,17 @@ export class ChatController {
     private readonly mergeService: MergeService,
   ) {}
 
+  /**
+   * Validate session exists and belongs to user
+   * @throws BadRequestException if session not found
+   */
+  private async validateSession(userId: string, sessionId: string): Promise<void> {
+    const session = await this.sessionsService.findOne(userId, sessionId)
+    if (!session) {
+      throw new BadRequestException('Session not found')
+    }
+  }
+
   @Get()
   async getHistory(
     @CurrentUser('id') userId: string,
@@ -49,10 +60,7 @@ export class ChatController {
     }
 
     // Validate session exists and belongs to user
-    const session = await this.sessionsService.findOne(userId, sessionId)
-    if (!session) {
-      throw new BadRequestException('Session not found')
-    }
+    await this.validateSession(userId, sessionId)
 
     const result = await this.chatService.getHistory(sessionId, checkpointId, modelId)
     return {
@@ -127,10 +135,7 @@ export class ChatController {
     }
 
     // Validate session belongs to user
-    const session = await this.sessionsService.findOne(userId, sessionId)
-    if (!session) {
-      throw new BadRequestException('Session not found')
-    }
+    await this.validateSession(userId, sessionId)
 
     return this.chatService.getBranches(sessionId, checkpointId, modelId)
   }
@@ -142,10 +147,7 @@ export class ChatController {
     @Query('model_id') modelId?: string,
   ) {
     // Validate session belongs to user
-    const session = await this.sessionsService.findOne(userId, sessionId)
-    if (!session) {
-      throw new BadRequestException('Session not found')
-    }
+    await this.validateSession(userId, sessionId)
 
     return this.chatService.getCheckpoints(sessionId, modelId)
   }
@@ -157,10 +159,7 @@ export class ChatController {
     @Query('model_id') modelId?: string,
   ) {
     // Validate session belongs to user
-    const session = await this.sessionsService.findOne(userId, sessionId)
-    if (!session) {
-      throw new BadRequestException('Session not found')
-    }
+    await this.validateSession(userId, sessionId)
 
     const count = await this.chatService.getBranchCount(sessionId, modelId)
     return { branchCount: count }
@@ -175,10 +174,7 @@ export class ChatController {
     @Param('sessionId') sessionId: string,
     @Query('model_id') modelId?: string,
   ) {
-    const session = await this.sessionsService.findOne(userId, sessionId)
-    if (!session) {
-      throw new BadRequestException('Session not found')
-    }
+    await this.validateSession(userId, sessionId)
 
     return this.chatService.buildTree(sessionId, modelId)
   }
@@ -198,10 +194,7 @@ export class ChatController {
       throw new BadRequestException('checkpoint_a and checkpoint_b are required')
     }
 
-    const session = await this.sessionsService.findOne(userId, sessionId)
-    if (!session) {
-      throw new BadRequestException('Session not found')
-    }
+    await this.validateSession(userId, sessionId)
 
     return this.chatService.getDiff(sessionId, checkpointA, checkpointB, modelId)
   }
@@ -225,8 +218,9 @@ export class ChatController {
       return
     }
 
-    const session = await this.sessionsService.findOne(userId, sessionId)
-    if (!session) {
+    try {
+      await this.validateSession(userId, sessionId)
+    } catch {
       res.status(400).json({ error: 'Session not found' })
       return
     }
@@ -266,5 +260,11 @@ export class ChatController {
     } finally {
       res.end()
     }
+  }
+
+  @Get(':sessionId/history')
+  getThreadHistory(@Param('sessionId') sessionId: string, @Query('limit') limit = 50) {
+    // Treat sessionId as threadId
+    return this.chatService.getThreadHistory(sessionId, Number(limit))
   }
 }

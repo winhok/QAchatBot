@@ -152,6 +152,10 @@ export class ChatService {
     return this.chatbot.getDiff(threadId, checkpointA, checkpointB, modelId)
   }
 
+  getThreadHistory(threadId: string, limit = 20) {
+    return this.chatbot.getThreadHistory(threadId, limit)
+  }
+
   /**
    * Extract session name from message content
    * Supports string and multimodal array formats

@@ -125,6 +125,40 @@ export const CheckpointInfoSchema = z.object({
 })
 
 // ============================================================================
+// Thread History Schemas (LangGraph State History)
+// ============================================================================
+
+export const CheckpointSchema = z.object({
+  thread_id: z.string(),
+  checkpoint_id: z.string(),
+  checkpoint_ns: z.string(),
+  checkpoint_map: z.record(z.string(), z.unknown()).optional(),
+})
+
+export const ThreadStateSchema = z.object({
+  values: z.record(z.string(), z.unknown()),
+  next: z.array(z.string()),
+  checkpoint: CheckpointSchema,
+  metadata: z.record(z.string(), z.unknown()).optional(),
+  created_at: z.string().optional(),
+  parent_checkpoint: CheckpointSchema.optional(),
+  tasks: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        result: z.unknown().optional(),
+        error: z.string().optional(),
+        interrupts: z.array(z.unknown()).optional(),
+        checkpoint: CheckpointSchema.optional(),
+      }),
+    )
+    .optional(),
+})
+
+export const ThreadHistoryResponseSchema = z.array(ThreadStateSchema)
+
+// ============================================================================
 // Folder Schemas
 // ============================================================================
 
@@ -218,6 +252,9 @@ export type ApiResultData = z.infer<typeof ApiResultDataSchema>
 export type Message = z.infer<typeof MessageSchema>
 export type Session = z.infer<typeof SessionSchema>
 export type CheckpointInfo = z.infer<typeof CheckpointInfoSchema>
+export type Checkpoint = z.infer<typeof CheckpointSchema>
+export type ThreadState = z.infer<typeof ThreadStateSchema>
+export type ThreadHistoryResponse = z.infer<typeof ThreadHistoryResponseSchema>
 
 export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>
 export type DeleteSessionRequest = z.infer<typeof DeleteSessionRequestSchema>
