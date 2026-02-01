@@ -1,9 +1,12 @@
 import 'highlight.js/styles/github-dark.css'
 
+import { useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
+import rehypeKatex from 'rehype-katex'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 
 import type { Components } from 'react-markdown'
 
@@ -13,6 +16,20 @@ import { ImageCard } from '@/components/media/ImageCard'
 import { VideoCard } from '@/components/media/VideoCard'
 import { useCanvasArtifacts } from '@/stores/useCanvasArtifacts'
 
+// Track if KaTeX CSS has been loaded to avoid duplicate imports
+let katexCssLoaded = false
+
+/**
+ * Detect if content contains math expressions
+ * Patterns: $...$, $$...$$, \[...\], \(...\)
+ */
+function hasMathContent(content: string): boolean {
+  // Inline math: $...$  (not $$)
+  // Block math: $$...$$
+  // Display math: \[...\] or \(...\)
+  return /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)/.test(content)
+}
+
 interface MarkdownRendererProps {
   content: string
   className?: string
@@ -21,6 +38,15 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content, className = '', messageId }: MarkdownRendererProps) {
   const { getArtifact, setIsCanvasVisible, setActiveArtifactId } = useCanvasArtifacts()
+
+  // Dynamically load KaTeX CSS only when math content is detected
+  useEffect(() => {
+    if (!katexCssLoaded && hasMathContent(content)) {
+      import('katex/dist/katex.min.css').then(() => {
+        katexCssLoaded = true
+      })
+    }
+  }, [content])
 
   const handleOpenArtifact = (artifactId: string) => {
     setActiveArtifactId(artifactId)
@@ -189,8 +215,8 @@ export function MarkdownRenderer({ content, className = '', messageId }: Markdow
   return (
     <div className={`markdown-body ${className} max-w-full overflow-hidden`}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight, rehypeRaw]}
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeHighlight, rehypeKatex, rehypeRaw]}
         components={components}
       >
         {content}

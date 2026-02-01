@@ -34,7 +34,7 @@ export interface StreamAction {
  */
 export const streamSlice: StateCreator<
   ChatStore,
-  [['zustand/devtools', never]],
+  [['zustand/devtools', never], ['zustand/immer', never]],
   [],
   StreamAction
 > = (set, get) => ({

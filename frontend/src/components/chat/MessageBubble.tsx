@@ -1,9 +1,9 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Bot, User } from 'lucide-react'
 import { useMemo } from 'react'
 import type { Message } from '@/schemas'
-import { ApiResultBlock } from '@/components/message/ApiResultBlock'
 import { MarkdownRenderer } from '@/components/media/MarkdownRenderer'
+import { ApiResultBlock } from '@/components/message/ApiResultBlock'
 import { MessageActions } from '@/components/message/MessageActions'
 import { ToolCallBlock } from '@/components/message/ToolCallBlock'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -20,10 +20,17 @@ interface MessageBubbleProps {
   message: Message
   onEdit?: (messageId: string) => void
   onRegenerate?: (messageId: string) => void
+  hideToolCalls?: boolean
 }
 
-export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  onEdit,
+  onRegenerate,
+  hideToolCalls = false,
+}: MessageBubbleProps) {
   const isUser = message.role === 'user'
+  const shouldReduceMotion = useReducedMotion()
 
   // Memoize content extraction to prevent recalculation on every render
   const { textContent, imageUrls, mediaUrls, documentUrls } = useMemo(
@@ -55,9 +62,9 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
       >
         <AvatarFallback className="bg-transparent">
           {isUser ? (
-            <User className="h-4 w-4 text-muted-foreground" />
+            <User className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           ) : (
-            <Bot className="h-4 w-4 text-white" />
+            <Bot className="h-4 w-4 text-white" aria-hidden="true" />
           )}
         </AvatarFallback>
       </Avatar>
@@ -78,6 +85,9 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                       key={idx}
                       src={url}
                       alt={`Image ${idx + 1}`}
+                      width={320}
+                      height={256}
+                      loading="lazy"
                       className="max-w-xs max-h-64 rounded-lg object-cover"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none'
@@ -92,7 +102,13 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                 <div className="space-y-2 mb-3">
                   {mediaUrls.map((media, idx) =>
                     media.mimeType.startsWith('video/') ? (
-                      <video key={idx} controls className="max-w-md rounded-lg">
+                      <video
+                        key={idx}
+                        controls
+                        width={448}
+                        height={252}
+                        className="max-w-md rounded-lg"
+                      >
                         <source src={media.url} type={media.mimeType} />
                       </video>
                     ) : media.mimeType.startsWith('audio/') ? (
@@ -126,12 +142,15 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                   <MarkdownRenderer content={textContent} />
                 </div>
               )}
-              {message.isStreaming && (
+              {message.isStreaming && !shouldReduceMotion && (
                 <motion.span
                   variants={typingCursorVariants}
                   animate="animate"
                   className="inline-block w-2 h-4 bg-current ml-1"
                 />
+              )}
+              {message.isStreaming && shouldReduceMotion && (
+                <span className="inline-block w-2 h-4 bg-current ml-1" />
               )}
             </div>
             {/* 消息操作按钮 */}
@@ -143,13 +162,16 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
           </div>
         )}
 
-        {message.role === 'assistant' && message.toolCalls && message.toolCalls.length > 0 && (
-          <div className="space-y-2 w-full">
-            {message.toolCalls.map((tool) => (
-              <ToolCallBlock key={tool.id} data={tool} />
-            ))}
-          </div>
-        )}
+        {!hideToolCalls &&
+          message.role === 'assistant' &&
+          message.toolCalls &&
+          message.toolCalls.length > 0 && (
+            <div className="space-y-2 w-full">
+              {message.toolCalls.map((tool) => (
+                <ToolCallBlock key={tool.id} data={tool} />
+              ))}
+            </div>
+          )}
 
         {message.role === 'assistant' && message.apiResult && (
           <ApiResultBlock data={message.apiResult} />

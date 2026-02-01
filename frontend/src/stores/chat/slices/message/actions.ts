@@ -27,7 +27,7 @@ export interface MessageAction {
  */
 export const messageSlice: StateCreator<
   ChatStore,
-  [['zustand/devtools', never]],
+  [['zustand/devtools', never], ['zustand/immer', never]],
   [],
   MessageAction
 > = (set) => ({

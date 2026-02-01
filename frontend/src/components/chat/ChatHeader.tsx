@@ -1,5 +1,6 @@
 import { GitBranch, PanelLeft, PanelLeftClose } from 'lucide-react'
 import { useState } from 'react'
+import { HideToolCallsToggle } from '@/components/chat/HideToolCallsToggle'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { ConversationTree } from '@/components/git'
 import { Button } from '@/components/ui/button'
@@ -45,6 +46,9 @@ export function ChatHeader({ sessionId }: ChatHeaderProps) {
               <GitBranch className="h-5 w-5" />
             </Button>
           )}
+
+          {/* 隐藏工具调用切换 */}
+          <HideToolCallsToggle />
 
           <ThemeToggle />
         </div>

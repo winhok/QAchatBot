@@ -22,7 +22,7 @@ export interface ToolCallAction {
  */
 export const toolCallSlice: StateCreator<
   ChatStore,
-  [['zustand/devtools', never]],
+  [['zustand/devtools', never], ['zustand/immer', never]],
   [],
   ToolCallAction
 > = (set) => ({

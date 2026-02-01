@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router'
 import { getChatStoreState, useChatStore } from './chat'
 import { useBranchStore } from './useBranchStore'
 import { useCanvasArtifacts } from './useCanvasArtifacts'
@@ -85,6 +86,7 @@ function createCanvasParserCallbacks(sessionId: string) {
 
 export function useSendMessage() {
   const updateSessionNameMutation = useUpdateSessionName()
+  const navigate = useNavigate()
   const abortController = useChatStore((state) => state.abortController)
 
   const abortCurrent = () => {
@@ -219,7 +221,7 @@ export function useSendMessage() {
                   finalThreadId = data.session_id
                   if (isNewSession && finalThreadId) {
                     setSessionId(finalThreadId)
-                    window.history.pushState({}, '', `/${finalThreadId}`)
+                    navigate({ to: '/$threadId', params: { threadId: finalThreadId } })
                   }
                   if (finalThreadId && !hasUserMessage) {
                     updateSessionNameMutation.mutate({

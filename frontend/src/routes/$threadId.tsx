@@ -6,12 +6,24 @@ import { ChatInput } from '@/components/chat/ChatInput'
 import { MessageList } from '@/components/chat/MessageList'
 import { useChatHistory, useRegisterChatHotkeys } from '@/hooks'
 import { useInvalidateSessions } from '@/hooks/useSessions'
+import type { ChatSearchParams } from '@/lib/searchParams'
 import { useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 import { useSession } from '@/stores/useSession'
 
+/**
+ * Validate and parse search params for chat routes
+ * Ensures type safety without runtime type assertions
+ */
+function validateSearch(search: Record<string, unknown>): ChatSearchParams {
+  return {
+    hideToolCalls: search.hideToolCalls === true || search.hideToolCalls === 'true',
+  }
+}
+
 export const Route = createFileRoute('/$threadId')({
   component: ThreadPage,
+  validateSearch,
   beforeLoad: ({ params }) => {
     if (params.threadId && !isCuid(params.threadId)) {
       throw notFound()

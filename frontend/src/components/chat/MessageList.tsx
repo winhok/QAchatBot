@@ -1,14 +1,16 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Bot } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { EditMessageDialog } from '@/components/message/EditMessageDialog'
-import { LoadingIndicator } from '@/components/common/LoadingIndicator'
+import { useCallback, useState } from 'react'
+import { StickToBottom } from 'use-stick-to-bottom'
 import { MessageBubble } from '@/components/chat/MessageBubble'
-import { RegenerateDialog } from '@/components/message/RegenerateDialog'
+import { ScrollToBottom } from '@/components/chat/ScrollToBottom'
 import { StopGenerationButton } from '@/components/chat/StopGenerationButton'
+import { LoadingIndicator } from '@/components/common/LoadingIndicator'
+import { EditMessageDialog } from '@/components/message/EditMessageDialog'
+import { RegenerateDialog } from '@/components/message/RegenerateDialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { fadeInUp, loadingFadeIn, staggerContainer } from '@/lib/motion'
+import { useChatSearchParams } from '@/lib/searchParams'
 import { getChatStoreState, useChatStore } from '@/stores/chat'
 import { useSendMessage } from '@/stores/useSendMessage'
 import { extractTextContent } from '@/utils/message'
@@ -17,6 +19,7 @@ export function MessageList() {
   const messages = useChatStore((state) => state.messages)
   const isLoading = useChatStore((state) => state.isLoading)
   const { sendMessage, abortCurrent } = useSendMessage()
+  const { hideToolCalls } = useChatSearchParams()
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
   const editingMessage = messages.find((m) => m.id === editingMessageId)
@@ -24,13 +27,7 @@ export function MessageList() {
   const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null)
   const regeneratingMessage = messages.find((m) => m.id === regeneratingMessageId)
 
-  // Ref for scroll-into-view (avoids inline function recreation)
-  const scrollRef = useRef<HTMLDivElement>(null)
-
-  // Auto-scroll when messages change
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages.length])
+  // Note: Auto-scroll is now handled by StickToBottom wrapper
 
   // Stable callback - no dependencies needed
   const handleEdit = useCallback((messageId: string) => {
@@ -99,62 +96,66 @@ export function MessageList() {
   )
 
   if (messages.length === 0) {
-    return <ScrollArea className="flex-1 px-4" />
+    return <div className="flex-1 px-4" />
   }
 
   return (
     <>
-      <ScrollArea className="flex-1 px-4">
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="mx-auto max-w-3xl space-y-8 py-6"
-        >
-          <AnimatePresence mode="popLayout">
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                onEdit={handleEdit}
-                onRegenerate={handleRegenerate}
-              />
-            ))}
+      <StickToBottom className="relative flex-1 overflow-hidden px-4">
+        <StickToBottom.Content className="mx-auto max-w-3xl space-y-8 py-6 overflow-y-auto h-full scrollbar-thin">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            className="space-y-8"
+          >
+            <AnimatePresence mode="popLayout">
+              {messages.map((message) => (
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  onEdit={handleEdit}
+                  onRegenerate={handleRegenerate}
+                  hideToolCalls={hideToolCalls}
+                />
+              ))}
 
-            {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
+              {isLoading &&
+                messages.length > 0 &&
+                messages[messages.length - 1].role === 'user' && (
+                  <motion.div
+                    key="loading-indicator"
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="flex gap-3"
+                  >
+                    <Avatar className="h-8 w-8 shrink-0 bg-linear-to-br from-emerald-500 to-teal-600">
+                      <AvatarFallback className="bg-transparent">
+                        <Bot className="h-4 w-4 text-white" aria-hidden="true" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <LoadingIndicator />
+                  </motion.div>
+                )}
+            </AnimatePresence>
+
+            {isLoading && (
               <motion.div
-                key="loading-indicator"
-                variants={fadeInUp}
+                variants={loadingFadeIn}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                className="flex gap-3"
+                className="flex justify-center py-2"
               >
-                <Avatar className="h-8 w-8 shrink-0 bg-linear-to-br from-emerald-500 to-teal-600">
-                  <AvatarFallback className="bg-transparent">
-                    <Bot className="h-4 w-4 text-white" />
-                  </AvatarFallback>
-                </Avatar>
-                <LoadingIndicator />
+                <StopGenerationButton onStop={abortCurrent} isGenerating={isLoading} />
               </motion.div>
             )}
-          </AnimatePresence>
-
-          {isLoading && (
-            <motion.div
-              variants={loadingFadeIn}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="flex justify-center py-2"
-            >
-              <StopGenerationButton onStop={abortCurrent} isGenerating={isLoading} />
-            </motion.div>
-          )}
-
-          <div ref={scrollRef} />
-        </motion.div>
-      </ScrollArea>
+          </motion.div>
+        </StickToBottom.Content>
+        <ScrollToBottom />
+      </StickToBottom>
 
       {/* 编辑消息对话框 */}
       <EditMessageDialog

@@ -1,4 +1,5 @@
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
 import { shallow } from 'zustand/shallow'
 import { createWithEqualityFn } from 'zustand/traditional'
 
@@ -6,11 +7,11 @@ import { initialState } from './initialState'
 import { messageSlice } from './slices/message'
 import { streamSlice } from './slices/stream'
 import { toolCallSlice } from './slices/toolCall'
+import type { StateCreator } from 'zustand/vanilla'
 import type { ChatStoreState } from './initialState'
 import type { MessageAction } from './slices/message'
 import type { StreamAction } from './slices/stream'
 import type { ToolCallAction } from './slices/toolCall'
-import type { StateCreator } from 'zustand/vanilla'
 
 /**
  * Chat Store Action 类型
@@ -35,8 +36,12 @@ const isDevtoolsEnabled = (() => {
  * - messageSlice: 消息 CRUD 操作
  * - streamSlice: 流状态管理
  * - toolCallSlice: 工具调用操作
+ * - immer: 启用直接修改语法的不可变更新
  */
-const createStore: StateCreator<ChatStore, [['zustand/devtools', never]]> = (...params) => ({
+const createStore: StateCreator<
+  ChatStore,
+  [['zustand/devtools', never], ['zustand/immer', never]]
+> = (...params) => ({
   ...initialState,
   ...messageSlice(...params),
   ...streamSlice(...params),
@@ -45,10 +50,11 @@ const createStore: StateCreator<ChatStore, [['zustand/devtools', never]]> = (...
 
 /**
  * Chat Store 实例
+ * Middleware 顺序: immer -> devtools -> subscribeWithSelector
  */
 export const useChatStore = createWithEqualityFn<ChatStore>()(
   subscribeWithSelector(
-    devtools(createStore, {
+    devtools(immer(createStore), {
       name: 'QABot_chat',
       enabled: isDevtoolsEnabled,
     }),
